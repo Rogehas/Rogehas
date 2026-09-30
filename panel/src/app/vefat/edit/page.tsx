@@ -131,7 +131,7 @@ function VefatEditInner() {
             <div className="field"><label htmlFor="pt">Saat</label><input id="pt" type="time" value={v.prayerTime} onChange={(e) => set('prayerTime', e.target.value)} /></div>
             <div className="field"><label htmlFor="mosque">Cami</label><input id="mosque" value={v.mosque} onChange={(e) => set('mosque', e.target.value)} /></div>
             <div className="field"><label htmlFor="bp">Defin yeri</label><input id="bp" value={v.burialPlace} onChange={(e) => set('burialPlace', e.target.value)} /></div>
-            <div className="field" style={{ gridColumn: '1 / -1' }}><label htmlFor="ca">Taziye adresi (isteğe bağlı)</label><textarea id="ca" value={v.condolenceAddress} onChange={(e) => set('condolenceAddress', e.target.value)} /></div>
+            <div className="field" style={{ gridColumn: '1 / -1' }}><label htmlFor="ca">Taziye adresi (uygulamada “Yol tarifi” buraya gider; isteğe bağlı)</label><textarea id="ca" value={v.condolenceAddress} onChange={(e) => set('condolenceAddress', e.target.value)} /></div>
           </div>
 
           <label className="check" style={{ marginBottom: 20 }}>

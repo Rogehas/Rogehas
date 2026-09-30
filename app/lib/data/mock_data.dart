@@ -9,6 +9,8 @@ class MockData {
       kind: NewsKind.haber,
       title: "Tavas'ta sonbahar etkinlik takvimi açıklandı",
       meta: 'Bugün · Editör',
+      body:
+          'Sonbahar boyunca çeşitli etkinlikler düzenlenecek. Ayrıntılar yakında duyurulacak.',
       palette: ScenePalette.dusk,
     ),
     NewsItem(
@@ -16,6 +18,7 @@ class MockData {
       label: 'KESİNTİ · SU',
       title: 'Yarın 09:00–14:00 arası planlı su kesintisi',
       meta: 'Belediye · 3 saat önce',
+      body: 'Bazı mahallelerde su verilemeyecek.',
       palette: ScenePalette.sand,
     ),
     NewsItem(
@@ -123,6 +126,7 @@ class MockData {
         burial: 'Tavas Mezarlığı',
         ago: '1 sa önce',
         prayerAt: today,
+        condolenceAddress: 'Merkez Mah. Atatürk Cd. No:4',
       ),
       VefatItem(
         name: 'Mehmet Örnek',

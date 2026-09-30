@@ -11,13 +11,6 @@ class LoginScreen extends StatelessWidget {
       Navigator.of(context)
           .pushReplacement(MaterialPageRoute(builder: (_) => const Shell()));
 
-  void _soon(BuildContext context) => ScaffoldMessenger.of(context)
-      .showSnackBar(
-        const SnackBar(
-          content: Text('Google / Apple girişi Firebase bağlanınca çalışacak.'),
-        ),
-      );
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,30 +87,7 @@ class LoginScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
                     _AuthButton(
-                      label: 'Google ile devam et',
-                      background: AppColors.surface,
-                      foreground: AppColors.ink,
-                      leading: const Text(
-                        'G',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 18,
-                          color: Color(0xFF3C6FD1),
-                        ),
-                      ),
-                      onTap: () => _soon(context),
-                    ),
-                    const SizedBox(height: 12),
-                    _AuthButton(
-                      label: 'Apple ile devam et',
-                      background: AppColors.ink,
-                      foreground: Colors.white,
-                      leading: const Icon(Icons.apple, color: Colors.white),
-                      onTap: () => _soon(context),
-                    ),
-                    const SizedBox(height: 12),
-                    _AuthButton(
-                      label: 'Misafir olarak gez',
+                      label: 'Başla',
                       background: AppColors.lime,
                       foreground: AppColors.ink,
                       trailing: const Icon(
@@ -128,7 +98,7 @@ class LoginScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      "Sohbet, şikâyet ve favoriler için giriş gerekir. Devam ederek Kullanım Koşulları ve KVKK Aydınlatma Metni'ni kabul edersin.",
+                      "Haber, vefat ilanı, nöbetçi eczane, etkinlik ve rehber için giriş yapmana gerek yok.",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 12,
@@ -153,12 +123,11 @@ class _AuthButton extends StatelessWidget {
     required this.background,
     required this.foreground,
     required this.onTap,
-    this.leading,
     this.trailing,
   });
   final String label;
   final Color background, foreground;
-  final Widget? leading, trailing;
+  final Widget? trailing;
   final VoidCallback onTap;
 
   @override
@@ -175,7 +144,6 @@ class _AuthButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (leading != null) ...[leading!, const SizedBox(width: 12)],
               Text(
                 label,
                 style: TextStyle(

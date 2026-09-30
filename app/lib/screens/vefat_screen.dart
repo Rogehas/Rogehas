@@ -1,15 +1,25 @@
 import 'package:flutter/material.dart';
 
+import '../data/content_logic.dart';
 import '../data/content_repository.dart';
+import '../data/links.dart';
 import '../notifications/notification_settings.dart';
 import '../data/models.dart';
 import '../theme/app_theme.dart';
 import '../data/vefat_filter.dart';
 import '../widgets/data_stream.dart';
 import '../widgets/person_photo.dart';
+import '../widgets/share.dart';
+import '../widgets/url_opener.dart';
 
 class VefatScreen extends StatefulWidget {
-  const VefatScreen({super.key});
+  const VefatScreen({
+    super.key,
+    this.opener = defaultOpen,
+    this.share = defaultShare,
+  });
+  final UrlOpener opener;
+  final ShareFn share;
 
   @override
   State<VefatScreen> createState() => _VefatScreenState();
@@ -94,7 +104,15 @@ class _VefatScreenState extends State<VefatScreen> {
               return Column(
                 children: [
                   for (final v in items) ...[
-                    _VefatCard(v),
+                    _VefatCard(
+                      v,
+                      onDirections: () => openOrWarn(
+                        context,
+                        widget.opener,
+                        mapsLink(query: '${v.condolenceAddress} Tavas Denizli'),
+                      ),
+                      onShare: () => widget.share(vefatShareText(v)),
+                    ),
                     const SizedBox(height: 12),
                   ],
                 ],
@@ -223,8 +241,10 @@ class _Segments extends StatelessWidget {
 }
 
 class _VefatCard extends StatelessWidget {
-  const _VefatCard(this.v);
+  const _VefatCard(this.v, {required this.onDirections, required this.onShare});
   final VefatItem v;
+  final VoidCallback onDirections;
+  final VoidCallback onShare;
 
   @override
   Widget build(BuildContext context) {
@@ -308,24 +328,36 @@ class _VefatCard extends StatelessWidget {
               ),
             ],
           ),
+          if (v.condolenceAddress.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            _InfoTile(
+              Icons.home_outlined,
+              'Taziye yeri',
+              v.condolenceAddress,
+              '',
+            ),
+          ],
           const SizedBox(height: 14),
           Row(
             children: [
-              Expanded(
-                child: _Action(
-                  label: 'Yol tarifi',
-                  icon: Icons.near_me_outlined,
-                  filled: true,
-                  onTap: () {},
+              // Yol tarifi taziye adresine gider; adres girilmemişse düğme gösterilmez.
+              if (v.condolenceAddress.isNotEmpty) ...[
+                Expanded(
+                  child: _Action(
+                    label: 'Yol tarifi',
+                    icon: Icons.near_me_outlined,
+                    filled: true,
+                    onTap: onDirections,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 10),
+                const SizedBox(width: 10),
+              ],
               Expanded(
                 child: _Action(
                   label: 'Paylaş',
                   icon: Icons.share_outlined,
-                  filled: false,
-                  onTap: () {},
+                  filled: v.condolenceAddress.isEmpty,
+                  onTap: onShare,
                 ),
               ),
             ],
@@ -344,6 +376,7 @@ class _InfoTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.darkSurface2,
@@ -367,10 +400,11 @@ class _InfoTile extends StatelessWidget {
               color: AppColors.darkText,
             ),
           ),
-          Text(
-            sub,
-            style: const TextStyle(fontSize: 12, color: AppColors.darkMuted),
-          ),
+          if (sub.isNotEmpty)
+            Text(
+              sub,
+              style: const TextStyle(fontSize: 12, color: AppColors.darkMuted),
+            ),
         ],
       ),
     );

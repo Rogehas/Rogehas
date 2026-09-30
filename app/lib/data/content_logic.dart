@@ -124,3 +124,57 @@ List<String> businessCategories(List<Business> all) {
     ...present.where((c) => !order.contains(c) && c.isNotEmpty),
   ];
 }
+
+/// Türkçe harfleri ve büyük/küçük harf farkını yok sayan arama biçimi:
+/// "SÖNMEZ", "sönmez" ve "sonmez" aynı sayılır.
+String foldTr(String input) {
+  const map = {
+    'İ': 'i',
+    'I': 'i',
+    'ı': 'i',
+    'Ş': 's',
+    'ş': 's',
+    'Ğ': 'g',
+    'ğ': 'g',
+    'Ü': 'u',
+    'ü': 'u',
+    'Ö': 'o',
+    'ö': 'o',
+    'Ç': 'c',
+    'ç': 'c',
+  };
+  final b = StringBuffer();
+  for (final r in input.runes) {
+    final ch = String.fromCharCode(r);
+    b.write(map[ch] ?? ch.toLowerCase());
+  }
+  return b.toString().trim();
+}
+
+/// Başlıkta ya da metinde geçen haberler; boş arama hepsini döndürür.
+List<NewsItem> searchNews(List<NewsItem> all, String query) {
+  final q = foldTr(query);
+  if (q.isEmpty) return all;
+  return all
+      .where((n) => foldTr('${n.title} ${n.body} ${n.tagText}').contains(q))
+      .toList();
+}
+
+/// Vefat ilanının WhatsApp vb. ile paylaşılacak metni.
+String vefatShareText(VefatItem v) {
+  final prayer = [
+    if (v.prayerTime.isNotEmpty) v.prayerTime,
+    if (v.mosque.isNotEmpty) v.mosque,
+  ].join(', ');
+  final lines = <String>[
+    'Vefat: ${v.name}${v.age > 0 ? ' (${v.age})' : ''}',
+    if (v.neighborhood.isNotEmpty) 'Mahalle: ${v.neighborhood}',
+    if (prayer.isNotEmpty) 'Cenaze namazı: $prayer',
+    if (v.burial.isNotEmpty) 'Defin yeri: ${v.burial}',
+    if (v.condolenceAddress.isNotEmpty) 'Taziye yeri: ${v.condolenceAddress}',
+    '',
+    'Allah rahmet eylesin.',
+    '— Tavas uygulaması',
+  ];
+  return lines.join('\n');
+}

@@ -45,6 +45,7 @@ class VefatItem {
     required this.ago,
     this.photoUrl,
     this.prayerAt,
+    this.condolenceAddress = '',
   });
 
   final String name;
@@ -60,6 +61,9 @@ class VefatItem {
 
   /// Cenaze namazı günü; sekmelere ayırmak için.
   final DateTime? prayerAt;
+
+  /// Taziye yerinin adresi (boş olabilir). "Yol tarifi" bunu kullanır.
+  final String condolenceAddress;
 
   String get initials {
     final parts = name.trim().split(RegExp(r'\s+'));

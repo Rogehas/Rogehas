@@ -11,12 +11,15 @@ class FirebaseNoticeSettings extends NoticeSettings {
     : _fm = messaging ?? FirebaseMessaging.instance;
 
   static const _initKey = 'notif_initialized';
+  static const _schemaKey = 'notif_schema';
   static String _key(String topic) => 'notif_$topic';
 
   final SharedPreferences _prefs;
   final FirebaseMessaging _fm;
   final _controller = StreamController<NoticeMessage>.broadcast();
+  final _openedController = StreamController<NoticeMessage>.broadcast();
   StreamSubscription<RemoteMessage>? _sub;
+  StreamSubscription<RemoteMessage>? _openedSub;
   String? _problem;
 
   @override
@@ -64,21 +67,28 @@ class FirebaseNoticeSettings extends NoticeSettings {
     }
   }
 
+  static NoticeMessage? _toMessage(RemoteMessage m) {
+    final n = m.notification;
+    final topic = m.data['topic'] as String? ?? '';
+    final title = n?.title ?? '';
+    if (n == null && topic.isEmpty) return null;
+    return NoticeMessage(topic: topic, title: title, body: n?.body ?? '');
+  }
+
   @override
   Future<void> start() async {
     _sub ??= FirebaseMessaging.onMessage.listen((m) {
-      final n = m.notification;
-      if (n == null) return;
-      _controller.add(
-        NoticeMessage(
-          topic: m.data['topic'] as String? ?? '',
-          title: n.title ?? '',
-          body: n.body ?? '',
-        ),
-      );
+      if (m.notification == null) return;
+      final msg = _toMessage(m);
+      if (msg != null) _controller.add(msg);
+    });
+    _openedSub ??= FirebaseMessaging.onMessageOpenedApp.listen((m) {
+      final msg = _toMessage(m);
+      if (msg != null) _openedController.add(msg);
     });
 
     try {
+      final schema = _prefs.getInt(_schemaKey) ?? 0;
       if (!(_prefs.getBool(_initKey) ?? false)) {
         // İlk açılış: izin iste, verilirse varsayılan konulara abone ol.
         final granted = await _requestPermission();
@@ -88,9 +98,21 @@ class FirebaseNoticeSettings extends NoticeSettings {
           await _prefs.setBool(_key(t), on);
         }
         await _prefs.setBool(_initKey, true);
+        await _prefs.setInt(_schemaKey, noticePrefsSchema);
         if (!granted) _setProblem('Bildirim izni verilmedi.');
       } else {
-        // Sonraki açılışlar: abonelikleri tazele (telefon değişikliği/yeniden kurulum sonrası sağlamlık).
+        if (schema < noticePrefsSchema) {
+          // Eski sürümden geçiş: haber konusu artık seçilebilir ve (izin varsa) açık.
+          final stored = {for (final t in NoticeTopics.all) t: isEnabled(t)};
+          final migrated = migrateTopicPrefs(stored, schema);
+          for (final t in NoticeTopics.all) {
+            if (migrated[t] != stored[t]) {
+              await _prefs.setBool(_key(t), migrated[t] ?? false);
+            }
+          }
+          await _prefs.setInt(_schemaKey, noticePrefsSchema);
+        }
+        // Abonelikleri tazele (telefon değişikliği/yeniden kurulum sonrası sağlamlık).
         for (final t in NoticeTopics.all) {
           if (isEnabled(t)) await _fm.subscribeToTopic(t);
         }
@@ -100,15 +122,29 @@ class FirebaseNoticeSettings extends NoticeSettings {
       // Ağ yoksa tercihler olduğu gibi kalır; bir sonraki açılışta tekrar denenir.
       _setProblem('Bildirim kaydı yapılamadı: ${_short(e)}');
     }
+
+    // Uygulama bildirime dokunularak (kapalıyken) açıldıysa.
+    try {
+      final initial = await _fm.getInitialMessage();
+      if (initial != null) {
+        final msg = _toMessage(initial);
+        if (msg != null) _openedController.add(msg);
+      }
+    } catch (_) {}
   }
 
   @override
   Stream<NoticeMessage> get foreground => _controller.stream;
 
   @override
+  Stream<NoticeMessage> get opened => _openedController.stream;
+
+  @override
   void dispose() {
     _sub?.cancel();
+    _openedSub?.cancel();
     _controller.close();
+    _openedController.close();
     super.dispose();
   }
 }

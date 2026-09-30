@@ -17,6 +17,8 @@ function blank(userId: string, userName: string): News {
   };
 }
 
+const NOTICE_TOPIC_LABEL: Record<NewsKind, string> = { haber: 'Haberler', duyuru: 'Duyurular', kesinti: 'Kesintiler (su, elektrik)' };
+
 function NewsEditInner() {
   const id = useSearchParams().get('id') ?? 'new';
   const { user } = useSession();
@@ -58,6 +60,14 @@ function NewsEditInner() {
     try {
       const r = transitionNews(saved, 'publish', user);
       await store.upsertNews(r.news, r.notice);
+      try {
+        sessionStorage.setItem(
+          'haberFlash',
+          r.notice ? `Yayınlandı. Bildirim kuyruğa alındı: “${r.notice.title} — ${r.notice.body}”` : 'Yayınlandı. (Bildirim gönderilmedi.)',
+        );
+      } catch {
+        /* sessionStorage kapalıysa mesaj gösterilmez */
+      }
       router.push('/haberler');
     } catch (e) {
       setError((e as Error).message);
@@ -118,7 +128,7 @@ function NewsEditInner() {
             </label>
           )}
           {n.sendPush && !alreadyPublished && (
-            <div className="note"><strong>Bildirim önizlemesi:</strong> {n.kind === 'kesinti' ? `Kesinti · ${n.subLabel || '…'}` : KIND_LABEL[n.kind]} — {n.title || '…'}</div>
+            <div className="note"><strong>Kime gider:</strong> uygulamada “{NOTICE_TOPIC_LABEL[n.kind]}” bildirimini açık tutan herkese.<br /><strong>Bildirim önizlemesi:</strong> {n.kind === 'kesinti' ? `Kesinti · ${n.subLabel || '…'}` : KIND_LABEL[n.kind]} — {n.title || '…'}</div>
           )}
           {problems.length > 0 && <p className="muted" role="status">Yayınlamak için eksikler: {problems.join(' ')}</p>}
           <div className="actions" style={{ marginTop: 12 }}>

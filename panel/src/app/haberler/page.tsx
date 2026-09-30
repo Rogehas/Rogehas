@@ -24,6 +24,15 @@ export default function NewsList() {
   }, []);
   useEffect(() => {
     void refresh();
+    try {
+      const flash = sessionStorage.getItem('haberFlash');
+      if (flash) {
+        sessionStorage.removeItem('haberFlash');
+        setInfo(flash);
+      }
+    } catch {
+      /* sessionStorage kapalı */
+    }
   }, [refresh]);
   const shown = useMemo(() => items.filter((n) => kind === 'all' || n.kind === kind), [items, kind]);
 

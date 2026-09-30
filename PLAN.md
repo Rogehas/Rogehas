@@ -169,3 +169,12 @@ Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildi
 - **Yerel esnaf:** kategori süzgeci, Ara ve Yol tarifi (koordinat yoksa adrese göre arama), isteğe bağlı fotoğraf.
 - **Keşfet sekmesi** bu üç bölümün merkezi; ana sayfadaki Etkinlik / Rehber / Esnaf kısayolları da açar. Harita ve Kesintiler kısayolu henüz yok.
 - Yayınlama: kurallar ve Storage için `npm run deploy:backend`, panel için `npm run deploy`.
+
+## Ölü düğme turu (haber detayı, vefat, bildirim)
+- Haber detayı: habere dokununca metin açılır (haber/ana sayfa), arama çalışır, "Paylaş" sistem paylaşımını açar.
+- Vefat: "Yol tarifi" taziye adresine gider (adres yoksa düğme gösterilmez); "Paylaş" WhatsApp vb. için sistem paylaşımı.
+- Ana sayfa kısayolları: Kesintiler/Duyurular haberleri süzer, Harita Google Haritalar'ı açar, Bildirimler tercih penceresini açar; zil aynı pencereyi açar.
+- Henüz yapılmadığı için kaldırıldı (ölü düğme kalmasın): Şikâyet, Sohbet kısayolları; Google/Apple giriş düğmeleri. Faz 3'te geri gelecek.
+- Bildirim kök nedeni: "haber" konusu varsayılan kapalıydı ve ayarı yoktu. Artık dört konu da varsayılan açık; eski kurulumlar otomatik taşınır (şema 2). Profil sekmesinde konu anahtarları var.
+- Bildirime dokununca ilgili sekme açılır (vefat → Vefat, kesinti/duyuru → Haberler süzgeçli).
+- Panel: haber formunda "kime gider" notu, yayınlanınca listede onay mesajı, vefat formunda Taziye adresinin Yol tarifi için kullanıldığı yazıyor.

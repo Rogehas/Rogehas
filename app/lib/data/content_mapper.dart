@@ -171,6 +171,7 @@ class ContentMapper {
       ago: ago(publishedAt(m), n),
       photoUrl: _photo(m['photo']),
       prayerAt: day,
+      condolenceAddress: (m['condolenceAddress'] as String? ?? '').trim(),
     );
   }
 }

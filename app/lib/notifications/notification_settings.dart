@@ -23,8 +23,28 @@ class NoticeTopics {
 
   static const all = [vefat, haber, duyuru, kesinti];
 
-  /// İlk açılışta izin verilirse açılacak konular (haber çok sık olabilir, kapalı başlar).
-  static const defaultOn = [vefat, duyuru, kesinti];
+  /// İlk açılışta izin verilirse açılacak konular. Haber bildirimi yalnızca editör
+  /// "bildirim gönder" dediğinde gittiği için hepsi açık başlar; kullanıcı kapatabilir.
+  static const defaultOn = [vefat, haber, duyuru, kesinti];
+
+  static const labels = {
+    vefat: 'Vefat ilanları',
+    haber: 'Haberler',
+    duyuru: 'Duyurular',
+    kesinti: 'Kesintiler (su, elektrik)',
+  };
+}
+
+/// Tercih şeması: 1 = yalnızca vefat anahtarı vardı (haber hiç seçilemiyordu, hep kapalıydı),
+/// 2 = dört konu da ayarlanabilir ve haber varsayılan açık.
+const noticePrefsSchema = 2;
+
+/// Eski kurulumları yeni şemaya taşır: haber konusu hiç seçilemediği için "kapalı" olması
+/// bir tercih değildi. Bildirim izni verilmiş kullanıcılarda (başka bir konu açık) haber de açılır.
+Map<String, bool> migrateTopicPrefs(Map<String, bool> stored, int schema) {
+  if (schema >= noticePrefsSchema) return stored;
+  final permissionLikelyGranted = stored.values.any((v) => v);
+  return {...stored, if (permissionLikelyGranted) NoticeTopics.haber: true};
 }
 
 /// Bildirim tercihleri. Gerçek sürüm Firebase Cloud Messaging konularına abone olur.
@@ -42,6 +62,9 @@ abstract class NoticeSettings extends ChangeNotifier {
 
   /// Uygulama açıkken gelen bildirimler.
   Stream<NoticeMessage> get foreground;
+
+  /// Kullanıcı telefondaki bildirime dokunup uygulamayı açtığında (arka plandan ya da kapalıyken).
+  Stream<NoticeMessage> get opened;
 }
 
 /// Firebase'siz çalışma (testler, tanıtım sürümü): tercihler bellekte tutulur, bildirim gelmez.
@@ -58,6 +81,7 @@ class InMemoryNoticeSettings extends NoticeSettings {
 
   final Set<String> _on = {...NoticeTopics.defaultOn};
   final _controller = StreamController<NoticeMessage>.broadcast();
+  final _openedController = StreamController<NoticeMessage>.broadcast();
 
   @override
   bool isEnabled(String topic) => _on.contains(topic);
@@ -76,12 +100,19 @@ class InMemoryNoticeSettings extends NoticeSettings {
   @override
   Stream<NoticeMessage> get foreground => _controller.stream;
 
+  @override
+  Stream<NoticeMessage> get opened => _openedController.stream;
+
   /// Testlerde "uygulama açıkken bildirim geldi" durumunu taklit eder.
   void simulateForeground(NoticeMessage m) => _controller.add(m);
+
+  /// Testlerde "bildirime dokunuldu" durumunu taklit eder.
+  void simulateOpened(NoticeMessage m) => _openedController.add(m);
 
   @override
   void dispose() {
     _controller.close();
+    _openedController.close();
     super.dispose();
   }
 }

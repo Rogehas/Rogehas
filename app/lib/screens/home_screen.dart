@@ -9,13 +9,29 @@ import '../widgets/data_stream.dart';
 import '../widgets/news_visual.dart';
 import '../widgets/scene_art.dart';
 import 'business_screen.dart';
+import '../widgets/notice_prefs.dart';
+import '../widgets/url_opener.dart';
 import 'eczane_screen.dart';
 import 'events_screen.dart';
 import 'guide_screen.dart';
+import 'news_detail_screen.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key, required this.onOpenTab});
+  const HomeScreen({
+    super.key,
+    required this.onOpenTab,
+    required this.onOpenNews,
+    this.opener = defaultOpen,
+  });
   final ValueChanged<int> onOpenTab;
+
+  /// Haberler sekmesini verilen türe süzülmüş açar.
+  final ValueChanged<NewsKind> onOpenNews;
+  final UrlOpener opener;
+
+  void _openNews(BuildContext context, NewsItem n) =>
+      Navigator.of(context)
+          .push(MaterialPageRoute<void>(builder: (_) => NewsDetailScreen(n)));
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +39,7 @@ class HomeScreen extends StatelessWidget {
     return ListView(
       padding: EdgeInsets.zero,
       children: [
-        const _Hero(),
+        _Hero(onBell: () => showNoticePrefsSheet(context)),
         Transform.translate(
           offset: const Offset(0, -34),
           child: Padding(
@@ -34,12 +50,15 @@ class HomeScreen extends StatelessWidget {
                   source: news,
                   builder: (context, all) => all.isEmpty
                       ? const _NoNews()
-                      : _FeaturedNews(all.first, onTap: () => onOpenTab(1)),
+                      : _FeaturedNews(
+                          all.first,
+                          onTap: () => _openNews(context, all.first),
+                        ),
                 ),
                 const SizedBox(height: 14),
                 _VefatBanner(onTap: () => onOpenTab(2)),
                 const SizedBox(height: 18),
-                const _ShortcutGrid(),
+                _ShortcutGrid(onOpenNews: onOpenNews, opener: opener),
                 DataStream<List<NewsItem>>(
                   source: news,
                   builder: (context, all) {
@@ -69,7 +88,7 @@ class HomeScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         for (final n in rest) ...[
-                          _NewsRow(n, onTap: () => onOpenTab(1)),
+                          _NewsRow(n, onTap: () => _openNews(context, n)),
                           const SizedBox(height: 12),
                         ],
                       ],
@@ -96,7 +115,8 @@ String greeting(DateTime now) {
 }
 
 class _Hero extends StatelessWidget {
-  const _Hero();
+  const _Hero({required this.onBell});
+  final VoidCallback onBell;
 
   @override
   Widget build(BuildContext context) {
@@ -140,11 +160,12 @@ class _Hero extends StatelessWidget {
                 const SizedBox(width: 10),
                 Text('Tavas', style: AppTheme.display(20, color: Colors.white)),
                 const Spacer(),
-                const RoundIconButton(
+                RoundIconButton(
                   icon: Icons.notifications_none,
-                  label: 'Bildirimler',
-                  background: Color(0x29FFFFFF),
+                  label: 'Bildirim ayarları',
+                  background: const Color(0x29FFFFFF),
                   color: Colors.white,
+                  onTap: onBell,
                 ),
               ],
             ),
@@ -351,28 +372,56 @@ class _VefatBanner extends StatelessWidget {
   }
 }
 
+enum _Shortcut {
+  eczane(Icons.local_pharmacy_outlined, 'Nöbetçi\nEczane', AppColors.limeSoft),
+  rehber(Icons.menu_book_outlined, 'Rehber', AppColors.sky),
+  etkinlik(Icons.event_outlined, 'Etkinlik', AppColors.sand),
+  esnaf(Icons.storefront_outlined, 'Esnaf', AppColors.lavender),
+  kesinti(Icons.bolt_outlined, 'Kesintiler', AppColors.claySoft),
+  duyuru(Icons.campaign_outlined, 'Duyurular', AppColors.mint),
+  harita(Icons.map_outlined, 'Harita', AppColors.sky),
+  bildirim(Icons.notifications_none, 'Bildirimler', AppColors.sand);
+
+  const _Shortcut(this.icon, this.label, this.color);
+  final IconData icon;
+  final String label;
+  final Color color;
+}
+
+/// "Harita" kısayolu: telefonun harita uygulamasında Tavas'ı açar.
+final Uri tavasMapUri = Uri.https('www.google.com', '/maps/search/', {
+  'api': '1',
+  'query': 'Tavas, Denizli',
+});
+
 class _ShortcutGrid extends StatelessWidget {
-  const _ShortcutGrid();
+  const _ShortcutGrid({required this.onOpenNews, required this.opener});
+  final ValueChanged<NewsKind> onOpenNews;
+  final UrlOpener opener;
 
-  static const _tiles = [
-    (Icons.local_pharmacy_outlined, 'Nöbetçi\nEczane', AppColors.limeSoft),
-    (Icons.menu_book_outlined, 'Rehber', AppColors.sky),
-    (Icons.event_outlined, 'Etkinlik', AppColors.sand),
-    (Icons.storefront_outlined, 'Esnaf', AppColors.lavender),
-    (Icons.report_gmailerrorred_outlined, 'Şikâyet', AppColors.claySoft),
-    (Icons.chat_bubble_outline, 'Sohbet', AppColors.mint),
-    (Icons.bolt_outlined, 'Kesintiler', AppColors.sand),
-    (Icons.map_outlined, 'Harita', AppColors.sky),
-  ];
+  void _push(BuildContext context, Widget page) =>
+      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => page));
 
-  /// Etiketine göre açılacak sayfa; henüz yapılmamışsa `null`.
-  static Widget? _pageFor(String label) => switch (label) {
-    final l when l.startsWith('Nöbetçi') => const EczaneScreen(),
-    'Etkinlik' => const EventsScreen(),
-    'Rehber' => const GuideScreen(),
-    'Esnaf' => const BusinessScreen(),
-    _ => null,
-  };
+  void _run(BuildContext context, _Shortcut s) {
+    switch (s) {
+      case _Shortcut.eczane:
+        _push(context, const EczaneScreen());
+      case _Shortcut.rehber:
+        _push(context, const GuideScreen());
+      case _Shortcut.etkinlik:
+        _push(context, const EventsScreen());
+      case _Shortcut.esnaf:
+        _push(context, const BusinessScreen());
+      case _Shortcut.kesinti:
+        onOpenNews(NewsKind.kesinti);
+      case _Shortcut.duyuru:
+        onOpenNews(NewsKind.duyuru);
+      case _Shortcut.harita:
+        openOrWarn(context, opener, tavasMapUri);
+      case _Shortcut.bildirim:
+        showNoticePrefsSheet(context);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -386,49 +435,39 @@ class _ShortcutGrid extends StatelessWidget {
         mainAxisExtent: 108,
       ),
       children: [
-        for (final (icon, label, bg) in _tiles)
-          GestureDetector(
-            onTap: () {
-              final page = _pageFor(label);
-              if (page != null) {
-                Navigator.of(context)
-                    .push(MaterialPageRoute<void>(builder: (_) => page));
-                return;
-              }
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    '${label.replaceAll('\n', ' ')} sonraki fazda eklenecek.',
+        for (final s in _Shortcut.values)
+          Semantics(
+            button: true,
+            label: s.label.replaceAll('\n', ' '),
+            child: GestureDetector(
+              onTap: () => _run(context, s),
+              child: Column(
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: s.color,
+                      borderRadius: BorderRadius.circular(22),
+                    ),
+                    child: Icon(s.icon, size: 26, color: AppColors.ink),
                   ),
-                ),
-              );
-            },
-            child: Column(
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: bg,
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                  child: Icon(icon, size: 26, color: AppColors.ink),
-                ),
-                const SizedBox(height: 8),
-                Expanded(
-                  child: Text(
-                    label,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      height: 1.25,
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: Text(
+                      s.label,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        height: 1.25,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
       ],

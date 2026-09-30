@@ -28,7 +28,7 @@ void main() {
     );
     expect(find.text('Tavas cebinde.'), findsOneWidget);
 
-    await tester.tap(find.text('Misafir olarak gez'));
+    await tester.tap(find.text('Başla'));
     await tester.pumpAndSettle();
     expect(find.text("Tavas'ta bugün"), findsOneWidget);
 
@@ -61,7 +61,7 @@ void main() {
         notifications: InMemoryNoticeSettings(),
       ),
     );
-    await tester.tap(find.text('Misafir olarak gez'));
+    await tester.tap(find.text('Başla'));
     await tester.pumpAndSettle();
     await tester.tap(find.bySemanticsLabel('Vefat'));
     await tester.pumpAndSettle();
@@ -80,7 +80,7 @@ void main() {
     await tester.pumpWidget(
       TavasApp(repository: MockContentRepository(), notifications: denied),
     );
-    await tester.tap(find.text('Misafir olarak gez'));
+    await tester.tap(find.text('Başla'));
     await tester.pumpAndSettle();
     await tester.tap(find.bySemanticsLabel('Vefat'));
     await tester.pumpAndSettle();
@@ -110,7 +110,7 @@ void main() {
     await tester.pumpWidget(
       TavasApp(repository: MockContentRepository(), notifications: settings),
     );
-    await tester.tap(find.text('Misafir olarak gez'));
+    await tester.tap(find.text('Başla'));
     await tester.pumpAndSettle();
 
     settings.simulateForeground(
@@ -141,7 +141,7 @@ void main() {
         ),
       ),
     );
-    await tester.tap(find.text('Misafir olarak gez'));
+    await tester.tap(find.text('Başla'));
     await tester.pumpAndSettle();
     await tester.tap(find.bySemanticsLabel('Vefat'));
     await tester.pumpAndSettle();
@@ -161,7 +161,7 @@ void main() {
           notifications: InMemoryNoticeSettings(),
         ),
       );
-      await tester.tap(find.text('Misafir olarak gez'));
+      await tester.tap(find.text('Başla'));
       await tester.pumpAndSettle();
 
       expect(
@@ -185,7 +185,7 @@ void main() {
         notifications: InMemoryNoticeSettings(),
       ),
     );
-    await tester.tap(find.text('Misafir olarak gez'));
+    await tester.tap(find.text('Başla'));
     await tester.pumpAndSettle();
     expect(find.text('Henüz haber yok.'), findsOneWidget);
   });
@@ -210,7 +210,7 @@ void main() {
         notifications: InMemoryNoticeSettings(),
       ),
     );
-    await tester.tap(find.text('Misafir olarak gez'));
+    await tester.tap(find.text('Başla'));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Nöbetçi\nEczane'));
     await tester.tap(find.text('Nöbetçi\nEczane'));
@@ -232,7 +232,7 @@ void main() {
           notifications: InMemoryNoticeSettings(),
         ),
       );
-      await tester.tap(find.text('Misafir olarak gez'));
+      await tester.tap(find.text('Başla'));
       await tester.pumpAndSettle();
 
       for (final (tile, content) in [
@@ -261,7 +261,7 @@ void main() {
         notifications: InMemoryNoticeSettings(),
       ),
     );
-    await tester.tap(find.text('Misafir olarak gez'));
+    await tester.tap(find.text('Başla'));
     await tester.pumpAndSettle();
     await tester.tap(find.bySemanticsLabel('Keşfet'));
     await tester.pumpAndSettle();

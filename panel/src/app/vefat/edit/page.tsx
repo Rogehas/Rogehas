@@ -1,6 +1,6 @@
 'use client';
-import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 import { Shell } from '@/components/Shell';
 import { canEditVefat } from '@/lib/permissions';
 import { resizePhoto } from '@/lib/image';
@@ -31,8 +31,8 @@ function blank(userId: string, userName: string): Vefat {
   };
 }
 
-export default function VefatEdit() {
-  const { id } = useParams<{ id: string }>();
+function VefatEditInner() {
+  const id = useSearchParams().get('id') ?? 'new';
   const { user } = useSession();
   const router = useRouter();
   const isNew = id === 'new';
@@ -155,5 +155,14 @@ export default function VefatEdit() {
         </div>
       )}
     </Shell>
+  );
+}
+
+/** Statik yayın (Firebase Hosting) için adres parametresi okunurken Suspense gerekir. */
+export default function VefatEdit() {
+  return (
+    <Suspense fallback={null}>
+      <VefatEditInner />
+    </Suspense>
   );
 }

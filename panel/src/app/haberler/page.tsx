@@ -42,7 +42,7 @@ export default function NewsList() {
   }
 
   return (
-    <Shell section="haber" title="Haberler" actions={<Link className="btn dark" href="/haberler/new">+ Yeni haber</Link>}>
+    <Shell section="haber" title="Haberler" actions={<Link className="btn dark" href="/haberler/edit">+ Yeni haber</Link>}>
       {error && <div className="err" role="alert">{error}</div>}
       {info && <div className="note" role="status">{info}</div>}
       <div className="tabs" role="tablist">
@@ -65,7 +65,7 @@ export default function NewsList() {
               </div>
             </div>
             <div className="actions">
-              {canEditNews(user, n) && <Link className="btn sm" href={`/haberler/${n.id}`}>Düzenle</Link>}
+              {canEditNews(user, n) && <Link className="btn sm" href={`/haberler/edit?id=${n.id}`}>Düzenle</Link>}
               {canPublishNews(user, n) && <button className="btn sm lime" onClick={() => run(n, 'publish')}>Yayınla</button>}
               {canArchiveNews(user, n) && <button className="btn sm" onClick={() => run(n, 'archive')}>Arşivle</button>}
             </div>

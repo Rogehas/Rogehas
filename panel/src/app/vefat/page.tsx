@@ -66,7 +66,7 @@ export default function VefatList() {
       section="vefat"
       title="Vefat ilanları"
       actions={
-        <Link className="btn dark" href="/vefat/new">
+        <Link className="btn dark" href="/vefat/edit">
           + Yeni ilan
         </Link>
       }
@@ -102,7 +102,7 @@ export default function VefatList() {
             </div>
             <div className="actions">
               {canEditVefat(user, v) && (
-                <Link className="btn sm" href={`/vefat/${v.id}`}>Düzenle</Link>
+                <Link className="btn sm" href={`/vefat/edit?id=${v.id}`}>Düzenle</Link>
               )}
               {canApproveVefat(user, v) && (
                 <>

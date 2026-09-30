@@ -1,6 +1,6 @@
 'use client';
-import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 import { Shell } from '@/components/Shell';
 import { resizePhoto } from '@/lib/image';
 import { applyNewsEdit, transitionNews, validateNews } from '@/lib/news-rules';
@@ -17,8 +17,8 @@ function blank(userId: string, userName: string): News {
   };
 }
 
-export default function NewsEdit() {
-  const { id } = useParams<{ id: string }>();
+function NewsEditInner() {
+  const id = useSearchParams().get('id') ?? 'new';
   const { user } = useSession();
   const router = useRouter();
   const isNew = id === 'new';
@@ -128,5 +128,14 @@ export default function NewsEdit() {
         </div>
       )}
     </Shell>
+  );
+}
+
+/** Statik yayın (Firebase Hosting) için adres parametresi okunurken Suspense gerekir. */
+export default function NewsEdit() {
+  return (
+    <Suspense fallback={null}>
+      <NewsEditInner />
+    </Suspense>
   );
 }

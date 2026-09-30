@@ -125,3 +125,10 @@ Panel artık gerçek Firebase'e bağlı (Auth: Google + e-posta/şifre, Firestor
 - Uygulamada okuma sorguları mutlaka `where status == 'published'` içermeli.
 
 Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildirimi (Cloud Functions + FCM), mobil uygulamayı Firebase'e bağlama.
+
+## Panelin yayınlanması (Firebase Hosting, ücretsiz plan)
+
+- Panel statik dosya olarak derlenir (`output: 'export'`, `panel/out`) ve Firebase Hosting'e yüklenir: `https://tavas-4f166.web.app`
+- Düzenleme sayfaları adres parametresiyle çalışır: `/vefat/edit?id=…`, `/haberler/edit?id=…` (yeni kayıt için `id` yok).
+- Yayınlama: `cd panel && npm install && npm run deploy` (önce bir kez `npx firebase login`).
+- Giriş için `tavas-4f166.web.app` alan adı Firebase Authentication'da varsayılan olarak yetkilidir.

@@ -157,3 +157,4 @@ Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildi
 - Yayınlama: kurallar için `npm run deploy:backend`, panel için `npm run deploy`.
 
 - Panel önbelleği: Firebase Hosting varsayılan olarak sayfaları ~1 saat önbelleğe alır; editörler yeni sürümü geç görmesin diye `firebase.json`'da `Cache-Control: no-cache` (her seferinde yeniden doğrulama) ayarlı.
+- `panel/out/` (derleme çıktısı) repoda tutulmaz (`.gitignore`); her yayında `npm run deploy` yeniden derler. Bir ara yanlışlıkla commit edilmişti, takipten çıkarıldı.

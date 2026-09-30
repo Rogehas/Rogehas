@@ -71,13 +71,16 @@ Taslaklar: https://claude.ai/artifact/4MBRqJrUnsyqChgYQkbch8 (9 ekran: Giriş, A
 
 ## İlerleme
 
-- [x] Flutter iskeleti (`app/`): tema, yüzen alt menü, örnek veri
-- [x] Giriş ekranı (misafir modu çalışıyor; Google/Apple Firebase bağlanınca)
-- [x] Ana Sayfa, Haberler (filtreli), Vefat (koyu tema, bildirim anahtarı)
-- [ ] Firebase kurulumu (Auth, Firestore, Cloud Messaging)
-- [ ] Vefat push bildirimi
-- [ ] Editör paneli (web)
-- [ ] Faz 2 ve Faz 3 ekranları
+- [x] Flutter uygulaması: giriş (misafir), Ana Sayfa, Haberler (filtreli), Vefat (koyu tema, fotoğraf) — **gerçek Firestore verisiyle**
+- [x] Editör paneli (web) — **https://tavas-4f166.web.app**: roller, davet, vefat onay akışı, haber yönetimi
+- [x] Firebase: Auth (Google + e-posta), Firestore, güvenlik kuralları (emülatörde 16 testle doğrulandı)
+- [x] Android APK GitHub Actions ile derleniyor (`.github/workflows/android-apk.yml`), telefonda denendi
+- [ ] Blaze planı → Storage (fotoğraf) ve Cloud Functions
+- [ ] Vefat/haber push bildirimi (FCM)
+- [ ] Gerçek namaz vakitleri ve hava durumu (şu an örnek veri)
+- [ ] Faz 2: nöbetçi eczane, rehber, keşfet/harita, etkinlikler
+- [ ] Faz 3: Google girişi + sohbet, şikâyet/öneri, esnaf, favoriler
+- [ ] Play Store: ikon, imza anahtarı, gizlilik politikası/KVKK, hesap silme, kapalı test
 
 Çalıştırma: `cd app && flutter pub get && flutter run` — testler: `flutter test`
 

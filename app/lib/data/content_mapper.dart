@@ -28,6 +28,33 @@ class ContentMapper {
       _date(m['updatedAt']) ??
       DateTime.fromMillisecondsSinceEpoch(0);
 
+  static Pharmacy? pharmacy(String id, Map<String, dynamic> m) {
+    if (m['active'] == false) return null; // kapatılan eczane gösterilmez
+    final name = (m['name'] as String? ?? '').trim();
+    if (name.isEmpty) return null;
+    return Pharmacy(
+      id: id,
+      name: name,
+      neighborhood: (m['neighborhood'] as String? ?? '').trim(),
+      address: (m['address'] as String? ?? '').trim(),
+      phone: (m['phone'] as String? ?? '').replaceAll(RegExp(r'\D'), ''),
+      lat: (m['lat'] as num?)?.toDouble(),
+      lng: (m['lng'] as num?)?.toDouble(),
+    );
+  }
+
+  static DutyDay? duty(Map<String, dynamic> m) {
+    final date = m['date'];
+    if (date is! String || !RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(date)) {
+      return null;
+    }
+    final ids = m['pharmacyIds'];
+    return DutyDay(
+      date: date,
+      pharmacyIds: ids is List ? ids.whereType<String>().toList() : const [],
+    );
+  }
+
   static NewsItem news(Map<String, dynamic> m, {DateTime? now}) {
     final kind = kindOf(m['kind']);
     final sub = (m['subLabel'] as String? ?? '').trim();

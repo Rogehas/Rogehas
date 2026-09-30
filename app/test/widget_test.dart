@@ -196,6 +196,28 @@ void main() {
     expect(greeting(DateTime(2026, 9, 30, 14)), 'İyi günler');
     expect(greeting(DateTime(2026, 9, 30, 20)), 'İyi akşamlar');
   });
+
+  testWidgets('ana sayfadaki Nöbetçi Eczane kısayolu eczane ekranını açar', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      TavasApp(
+        repository: MockContentRepository(),
+        notifications: InMemoryNoticeSettings(),
+      ),
+    );
+    await tester.tap(find.text('Misafir olarak gez'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Nöbetçi\nEczane'));
+    await tester.tap(find.text('Nöbetçi\nEczane'));
+    await tester.pumpAndSettle();
+    expect(find.text('Nöbetçi Eczane'), findsOneWidget);
+    expect(find.text('Örnek Eczanesi'), findsOneWidget);
+  });
 }
 
 class _NoNewsRepository extends MockContentRepository {

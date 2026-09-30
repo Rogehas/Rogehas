@@ -5,12 +5,15 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 
 import 'content_mapper.dart';
+import 'duty_logic.dart';
 import 'models.dart';
 
 /// Uygulamanın içerik kaynağı. Gerçek sürüm Firestore'dur; testlerde sahte sürüm kullanılır.
 abstract class ContentRepository {
   Stream<List<NewsItem>> watchNews();
   Stream<List<VefatItem>> watchVefat();
+  Stream<List<Pharmacy>> watchPharmacies();
+  Stream<List<DutyDay>> watchDuty();
 }
 
 /// Yalnızca `status == published` belgeleri okur (güvenlik kuralları misafire yalnızca bunu açar).
@@ -44,6 +47,31 @@ class FirestoreContentRepository implements ContentRepository {
   @override
   Stream<List<VefatItem>> watchVefat() =>
       _published('vefat', ContentMapper.vefat);
+
+  @override
+  Stream<List<Pharmacy>> watchPharmacies() {
+    return _db.collection('pharmacies').snapshots().map((snap) {
+      final list = [
+        for (final d in snap.docs) ?ContentMapper.pharmacy(d.id, d.data()),
+      ]..sort((a, b) => a.name.compareTo(b.name));
+      return list;
+    });
+  }
+
+  /// Dünden itibaren nöbet günleri (09:00'dan önce hâlâ dünün nöbeti sürer).
+  @override
+  Stream<List<DutyDay>> watchDuty() {
+    final now = DateTime.now();
+    final from = DateTime(now.year, now.month, now.day - 1);
+    final key = dutyDateKey(from);
+    return _db
+        .collection('duty')
+        .where('date', isGreaterThanOrEqualTo: key)
+        .snapshots()
+        .map(
+          (snap) => [for (final d in snap.docs) ?ContentMapper.duty(d.data())],
+        );
+  }
 }
 
 /// Firebase başlatılamazsa: sahte veri göstermek yerine hata bildirir.
@@ -56,6 +84,12 @@ class UnavailableContentRepository implements ContentRepository {
 
   @override
   Stream<List<VefatItem>> watchVefat() => Stream.error(error);
+
+  @override
+  Stream<List<Pharmacy>> watchPharmacies() => Stream.error(error);
+
+  @override
+  Stream<List<DutyDay>> watchDuty() => Stream.error(error);
 }
 
 /// Bir akışa tek kez abone olur, son değeri/hatayı saklar ve ekranlara paylaştırır
@@ -91,14 +125,20 @@ class Shared<T> {
 class ContentHub {
   ContentHub(ContentRepository repo)
     : news = Shared(repo.watchNews()),
-      vefat = Shared(repo.watchVefat());
+      vefat = Shared(repo.watchVefat()),
+      pharmacies = Shared(repo.watchPharmacies()),
+      duty = Shared(repo.watchDuty());
 
   final Shared<List<NewsItem>> news;
   final Shared<List<VefatItem>> vefat;
+  final Shared<List<Pharmacy>> pharmacies;
+  final Shared<List<DutyDay>> duty;
 
   void dispose() {
     news.dispose();
     vefat.dispose();
+    pharmacies.dispose();
+    duty.dispose();
   }
 }
 

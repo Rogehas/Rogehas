@@ -8,6 +8,7 @@ import '../widgets/common.dart';
 import '../widgets/data_stream.dart';
 import '../widgets/news_visual.dart';
 import '../widgets/scene_art.dart';
+import 'eczane_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key, required this.onOpenTab});
@@ -375,13 +376,21 @@ class _ShortcutGrid extends StatelessWidget {
       children: [
         for (final (icon, label, bg) in _tiles)
           GestureDetector(
-            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  '${label.replaceAll('\n', ' ')} sonraki fazda eklenecek.',
+            onTap: () {
+              if (label.startsWith('Nöbetçi')) {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => const EczaneScreen()),
+                );
+                return;
+              }
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    '${label.replaceAll('\n', ' ')} sonraki fazda eklenecek.',
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
             child: Column(
               children: [
                 Container(

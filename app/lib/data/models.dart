@@ -69,3 +69,32 @@ class VefatItem {
         : parts.first[0];
   }
 }
+
+class Pharmacy {
+  const Pharmacy({
+    required this.id,
+    required this.name,
+    required this.neighborhood,
+    required this.address,
+    required this.phone,
+    this.lat,
+    this.lng,
+  });
+
+  final String id;
+  final String name;
+  final String neighborhood;
+  final String address;
+
+  /// Yalnızca rakamlar (ör. 02586140000).
+  final String phone;
+  final double? lat;
+  final double? lng;
+}
+
+/// Bir günün nöbetçi eczane kimlikleri. Nöbet o günün 09:00'undan ertesi gün 09:00'una kadardır.
+class DutyDay {
+  const DutyDay({required this.date, required this.pharmacyIds});
+  final String date; // yyyy-mm-dd
+  final List<String> pharmacyIds;
+}

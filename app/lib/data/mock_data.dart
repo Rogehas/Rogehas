@@ -1,4 +1,5 @@
 import 'content_repository.dart';
+import 'duty_logic.dart';
 import 'models.dart';
 
 /// Örnek veriler: yalnızca testler ve `--dart-define=USE_MOCK=true` ile tanıtım için.
@@ -28,6 +29,33 @@ class MockData {
       title: 'Belediye hizmet saatlerinde yeni düzenleme',
       meta: '2 saat önce · Belediye',
       palette: ScenePalette.sand,
+    ),
+  ];
+
+  static const pharmacies = <Pharmacy>[
+    Pharmacy(
+      id: 'p1',
+      name: 'Örnek Eczanesi',
+      neighborhood: 'Merkez',
+      address: 'Cumhuriyet Cd. No:1',
+      phone: '02586140000',
+    ),
+    Pharmacy(
+      id: 'p2',
+      name: 'Yeni Eczanesi',
+      neighborhood: 'Yeni Mah.',
+      address: 'Atatürk Blv. No:5',
+      phone: '02586141122',
+      lat: 37.57,
+      lng: 29.07,
+    ),
+  ];
+
+  /// Bugünün nöbeti p1 + p2, yarın boş (girilmemiş).
+  static List<DutyDay> duty() => [
+    DutyDay(
+      date: dutyDateKey(currentDutyDay(DateTime.now())),
+      pharmacyIds: const ['p1', 'p2'],
     ),
   ];
 
@@ -64,4 +92,10 @@ class MockContentRepository implements ContentRepository {
 
   @override
   Stream<List<VefatItem>> watchVefat() => Stream.value(MockData.vefat());
+
+  @override
+  Stream<List<Pharmacy>> watchPharmacies() => Stream.value(MockData.pharmacies);
+
+  @override
+  Stream<List<DutyDay>> watchDuty() => Stream.value(MockData.duty());
 }

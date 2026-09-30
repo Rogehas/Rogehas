@@ -3,6 +3,17 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <!-- Android 13+ için bildirim izni. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- Telefon arama ve harita bağlantılarını açabilmek için (Android 11+ paket görünürlüğü). -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="tel" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+    </queries>
     <application
         android:label="Tavas"
         android:name="${applicationName}"

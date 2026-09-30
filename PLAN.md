@@ -80,7 +80,8 @@ Taslaklar: https://claude.ai/artifact/4MBRqJrUnsyqChgYQkbch8 (9 ekran: Giriş, A
 - [ ] Panelden fotoğraf yükleme (Storage) gerçek projede henüz denenmedi
 - [ ] Temizlik: deneme ilanları/bildirim kayıtları (Firestore `vefat`, `notices`), API anahtarı kısıtlaması
 - [x] Ana sayfa yeniden tasarlandı (Öneri A: öne çıkan haber + vefat + kısayollar + son haberler). Namaz vakitleri ve sahte hava durumu **kaldırıldı**; ileride gerçek kaynakla (Diyanet/hava API) geri eklenebilir
-- [ ] Faz 2: nöbetçi eczane, rehber, keşfet/harita, etkinlikler
+- [x] Nöbetçi eczane: panelden elle giriş (eczane kaydı + tarih aralığıyla nöbet takvimi), uygulamada Bugün/Yarın, Ara ve Yol tarifi. Nöbet günü 09:00'da değişir
+- [ ] Faz 2 (kalan): rehber, keşfet/harita, etkinlikler
 - [ ] Faz 3: Google girişi + sohbet, şikâyet/öneri, esnaf, favoriler
 - [ ] Play Store: ikon, imza anahtarı, gizlilik politikası/KVKK, hesap silme, kapalı test
 
@@ -146,3 +147,11 @@ Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildi
 - Fotoğraflar artık Firebase Storage'a yüklenir (`vefat/{id}/photo-<zaman>.jpg`, `news/...`); herkes okur, yalnızca aktif yönetici/editör yazar, 2 MB ve `image/*` sınırı.
 - Yayınlama: `cd panel && npm run deploy:backend` (fonksiyon + Firestore/Storage kuralları) ve `npm run deploy` (panel).
 - Doğrulama durumu: fonksiyonun tetiklenmesi ve mesaj üretimi emülatör/birim testlerinde doğrulandı; gerçek FCM gönderimi, Storage kuralları ve telefonda bildirim görünmesi gerçek projede denenecek (emülatör bu servisleri burada doğrulayamadı).
+
+## Nöbetçi eczane
+
+- Veri kaynağı: **panelden elle giriş** (güvenilir ve izinli; eczacı odası sitelerinden otomatik çekmek yanlış/eskimiş veri riski ve kullanım şartı sorunu taşır). Yanlış nöbetçi eczane bilgisi halk için zararlı olduğundan bilinçli tercih.
+- Firestore: `pharmacies/{id}` (ad, mahalle, adres, telefon, isteğe bağlı enlem/boylam, aktif) ve `duty/{yyyy-mm-dd}` (`pharmacyIds`). Herkes okur; yalnızca aktif yönetici/editör yazar; silme yok (eczane "kapatılır").
+- Nöbet, günün 09:00'undan ertesi gün 09:00'una kadar sürer; uygulama saat 09:00'dan önce dünün nöbetini gösterir.
+- Girilmemiş gün: uygulama "nöbet bilgisi henüz girilmedi" der (yanlış eczane göstermek yerine).
+- Yayınlama: kurallar için `npm run deploy:backend`, panel için `npm run deploy`.

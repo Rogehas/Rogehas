@@ -87,9 +87,11 @@ class FloatingNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = dark ? AppColors.darkSurface2 : AppColors.primary;
-    final accent = dark ? AppColors.darkAccent : AppColors.lime;
-    const idle = Color(0xFFA9C4BA);
+    final bg = dark ? AppColors.darkSurface2 : AppColors.surface;
+    final accent = dark ? AppColors.darkAccent : AppColors.accentText;
+    final centerFill = dark ? AppColors.darkAccent : AppColors.lime;
+    final centerIcon = dark ? AppColors.darkBg : Colors.white;
+    const idle = Color(0xFF9A9A9A);
     final center = items[centerIndex];
     return SizedBox(
       height: _height + _lift,
@@ -106,9 +108,12 @@ class FloatingNav extends StatelessWidget {
               decoration: BoxDecoration(
                 color: bg,
                 borderRadius: BorderRadius.circular(34),
+                border: Border.all(
+                  color: dark ? AppColors.darkLine : AppColors.line,
+                ),
                 boxShadow: const [
                   BoxShadow(
-                    color: Color(0x4D10201B),
+                    color: Color(0x66000000),
                     blurRadius: 32,
                     offset: Offset(0, 14),
                   ),
@@ -184,7 +189,7 @@ class FloatingNav extends StatelessWidget {
                     width: _centerSize,
                     height: _centerSize,
                     decoration: BoxDecoration(
-                      color: accent,
+                      color: centerFill,
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: dark ? AppColors.darkBg : AppColors.bg,
@@ -192,13 +197,13 @@ class FloatingNav extends StatelessWidget {
                       ),
                       boxShadow: const [
                         BoxShadow(
-                          color: Color(0x4D10201B),
+                          color: Color(0x66000000),
                           blurRadius: 24,
                           offset: Offset(0, 10),
                         ),
                       ],
                     ),
-                    child: center.build(AppColors.ink, size: 30),
+                    child: center.build(centerIcon, size: 30),
                   ),
                 ),
               ),

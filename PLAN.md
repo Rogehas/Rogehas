@@ -188,3 +188,8 @@ Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildi
 - **Moderasyon (panel → Sohbet moderasyonu):** şikâyetler, mesaj gizleme/geri açma, kişi susturma/kaldırma. Rol: moderatör veya yönetici.
 - **Firestore kuralları:** `chat`, `chatReports`, `mutes` eklendi (32 kural testi).
 - Henüz yok: Şikâyet/Öneri (ana sayfada kısayolu yok), Google/Apple girişi, e-posta doğrulaması, sohbette fotoğraf.
+
+## Görünüm: koyu tema + kırmızı vurgu (haberler.com esintisi)
+- Tüm uygulama koyu gri zeminli (`#1A1A1A`), kartlar `#262626`, vurgu kırmızı (`#A8141F` düğme/üst çubuk, `#C8102E` canlı vurgu, `#FF4B55` koyu zeminde kırmızı yazı). Vefat ekranı kendi mavi-koyu temasında kaldı.
+- Ana sayfa: ince kırmızı üst çubuk (küçük "İyi akşamlar, Tavas" + bildirim), altında kaydırmalı haber alanı.
+- Kısayollar renkli gradyanlı yuvarlak kare simgeler (Eczane yeşil, Rehber mavi, Etkinlik mor, Esnaf turuncu, Kesintiler sarı, Duyurular pembe, Harita turkuaz, Bildirimler çivit).

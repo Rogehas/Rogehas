@@ -184,7 +184,7 @@ class _NotifyCard extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeThumbColor: AppColors.ink,
+            activeThumbColor: AppColors.darkBg,
             activeTrackColor: AppColors.darkAccent,
             inactiveTrackColor: AppColors.darkSurface2,
           ),
@@ -228,7 +228,9 @@ class _Segments extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: i == index ? AppColors.ink : AppColors.darkMuted,
+                      color: i == index
+                          ? AppColors.darkBg
+                          : AppColors.darkMuted,
                     ),
                   ),
                 ),
@@ -425,7 +427,7 @@ class _Action extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = filled ? AppColors.ink : AppColors.darkText;
+    final fg = filled ? AppColors.darkBg : AppColors.darkText;
     return GestureDetector(
       onTap: onTap,
       child: Container(

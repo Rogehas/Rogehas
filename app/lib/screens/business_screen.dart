@@ -127,7 +127,11 @@ class _BusinessCard extends StatelessWidget {
         color: AppColors.limeSoft,
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Icon(_categoryIcon(b.category), size: 28, color: AppColors.ink),
+      child: Icon(
+        _categoryIcon(b.category),
+        size: 28,
+        color: AppColors.accentText,
+      ),
     );
     return Container(
       padding: const EdgeInsets.all(16),
@@ -172,7 +176,7 @@ class _BusinessCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
+                        color: AppColors.accentText,
                       ),
                     ),
                     if (b.address.isNotEmpty)
@@ -258,7 +262,7 @@ class _Action extends StatelessWidget {
       child: Container(
         height: 46,
         decoration: BoxDecoration(
-          color: filled ? AppColors.ink : Colors.transparent,
+          color: filled ? AppColors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(23),
           border: filled ? null : Border.all(color: AppColors.line, width: 1.5),
         ),

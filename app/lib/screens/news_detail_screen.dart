@@ -66,7 +66,7 @@ class NewsDetailScreen extends StatelessWidget {
             child: Container(
               height: 50,
               decoration: BoxDecoration(
-                color: AppColors.ink,
+                color: AppColors.primary,
                 borderRadius: BorderRadius.circular(25),
               ),
               child: const Row(

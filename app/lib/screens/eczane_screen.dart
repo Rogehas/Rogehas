@@ -139,7 +139,7 @@ class _Segments extends StatelessWidget {
                   height: 42,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: i == index ? AppColors.ink : Colors.transparent,
+                    color: i == index ? AppColors.primary : Colors.transparent,
                     borderRadius: BorderRadius.circular(21),
                   ),
                   child: Text(
@@ -206,7 +206,7 @@ class _PharmacyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fg = highlighted ? Colors.white : AppColors.ink;
-    final sub = highlighted ? const Color(0xFFB8D6CC) : AppColors.muted;
+    final sub = highlighted ? const Color(0xFFF3C9CD) : AppColors.muted;
     final place = [
       if (p.neighborhood.isNotEmpty) p.neighborhood,
       if (p.address.isNotEmpty) p.address,
@@ -228,13 +228,15 @@ class _PharmacyCard extends StatelessWidget {
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: highlighted ? AppColors.lime : AppColors.limeSoft,
+                  color: highlighted
+                      ? const Color(0x33FFFFFF)
+                      : AppColors.limeSoft,
                   borderRadius: BorderRadius.circular(18),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.local_pharmacy_outlined,
                   size: 26,
-                  color: AppColors.ink,
+                  color: highlighted ? Colors.white : AppColors.accentText,
                 ),
               ),
               const SizedBox(width: 14),
@@ -315,10 +317,10 @@ class _ActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final enabled = onTap != null;
     final bg = filled
-        ? (highlighted ? AppColors.lime : AppColors.ink)
+        ? (highlighted ? Colors.white : AppColors.primary)
         : Colors.transparent;
     final fg = filled
-        ? (highlighted ? AppColors.ink : Colors.white)
+        ? (highlighted ? AppColors.primary : Colors.white)
         : (highlighted ? Colors.white : AppColors.ink);
     return Semantics(
       button: true,

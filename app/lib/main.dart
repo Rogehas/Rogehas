@@ -123,7 +123,7 @@ class _TavasAppState extends State<TavasApp> {
             child: MaterialApp(
               title: 'Tavas',
               debugShowCheckedModeBanner: false,
-              theme: AppTheme.light,
+              theme: AppTheme.dark,
               // Uygulama doğrudan ana sayfada açılır; giriş yalnızca sohbet için gerekir.
               home: const Shell(),
             ),

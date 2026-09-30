@@ -182,7 +182,7 @@ class _AuthScreenState extends State<AuthScreen> {
             Text(
               _info!,
               style: const TextStyle(
-                color: AppColors.primary,
+                color: AppColors.accentText,
                 fontWeight: FontWeight.w700,
               ),
             ),

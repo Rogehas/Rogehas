@@ -76,7 +76,7 @@ class HomeScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.primary,
+                                color: AppColors.accentText,
                               ),
                             ),
                           ),
@@ -139,24 +139,51 @@ class _HeroState extends State<_Hero> {
   @override
   Widget build(BuildContext context) {
     final top = MediaQuery.paddingOf(context).top;
-    final height = 400 + top;
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
-      child: SizedBox(
-        height: height,
-        child: Stack(
-          children: [
-            const Positioned.fill(child: ColoredBox(color: AppColors.primary)),
-            Positioned.fill(
-              child: DataStream<List<NewsItem>>(
-                dark: true,
-                source: ContentScope.of(context).news,
-                builder: (context, all) {
-                  final slides = all.take(_maxSlides).toList();
-                  if (slides.isEmpty) {
-                    return const Center(
-                      child: Padding(
-                        padding: EdgeInsets.only(top: 60),
+    return Column(
+      children: [
+        // İnce kırmızı üst çubuk: küçük selamlama ve bildirim düğmesi.
+        Container(
+          color: AppColors.primary,
+          padding: EdgeInsets.fromLTRB(18, top + 8, 12, 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '${greeting(DateTime.now())}, Tavas',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              RoundIconButton(
+                icon: Icons.notifications_none,
+                label: 'Bildirim ayarları',
+                background: const Color(0x29FFFFFF),
+                color: Colors.white,
+                onTap: widget.onBell,
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 400,
+          child: Stack(
+            children: [
+              const Positioned.fill(
+                child: ColoredBox(color: AppColors.surface),
+              ),
+              Positioned.fill(
+                child: DataStream<List<NewsItem>>(
+                  dark: true,
+                  source: ContentScope.of(context).news,
+                  builder: (context, all) {
+                    final slides = all.take(_maxSlides).toList();
+                    if (slides.isEmpty) {
+                      return const Center(
                         child: Text(
                           'Henüz haber yok.',
                           style: TextStyle(
@@ -164,99 +191,76 @@ class _HeroState extends State<_Hero> {
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                      ),
-                    );
-                  }
-                  final page = _page.clamp(0, slides.length - 1);
-                  return Stack(
-                    children: [
-                      PageView.builder(
-                        controller: _controller,
-                        itemCount: slides.length,
-                        onPageChanged: (i) => setState(() => _page = i),
-                        itemBuilder: (context, i) => _Slide(
-                          slides[i],
-                          onTap: () => widget.onOpen(slides[i]),
-                        ),
-                      ),
-                      if (slides.length > 1) ...[
-                        Positioned(
-                          left: 14,
-                          top: top + 170,
-                          child: _Arrow(
-                            icon: Icons.chevron_left,
-                            label: 'Önceki haber',
-                            onTap: () =>
-                                _go((page - 1 + slides.length) % slides.length),
+                      );
+                    }
+                    final page = _page.clamp(0, slides.length - 1);
+                    return Stack(
+                      children: [
+                        PageView.builder(
+                          controller: _controller,
+                          itemCount: slides.length,
+                          onPageChanged: (i) => setState(() => _page = i),
+                          itemBuilder: (context, i) => _Slide(
+                            slides[i],
+                            onTap: () => widget.onOpen(slides[i]),
                           ),
                         ),
-                        Positioned(
-                          right: 14,
-                          top: top + 170,
-                          child: _Arrow(
-                            icon: Icons.chevron_right,
-                            label: 'Sonraki haber',
-                            onTap: () => _go((page + 1) % slides.length),
+                        if (slides.length > 1) ...[
+                          Positioned(
+                            left: 14,
+                            top: 140,
+                            child: _Arrow(
+                              icon: Icons.chevron_left,
+                              label: 'Önceki haber',
+                              onTap: () => _go(
+                                (page - 1 + slides.length) % slides.length,
+                              ),
+                            ),
                           ),
-                        ),
-                        Positioned(
-                          left: 0,
-                          right: 0,
-                          bottom: 20,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              for (var i = 0; i < slides.length; i++)
-                                AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  margin: const EdgeInsets.symmetric(
-                                    horizontal: 3.5,
-                                  ),
-                                  width: i == page ? 26 : 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(
-                                      alpha: i == page ? 1 : 0.45,
+                          Positioned(
+                            right: 14,
+                            top: 140,
+                            child: _Arrow(
+                              icon: Icons.chevron_right,
+                              label: 'Sonraki haber',
+                              onTap: () => _go((page + 1) % slides.length),
+                            ),
+                          ),
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            bottom: 20,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                for (var i = 0; i < slides.length; i++)
+                                  AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 3.5,
                                     ),
-                                    borderRadius: BorderRadius.circular(4),
+                                    width: i == page ? 26 : 8,
+                                    height: 8,
+                                    decoration: BoxDecoration(
+                                      color: i == page
+                                          ? AppColors.lime
+                                          : const Color(0x73FFFFFF),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
                                   ),
-                                ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
+                        ],
                       ],
-                    ],
-                  );
-                },
+                    );
+                  },
+                ),
               ),
-            ),
-            Positioned(
-              top: top + 14,
-              left: 20,
-              right: 16,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      '${greeting(DateTime.now())}, Tavas',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTheme.display(26, color: Colors.white),
-                    ),
-                  ),
-                  RoundIconButton(
-                    icon: Icons.notifications_none,
-                    label: 'Bildirim ayarları',
-                    background: const Color(0x29FFFFFF),
-                    color: Colors.white,
-                    onTap: widget.onBell,
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -343,19 +347,57 @@ class _Slide extends StatelessWidget {
 }
 
 enum _Shortcut {
-  eczane(Icons.local_pharmacy_outlined, 'Nöbetçi\nEczane', AppColors.limeSoft),
-  rehber(Icons.menu_book_outlined, 'Rehber', AppColors.sky),
-  etkinlik(Icons.event_outlined, 'Etkinlik', AppColors.sand),
-  esnaf(Icons.storefront_outlined, 'Esnaf', AppColors.lavender),
-  kesinti(Icons.bolt_outlined, 'Kesintiler', AppColors.claySoft),
-  duyuru(Icons.campaign_outlined, 'Duyurular', AppColors.mint),
-  harita(Icons.map_outlined, 'Harita', AppColors.sky),
-  bildirim(Icons.notifications_none, 'Bildirimler', AppColors.sand);
+  eczane(
+    Icons.local_pharmacy_rounded,
+    'Nöbetçi\nEczane',
+    Color(0xFF34D399),
+    Color(0xFF059669),
+  ),
+  rehber(
+    Icons.menu_book_rounded,
+    'Rehber',
+    Color(0xFF60A5FA),
+    Color(0xFF2563EB),
+  ),
+  etkinlik(
+    Icons.celebration_rounded,
+    'Etkinlik',
+    Color(0xFFA78BFA),
+    Color(0xFF7C3AED),
+  ),
+  esnaf(
+    Icons.storefront_rounded,
+    'Esnaf',
+    Color(0xFFFBBF24),
+    Color(0xFFEA580C),
+  ),
+  kesinti(
+    Icons.bolt_rounded,
+    'Kesintiler',
+    Color(0xFFFACC15),
+    Color(0xFFD97706),
+  ),
+  duyuru(
+    Icons.campaign_rounded,
+    'Duyurular',
+    Color(0xFFF472B6),
+    Color(0xFFDB2777),
+  ),
+  harita(Icons.map_rounded, 'Harita', Color(0xFF2DD4BF), Color(0xFF0D9488)),
+  bildirim(
+    Icons.notifications_rounded,
+    'Bildirimler',
+    Color(0xFF818CF8),
+    Color(0xFF4F46E5),
+  );
 
-  const _Shortcut(this.icon, this.label, this.color);
+  const _Shortcut(this.icon, this.label, this.light, this.deep);
   final IconData icon;
   final String label;
-  final Color color;
+
+  /// Simge karesinin gradyanındaki açık ve koyu tonlar.
+  final Color light;
+  final Color deep;
 }
 
 /// "Harita" kısayolu: telefonun harita uygulamasında Tavas'ı açar.
@@ -417,10 +459,21 @@ class _ShortcutGrid extends StatelessWidget {
                     width: 60,
                     height: 60,
                     decoration: BoxDecoration(
-                      color: s.color,
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [s.light, s.deep],
+                      ),
                       borderRadius: BorderRadius.circular(22),
+                      boxShadow: [
+                        BoxShadow(
+                          color: s.deep.withValues(alpha: 0.3),
+                          blurRadius: 14,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
                     ),
-                    child: Icon(s.icon, size: 26, color: AppColors.ink),
+                    child: Icon(s.icon, size: 30, color: Colors.white),
                   ),
                   const SizedBox(height: 8),
                   Expanded(

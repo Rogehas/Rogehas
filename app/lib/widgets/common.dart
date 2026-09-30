@@ -11,7 +11,7 @@ class TagChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (fg, bg) = switch (kind) {
-      NewsKind.haber => (AppColors.primary, AppColors.limeSoft),
+      NewsKind.haber => (AppColors.accentText, AppColors.limeSoft),
       NewsKind.duyuru => (AppColors.ink, AppColors.sky),
       NewsKind.kesinti => (AppColors.clay, AppColors.claySoft),
     };
@@ -93,7 +93,7 @@ class FilterChipPill extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 18),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected ? AppColors.ink : AppColors.surface,
+          color: selected ? AppColors.primary : AppColors.surface,
           borderRadius: BorderRadius.circular(21),
           boxShadow: selected ? null : AppTheme.cardShadow,
         ),

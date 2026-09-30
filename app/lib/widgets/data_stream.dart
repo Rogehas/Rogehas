@@ -40,7 +40,7 @@ class DataStream<T> extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 48),
           child: Center(
             child: CircularProgressIndicator(
-              color: dark ? AppColors.darkAccent : AppColors.primary,
+              color: dark ? AppColors.darkAccent : AppColors.accentText,
             ),
           ),
         );

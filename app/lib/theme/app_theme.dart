@@ -2,20 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
-  static const bg = Color(0xFFF4F1EA);
-  static const surface = Colors.white;
-  static const ink = Color(0xFF10201B);
-  static const muted = Color(0xFF5E6B66);
-  static const primary = Color(0xFF0B4D3E);
-  static const lime = Color(0xFFD4F26A);
-  static const limeSoft = Color(0xFFE6F5B0);
-  static const sand = Color(0xFFEFE4CB);
-  static const sky = Color(0xFFDCEAF2);
-  static const lavender = Color(0xFFE6E0F3);
-  static const mint = Color(0xFFD9EBDD);
-  static const clay = Color(0xFFD9532B);
-  static const claySoft = Color(0xFFFBE0D6);
-  static const line = Color(0xFFE6E1D6);
+  // Koyu tema: koyu gri zemin, kırmızı vurgu.
+  static const bg = Color(0xFF1A1A1A);
+  static const surface = Color(0xFF262626);
+  static const ink = Color(0xFFF2F2F2); // metin rengi (koyu zeminde açık)
+  static const muted = Color(0xFFA3A3A3);
+  static const primary = Color(
+    0xFFA8141F,
+  ); // düğme ve üst çubuk kırmızısı (üstünde beyaz yazı)
+  static const accentText = Color(
+    0xFFFF4B55,
+  ); // koyu zeminde kırmızı yazı/simge
+  static const lime = Color(
+    0xFFC8102E,
+  ); // canlı vurgu (seçili öğe, kendi mesajım)
+  static const limeSoft = Color(0xFF3A1F24);
+  static const sand = Color(0xFF3A3020);
+  static const sky = Color(0xFF1F2F3D);
+  static const lavender = Color(0xFF2F2742);
+  static const mint = Color(0xFF1F3A2B);
+  static const clay = Color(0xFFFF6B4A);
+  static const claySoft = Color(0xFF3E231C);
+  static const line = Color(0xFF383838);
 
   // Vefat (koyu) ekranı
   static const darkBg = Color(0xFF131A21);
@@ -29,7 +37,7 @@ class AppColors {
 
 class AppTheme {
   static const cardShadow = [
-    BoxShadow(color: Color(0x1410201B), blurRadius: 24, offset: Offset(0, 8)),
+    BoxShadow(color: Color(0x40000000), blurRadius: 24, offset: Offset(0, 8)),
   ];
 
   /// Başlıklar için Bricolage Grotesque.
@@ -45,12 +53,13 @@ class AppTheme {
     height: 1.1,
   );
 
-  static ThemeData get light {
+  static ThemeData get dark {
     final base = ThemeData(
       useMaterial3: true,
       scaffoldBackgroundColor: AppColors.bg,
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primary,
+        brightness: Brightness.dark,
         primary: AppColors.primary,
         surface: AppColors.surface,
       ),

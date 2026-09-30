@@ -434,10 +434,10 @@ class _Bubble extends StatelessWidget {
                     mine ? 'Sen' : m.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.primary,
+                      color: mine ? Colors.white : AppColors.accentText,
                     ),
                   ),
                 ),
@@ -445,9 +445,9 @@ class _Bubble extends StatelessWidget {
                 if (time.isNotEmpty)
                   Text(
                     time,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color: AppColors.muted,
+                      color: mine ? Colors.white70 : AppColors.muted,
                     ),
                   ),
                 SizedBox(
@@ -457,10 +457,10 @@ class _Bubble extends StatelessWidget {
                     padding: EdgeInsets.zero,
                     tooltip: 'Mesaj seçenekleri',
                     onPressed: onMore,
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.more_horiz,
                       size: 18,
-                      color: AppColors.muted,
+                      color: mine ? Colors.white70 : AppColors.muted,
                     ),
                   ),
                 ),

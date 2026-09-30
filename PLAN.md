@@ -79,7 +79,7 @@ Taslaklar: https://claude.ai/artifact/4MBRqJrUnsyqChgYQkbch8 (9 ekran: Giriş, A
 - [x] Vefat/haber push bildirimi (FCM): panelden yayınla → sunucu gönderir → telefona düşer (gerçek cihazda doğrulandı)
 - [ ] Panelden fotoğraf yükleme (Storage) gerçek projede henüz denenmedi
 - [ ] Temizlik: deneme ilanları/bildirim kayıtları (Firestore `vefat`, `notices`), API anahtarı kısıtlaması
-- [ ] Gerçek namaz vakitleri ve hava durumu (şu an örnek veri)
+- [x] Ana sayfa yeniden tasarlandı (Öneri A: öne çıkan haber + vefat + kısayollar + son haberler). Namaz vakitleri ve sahte hava durumu **kaldırıldı**; ileride gerçek kaynakla (Diyanet/hava API) geri eklenebilir
 - [ ] Faz 2: nöbetçi eczane, rehber, keşfet/harita, etkinlikler
 - [ ] Faz 3: Google girişi + sohbet, şikâyet/öneri, esnaf, favoriler
 - [ ] Play Store: ikon, imza anahtarı, gizlilik politikası/KVKK, hesap silme, kapalı test

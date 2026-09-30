@@ -56,14 +56,6 @@ class MockData {
       ),
     ];
   }
-
-  static const prayers = <PrayerTime>[
-    PrayerTime('İmsak', '05:14'),
-    PrayerTime('Öğle', '12:50'),
-    PrayerTime('İkindi', '16:12'),
-    PrayerTime('Akşam', '18:52', isNext: true),
-    PrayerTime('Yatsı', '20:11'),
-  ];
 }
 
 class MockContentRepository implements ContentRepository {

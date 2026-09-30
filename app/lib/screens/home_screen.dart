@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../data/content_repository.dart';
-import '../data/mock_data.dart';
 import '../data/models.dart';
+import '../data/vefat_filter.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
-import '../data/vefat_filter.dart';
 import '../widgets/data_stream.dart';
 import '../widgets/news_visual.dart';
 import '../widgets/scene_art.dart';
@@ -16,78 +15,80 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final news = ContentScope.of(context).news;
     return ListView(
       padding: EdgeInsets.zero,
       children: [
         const _Hero(),
         Transform.translate(
-          offset: const Offset(0, -46),
+          offset: const Offset(0, -34),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               children: [
-                const _PrayerCard(),
+                DataStream<List<NewsItem>>(
+                  source: news,
+                  builder: (context, all) => all.isEmpty
+                      ? const _NoNews()
+                      : _FeaturedNews(all.first, onTap: () => onOpenTab(1)),
+                ),
                 const SizedBox(height: 14),
                 _VefatBanner(onTap: () => onOpenTab(2)),
                 const SizedBox(height: 18),
                 const _ShortcutGrid(),
-                const SizedBox(height: 18),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text('Son haberler', style: AppTheme.display(24)),
-                    GestureDetector(
-                      onTap: () => onOpenTab(1),
-                      child: const Text(
-                        'Tümü',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
+                DataStream<List<NewsItem>>(
+                  source: news,
+                  builder: (context, all) {
+                    final rest = all.skip(1).take(3).toList();
+                    if (rest.isEmpty) return const SizedBox.shrink();
+                    return Column(
+                      children: [
+                        const SizedBox(height: 18),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Text('Son haberler', style: AppTheme.display(24)),
+                            GestureDetector(
+                              onTap: () => onOpenTab(1),
+                              child: const Text(
+                                'Tümü',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ),
-                  ],
+                        const SizedBox(height: 12),
+                        for (final n in rest) ...[
+                          _NewsRow(n, onTap: () => onOpenTab(1)),
+                          const SizedBox(height: 12),
+                        ],
+                      ],
+                    );
+                  },
                 ),
-                const SizedBox(height: 12),
               ],
             ),
           ),
         ),
-        Transform.translate(
-          offset: const Offset(0, -46),
-          child: SizedBox(
-            height: 236,
-            child: DataStream<List<NewsItem>>(
-              source: ContentScope.of(context).news,
-              builder: (context, all) {
-                if (all.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      'Henüz haber yok.',
-                      style: TextStyle(color: AppColors.muted),
-                    ),
-                  );
-                }
-                return ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.only(
-                    left: 16,
-                    right: 16,
-                    bottom: 4,
-                  ),
-                  children: [for (final n in all.take(5)) _NewsCard(n)],
-                );
-              },
-            ),
-          ),
-        ),
-        const SizedBox(height: 60),
+        const SizedBox(height: 90),
       ],
     );
   }
+}
+
+/// Günün saatine göre selamlama.
+String greeting(DateTime now) {
+  final h = now.hour;
+  if (h < 6) return 'İyi geceler';
+  if (h < 12) return 'Günaydın';
+  if (h < 18) return 'İyi günler';
+  return 'İyi akşamlar';
 }
 
 class _Hero extends StatelessWidget {
@@ -97,7 +98,7 @@ class _Hero extends StatelessWidget {
   Widget build(BuildContext context) {
     final top = MediaQuery.paddingOf(context).top;
     return SizedBox(
-      height: 262 + top,
+      height: 200 + top,
       child: Stack(
         children: [
           const Positioned.fill(child: ColoredBox(color: AppColors.primary)),
@@ -105,7 +106,7 @@ class _Hero extends StatelessWidget {
             left: 0,
             right: 0,
             bottom: 0,
-            height: 150,
+            height: 120,
             child: SceneArt(
               custom: [
                 AppColors.primary,
@@ -151,9 +152,9 @@ class _Hero extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'İyi akşamlar',
-                  style: TextStyle(
+                Text(
+                  greeting(DateTime.now()),
+                  style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: AppColors.lime,
@@ -162,23 +163,8 @@ class _Hero extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   "Tavas'ta bugün",
-                  style: AppTheme.display(36, color: Colors.white),
+                  style: AppTheme.display(34, color: Colors.white),
                 ),
-              ],
-            ),
-          ),
-          Positioned(
-            top: top + 162,
-            left: 20,
-            child: const Row(
-              children: [
-                _HeroChip(
-                  Icons.wb_sunny_outlined,
-                  '24° Güneşli',
-                  Color(0xFFF4C95D),
-                ),
-                SizedBox(width: 8),
-                _HeroChip(Icons.place_outlined, 'Denizli', Colors.white),
               ],
             ),
           ),
@@ -188,140 +174,85 @@ class _Hero extends StatelessWidget {
   }
 }
 
-class _HeroChip extends StatelessWidget {
-  const _HeroChip(this.icon, this.text, this.iconColor);
-  final IconData icon;
-  final String text;
-  final Color iconColor;
+/// Öne çıkan (en yeni) haber.
+class _FeaturedNews extends StatelessWidget {
+  const _FeaturedNews(this.item, {required this.onTap});
+  final NewsItem item;
+  final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => Container(
-    height: 36,
-    padding: const EdgeInsets.symmetric(horizontal: 14),
-    decoration: BoxDecoration(
-      color: const Color(0xB8083228),
-      borderRadius: BorderRadius.circular(18),
-    ),
-    child: Row(
-      children: [
-        Icon(icon, size: 18, color: iconColor),
-        const SizedBox(width: 6),
-        Text(
-          text,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-          ),
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 230,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: AppTheme.cardShadow,
         ),
-      ],
-    ),
-  );
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: NewsVisual(item, radius: 30, palette: ScenePalette.dusk),
+            ),
+            Positioned(
+              left: 10,
+              right: 10,
+              bottom: 10,
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                decoration: BoxDecoration(
+                  color: const Color(0xEB092821),
+                  borderRadius: BorderRadius.circular(22),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TagChip(item.tagText, item.kind),
+                    const SizedBox(height: 8),
+                    Text(
+                      item.title,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTheme.display(21, color: Colors.white),
+                    ),
+                    if (item.meta.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        item.meta,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFFB8CBC4),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-class _PrayerCard extends StatelessWidget {
-  const _PrayerCard();
+class _NoNews extends StatelessWidget {
+  const _NoNews();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      height: 120,
+      alignment: Alignment.center,
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(30),
         boxShadow: AppTheme.cardShadow,
       ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'SIRADAKİ VAKİT',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.muted,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text('Akşam · 18:52', style: AppTheme.display(30)),
-                  ],
-                ),
-              ),
-              Container(
-                height: 34,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                decoration: BoxDecoration(
-                  color: AppColors.lime,
-                  borderRadius: BorderRadius.circular(17),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.schedule, size: 16),
-                    SizedBox(width: 6),
-                    Text(
-                      '2 sa 10 dk',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(3),
-            child: const LinearProgressIndicator(
-              value: .62,
-              minHeight: 6,
-              backgroundColor: AppColors.line,
-              color: AppColors.primary,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              for (final p in MockData.prayers)
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    margin: const EdgeInsets.symmetric(horizontal: 1),
-                    decoration: BoxDecoration(
-                      color: p.isNext ? AppColors.ink : Colors.transparent,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          p.name,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: p.isNext ? Colors.white : AppColors.muted,
-                          ),
-                        ),
-                        Text(
-                          p.time,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: p.isNext ? Colors.white : AppColors.ink,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ],
+      child: const Text(
+        'Henüz haber yok.',
+        style: TextStyle(color: AppColors.muted, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -484,51 +415,61 @@ class _ShortcutGrid extends StatelessWidget {
   }
 }
 
-class _NewsCard extends StatelessWidget {
-  const _NewsCard(this.item);
+class _NewsRow extends StatelessWidget {
+  const _NewsRow(this.item, {required this.onTap});
   final NewsItem item;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 236,
-      margin: const EdgeInsets.only(right: 12),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(26),
-        boxShadow: AppTheme.cardShadow,
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(height: 116, child: NewsVisual(item)),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TagChip(item.tagText, item.kind),
-                const SizedBox(height: 8),
-                Text(
-                  item.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    height: 1.3,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  item.meta,
-                  style: const TextStyle(fontSize: 12, color: AppColors.muted),
-                ),
-              ],
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: AppTheme.cardShadow,
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 84,
+              height: 84,
+              child: NewsVisual(item, radius: 18),
             ),
-          ),
-        ],
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TagChip(item.tagText, item.kind),
+                  const SizedBox(height: 6),
+                  Text(
+                    item.title,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      height: 1.3,
+                    ),
+                  ),
+                  if (item.meta.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      item.meta,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.muted,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

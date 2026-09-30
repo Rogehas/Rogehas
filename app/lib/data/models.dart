@@ -69,10 +69,3 @@ class VefatItem {
         : parts.first[0];
   }
 }
-
-class PrayerTime {
-  const PrayerTime(this.name, this.time, {this.isNext = false});
-  final String name;
-  final String time;
-  final bool isNext;
-}

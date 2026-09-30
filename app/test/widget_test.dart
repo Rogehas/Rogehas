@@ -5,8 +5,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tavas/data/content_repository.dart';
 import 'package:tavas/data/mock_data.dart';
+import 'package:tavas/data/models.dart';
 import 'package:tavas/main.dart';
 import 'package:tavas/notifications/notification_settings.dart';
+import 'package:tavas/screens/home_screen.dart' show greeting;
 
 void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
@@ -145,4 +147,58 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Bildirim izni verilmedi.'), findsOneWidget);
   });
+
+  testWidgets(
+    'ana sayfada öne çıkan haber var; namaz vakti ve sahte hava yok',
+    (tester) async {
+      tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        TavasApp(
+          repository: MockContentRepository(),
+          notifications: InMemoryNoticeSettings(),
+        ),
+      );
+      await tester.tap(find.text('Misafir olarak gez'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text("Tavas'ta sonbahar etkinlik takvimi açıklandı"),
+        findsOneWidget,
+      );
+      expect(find.text('Vefat ilanları'), findsOneWidget);
+      expect(find.text('SIRADAKİ VAKİT'), findsNothing);
+      expect(find.textContaining('24°'), findsNothing);
+    },
+  );
+
+  testWidgets('haber yoksa ana sayfada boş durum mesajı çıkar', (tester) async {
+    tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      TavasApp(
+        repository: _NoNewsRepository(),
+        notifications: InMemoryNoticeSettings(),
+      ),
+    );
+    await tester.tap(find.text('Misafir olarak gez'));
+    await tester.pumpAndSettle();
+    expect(find.text('Henüz haber yok.'), findsOneWidget);
+  });
+
+  test('selamlama günün saatine göre değişir', () {
+    expect(greeting(DateTime(2026, 9, 30, 3)), 'İyi geceler');
+    expect(greeting(DateTime(2026, 9, 30, 9)), 'Günaydın');
+    expect(greeting(DateTime(2026, 9, 30, 14)), 'İyi günler');
+    expect(greeting(DateTime(2026, 9, 30, 20)), 'İyi akşamlar');
+  });
+}
+
+class _NoNewsRepository extends MockContentRepository {
+  @override
+  Stream<List<NewsItem>> watchNews() => Stream.value(const <NewsItem>[]);
 }

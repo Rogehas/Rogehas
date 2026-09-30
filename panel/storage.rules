@@ -8,8 +8,8 @@ service firebase.storage {
 
     // Vefat ve haber fotoğrafları: herkes görür, yalnızca yönetici/editör yükler.
     match /{kind}/{id}/{file} {
-      allow read: if kind in ['vefat', 'news'];
-      allow write: if kind in ['vefat', 'news'] && staff()
+      allow read: if kind in ['vefat', 'news', 'events', 'businesses'];
+      allow write: if kind in ['vefat', 'news', 'events', 'businesses'] && staff()
         && request.resource.size < 2 * 1024 * 1024
         && request.resource.contentType.matches('image/.*');
     }

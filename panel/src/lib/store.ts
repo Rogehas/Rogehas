@@ -16,7 +16,9 @@ import { db, storage, USE_STORAGE } from './firebase';
 import type { DutyDay, Invite, News, PanelUser, Pharmacy, PushNotice, Role, Vefat } from './types';
 
 /** Fotoğraf Storage açıksa yüklenip adresi saklanır; değilse veri adresi belgede kalır. */
-async function resolvePhoto(kind: 'vefat' | 'news', id: string, photo: string | null) {
+export type ContentCollection = 'events' | 'guide' | 'businesses';
+
+async function resolvePhoto(kind: 'vefat' | 'news' | 'events' | 'businesses', id: string, photo: string | null) {
   if (!photo || !photo.startsWith('data:') || !USE_STORAGE) return photo;
   const r = ref(storage, `${kind}/${id}/photo-${Date.now()}.jpg`);
   await uploadString(r, photo, 'data_url');
@@ -26,6 +28,21 @@ async function resolvePhoto(kind: 'vefat' | 'news', id: string, photo: string | 
 const byUpdated = <T extends { updatedAt: string }>(a: T, b: T) => b.updatedAt.localeCompare(a.updatedAt);
 
 export const store = {
+  // ---- etkinlik, rehber, esnaf (ortak yapı) ----
+  async listContent<T extends { id: string }>(collectionName: ContentCollection): Promise<T[]> {
+    const s = await getDocs(collection(db, collectionName));
+    return s.docs.map((d) => d.data() as T);
+  },
+
+  /** Kaydeder; `photo` alanı varsa ve yeni seçildiyse Storage'a yükler. */
+  async upsertContent<T extends { id: string; photo?: string | null }>(collectionName: ContentCollection, item: T) {
+    let saved = item;
+    if ('photo' in item && (collectionName === 'events' || collectionName === 'businesses')) {
+      saved = { ...item, photo: await resolvePhoto(collectionName, item.id, item.photo ?? null) };
+    }
+    await setDoc(doc(db, collectionName, item.id), saved);
+  },
+
   // ---- eczaneler ve nöbet takvimi ----
   async pharmacies(): Promise<Pharmacy[]> {
     const s = await getDocs(collection(db, 'pharmacies'));

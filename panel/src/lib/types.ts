@@ -83,6 +83,49 @@ export interface DutyDay {
   updatedBy: string;
 }
 
+/** Panelden girilen, uygulamada listelenen içeriklerin ortak alanları. */
+export interface ContentBase {
+  id: string;
+  /** Kapalıysa uygulamada görünmez (silme yok, "gizle" var). */
+  published: boolean;
+  updatedAt: string;
+  updatedBy: string;
+}
+
+export interface EventItem extends ContentBase {
+  title: string;
+  description: string;
+  date: string; // yyyy-mm-dd (başlangıç)
+  endDate: string; // yyyy-mm-dd, boşsa tek gün
+  time: string; // HH:MM, boş olabilir
+  place: string;
+  photo: string | null;
+}
+
+export interface GuideEntry extends ContentBase {
+  name: string;
+  category: string;
+  phone: string;
+  address: string;
+  note: string;
+  order: number;
+}
+
+export interface Business extends ContentBase {
+  name: string;
+  category: string;
+  description: string;
+  phone: string;
+  address: string;
+  hours: string;
+  lat: number | null;
+  lng: number | null;
+  photo: string | null;
+}
+
+export const GUIDE_CATEGORIES = ['Acil', 'Sağlık', 'Belediye', 'Kamu kurumu', 'Ulaşım', 'Diğer'];
+export const BUSINESS_CATEGORIES = ['Restoran', 'Kafe', 'Konaklama', 'Market', 'Hizmet', 'Sağlık', 'Diğer'];
+
 /** Telefonların abone olduğu konu: vefat / haber / duyuru / kesinti. */
 export type NoticeTopic = 'vefat' | 'haber' | 'duyuru' | 'kesinti';
 

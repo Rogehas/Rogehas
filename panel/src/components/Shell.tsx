@@ -9,9 +9,10 @@ import { ROLE_LABEL } from '@/lib/types';
 const ITEMS: { label: string; section: Section; href?: string }[] = [
   { label: 'Vefat ilanları', section: 'vefat', href: '/vefat' },
   { label: 'Haberler', section: 'haber', href: '/haberler' },
-  { label: 'Etkinlikler', section: 'etkinlik' },
+  { label: 'Etkinlikler', section: 'etkinlik', href: '/etkinlikler' },
   { label: 'Nöbetçi eczane', section: 'eczane', href: '/eczane' },
-  { label: 'Esnaf', section: 'esnaf' },
+  { label: 'Rehber', section: 'rehber', href: '/rehber' },
+  { label: 'Yerel esnaf', section: 'esnaf', href: '/esnaf' },
   { label: 'Şikâyetler', section: 'sikayet' },
   { label: 'Sohbet moderasyonu', section: 'chat' },
   { label: 'Kullanıcılar', section: 'kullanici', href: '/kullanicilar' },

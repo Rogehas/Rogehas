@@ -1,5 +1,5 @@
 import { assertFails, assertSucceeds, initializeTestEnvironment, type RulesTestEnvironment } from '@firebase/rules-unit-testing';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { deleteDoc, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { readFileSync } from 'node:fs';
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest';
 
@@ -147,5 +147,53 @@ describe('nöbetçi eczane', () => {
     await assertFails(setDoc(doc(as('ed1'), 'duty/2026-10-07'), duty('2026-10-07', { pharmacyIds: 'p1' })));
     await assertFails(setDoc(doc(as('ed1'), 'pharmacies/p4'), ph({ name: '' })));
     await assertFails(setDoc(doc(as('ed1'), 'pharmacies/p5'), ph({ active: 'evet' })));
+  });
+});
+
+describe('etkinlik, rehber ve esnaf', () => {
+  const ev = (uid: string, over = {}) => ({ title: 'Pazar', date: '2026-10-04', published: true, updatedBy: uid, ...over });
+  const gd = (uid: string, over = {}) => ({ name: 'Acil', phone: '112', published: true, updatedBy: uid, ...over });
+  const bs = (uid: string, over = {}) => ({ name: 'Lokanta', published: true, updatedBy: uid, ...over });
+
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      await setDoc(doc(db, 'events/pub'), ev('ed1'));
+      await setDoc(doc(db, 'events/hid'), ev('ed1', { published: false }));
+      await setDoc(doc(db, 'guide/pub'), gd('ed1'));
+      await setDoc(doc(db, 'guide/hid'), gd('ed1', { published: false }));
+      await setDoc(doc(db, 'businesses/pub'), bs('ed1'));
+      await setDoc(doc(db, 'businesses/hid'), bs('ed1', { published: false }));
+    });
+  });
+
+  it('misafir yalnızca yayındaki kaydı okur; gizliyi editör okur', async () => {
+    for (const c of ['events', 'guide', 'businesses']) {
+      await assertSucceeds(getDoc(doc(as(null), `${c}/pub`)));
+      await assertFails(getDoc(doc(as(null), `${c}/hid`)));
+      await assertSucceeds(getDoc(doc(as('ed1'), `${c}/hid`)));
+      await assertFails(getDoc(doc(as('mod'), `${c}/hid`)));
+    }
+  });
+
+  it('editör ve yönetici yazar, kendi kimliğini updatedBy olarak yazmalı', async () => {
+    await assertSucceeds(setDoc(doc(as('ed1'), 'events/n1'), ev('ed1')));
+    await assertSucceeds(setDoc(doc(as('adm'), 'guide/n1'), gd('adm')));
+    await assertSucceeds(setDoc(doc(as('ed2'), 'businesses/n1'), bs('ed2')));
+    await assertFails(setDoc(doc(as('ed1'), 'events/n2'), ev('adm'))); // başkası adına yazamaz
+  });
+
+  it('moderatör, misafir ve kapatılmış hesap yazamaz', async () => {
+    await assertFails(setDoc(doc(as('mod'), 'events/n3'), ev('mod')));
+    await assertFails(setDoc(doc(as(null), 'guide/n3'), gd('x')));
+    await assertFails(setDoc(doc(as('off'), 'businesses/n3'), bs('off')));
+  });
+
+  it('geçersiz veri ve silme reddedilir', async () => {
+    await assertFails(setDoc(doc(as('ed1'), 'events/n4'), ev('ed1', { title: '' })));
+    await assertFails(setDoc(doc(as('ed1'), 'events/n5'), ev('ed1', { date: '4 Ekim' })));
+    await assertFails(setDoc(doc(as('ed1'), 'guide/n4'), gd('ed1', { phone: 'x'.repeat(30) })));
+    await assertFails(setDoc(doc(as('ed1'), 'businesses/n4'), bs('ed1', { published: 'evet' })));
+    await assertFails(deleteDoc(doc(as('adm'), 'events/pub')));
   });
 });

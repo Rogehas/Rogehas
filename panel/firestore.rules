@@ -109,6 +109,36 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ---- etkinlik, rehber, yerel esnaf: yayında olanı herkes okur; yönetici/editör yazar, silme yok ----
+    function contentOk(d) {
+      return d.published is bool
+        && d.updatedBy == request.auth.uid
+        && (!('photo' in d) || d.photo == null || (d.photo is string && d.photo.size() < 700000));
+    }
+
+    match /events/{id} {
+      allow read: if resource.data.published == true || isStaff();
+      allow create, update: if isStaff() && contentOk(request.resource.data)
+        && request.resource.data.title is string && request.resource.data.title.size() > 0
+        && request.resource.data.date is string && request.resource.data.date.size() == 10;
+      allow delete: if false;
+    }
+
+    match /guide/{id} {
+      allow read: if resource.data.published == true || isStaff();
+      allow create, update: if isStaff() && contentOk(request.resource.data)
+        && request.resource.data.name is string && request.resource.data.name.size() > 0
+        && request.resource.data.phone is string && request.resource.data.phone.size() <= 20;
+      allow delete: if false;
+    }
+
+    match /businesses/{id} {
+      allow read: if resource.data.published == true || isStaff();
+      allow create, update: if isStaff() && contentOk(request.resource.data)
+        && request.resource.data.name is string && request.resource.data.name.size() > 0;
+      allow delete: if false;
+    }
+
     // ---- bildirim kayıtları (sunucu kodu bunları telefonlara gönderecek) ----
     match /notices/{id} {
       allow read: if isStaff();

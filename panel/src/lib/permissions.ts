@@ -7,13 +7,14 @@ export type Section =
   | 'etkinlik'
   | 'eczane'
   | 'esnaf'
+  | 'rehber'
   | 'sikayet'
   | 'chat'
   | 'kullanici';
 
 const SECTIONS: Record<Role, Section[]> = {
-  admin: ['vefat', 'haber', 'duyuru', 'etkinlik', 'eczane', 'esnaf', 'sikayet', 'chat', 'kullanici'],
-  editor: ['vefat', 'haber', 'duyuru', 'etkinlik', 'eczane', 'esnaf'],
+  admin: ['vefat', 'haber', 'duyuru', 'etkinlik', 'eczane', 'esnaf', 'rehber', 'sikayet', 'chat', 'kullanici'],
+  editor: ['vefat', 'haber', 'duyuru', 'etkinlik', 'eczane', 'esnaf', 'rehber'],
   moderator: ['sikayet', 'chat'],
 };
 

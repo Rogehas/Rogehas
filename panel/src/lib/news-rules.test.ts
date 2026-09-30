@@ -10,7 +10,7 @@ const mod: PanelUser = { id: 'm', name: 'M', email: 'm@x', role: 'moderator', ac
 
 const news = (over: Partial<News> = {}): News => ({
   id: 'n1', kind: 'kesinti', subLabel: 'SU', title: 'Yarın su kesintisi', body: '09:00–14:00',
-  source: 'Belediye', photo: null, sendPush: true, status: 'draft', createdBy: 'e',
+  source: 'Belediye', photo: null, sendPush: true, status: 'draft', createdBy: 'e', createdByName: 'E',
   createdAt: '2026-09-30T08:00:00Z', updatedAt: '2026-09-30T08:00:00Z', ...over,
 });
 

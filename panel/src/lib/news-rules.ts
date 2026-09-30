@@ -43,6 +43,7 @@ export function applyNewsEdit(actor: PanelUser, existing: News, next: News): New
     id: existing.id,
     status: existing.status,
     createdBy: existing.createdBy,
+    createdByName: existing.createdByName,
     createdAt: existing.createdAt,
     publishedAt: existing.publishedAt,
     publishedBy: existing.publishedBy,

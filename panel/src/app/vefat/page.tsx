@@ -29,13 +29,20 @@ export default function VefatList() {
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
 
-  const refresh = useCallback(() => setItems(store.vefat()), []);
-  useEffect(refresh, [refresh]);
+  const refresh = useCallback(async () => {
+    try {
+      setItems(await store.vefat());
+    } catch {
+      setError('İlanlar yüklenemedi.');
+    }
+  }, []);
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
 
   const shown = useMemo(() => items.filter((v) => tab === 'all' || v.status === tab), [items, tab]);
-  const owners = useMemo(() => new Map(store.users().map((u) => [u.id, u.name])), [items]);
 
-  function run(v: Vefat, action: VefatAction) {
+  async function run(v: Vefat, action: VefatAction) {
     if (!user) return;
     setError('');
     setInfo('');
@@ -46,9 +53,9 @@ export default function VefatList() {
         if (note === undefined) return;
       }
       const res = transition(v, action, user, note);
-      store.upsertVefat(res.vefat, res.notice);
+      await store.upsertVefat(res.vefat, res.notice);
       if (res.notice) setInfo(`Yayınlandı. Bildirim kuyruğa alındı: “${res.notice.body}”`);
-      refresh();
+      await refresh();
     } catch (e) {
       setError((e as Error).message);
     }
@@ -86,7 +93,7 @@ export default function VefatList() {
               <div className="muted">
                 {v.age} yaşında · {v.neighborhood} · Cenaze namazı {v.prayerDate} {v.prayerTime}, {v.mosque}
               </div>
-              <div className="muted">Hazırlayan: {owners.get(v.createdBy) ?? '—'}</div>
+              <div className="muted">Hazırlayan: {v.createdByName || '—'}</div>
               {v.status === 'rejected' && v.rejectionNote && (
                 <div className="muted" style={{ color: 'var(--clay)', fontWeight: 700 }}>
                   Red nedeni: {v.rejectionNote}

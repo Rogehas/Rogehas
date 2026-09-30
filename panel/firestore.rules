@@ -1,0 +1,95 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---- yardımcılar ----
+    function signedIn() { return request.auth != null; }
+    function profilePath() { return /databases/$(database)/documents/users/$(request.auth.uid); }
+    function hasProfile() { return signedIn() && exists(profilePath()); }
+    function active() { return hasProfile() && get(profilePath()).data.active == true; }
+    function isAdmin() { return active() && get(profilePath()).data.role == 'admin'; }
+    function isEditor() { return active() && get(profilePath()).data.role == 'editor'; }
+    function isStaff() { return isAdmin() || isEditor(); }
+
+    // ---- kullanıcılar ----
+    // Profil kaydı: yönetici oluşturur/günceller. Davet edilen kişi, doğrulanmış e-postasıyla
+    // yalnızca davetteki rolle kendi kaydını oluşturabilir.
+    match /users/{uid} {
+      allow get: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isAdmin() || (
+        request.auth.uid == uid
+        && request.auth.token.email_verified == true
+        && exists(/databases/$(database)/documents/invites/$(request.auth.token.email.lower()))
+        && request.resource.data.keys().hasOnly(['name', 'email', 'role', 'active'])
+        && request.resource.data.role ==
+           get(/databases/$(database)/documents/invites/$(request.auth.token.email.lower())).data.role
+        && request.resource.data.email == request.auth.token.email.lower()
+        && request.resource.data.active == true
+      );
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
+    match /invites/{email} {
+      allow read, write: if isAdmin();
+      allow get: if signedIn() && request.auth.token.email_verified == true
+                 && request.auth.token.email.lower() == email;
+    }
+
+    // ---- vefat ilanları ----
+    function vefatOk(d) {
+      return d.name is string && d.name.size() > 0 && d.name.size() < 120
+        && (d.photo == null || (d.photo is string && d.photo.size() < 700000))
+        && d.status in ['draft', 'pending', 'published', 'rejected', 'archived']
+        // aile onayı olmadan onaya gönderilemez / yayınlanamaz
+        && (!(d.status in ['pending', 'published']) || d.familyConsent == true);
+    }
+
+    match /vefat/{id} {
+      allow read: if resource.data.status == 'published' || isStaff();
+      allow create: if isStaff()
+        && request.resource.data.createdBy == request.auth.uid
+        && (isAdmin() || request.resource.data.status == 'draft')
+        && vefatOk(request.resource.data);
+      allow update: if isStaff() && vefatOk(request.resource.data)
+        && request.resource.data.createdBy == resource.data.createdBy
+        && (
+          (isAdmin() && resource.data.status != 'archived')
+          || (isEditor()
+              && resource.data.createdBy == request.auth.uid
+              && resource.data.status in ['draft', 'rejected']
+              && request.resource.data.status in ['draft', 'pending'])
+        );
+      allow delete: if false;
+    }
+
+    // ---- haberler ----
+    function newsOk(d) {
+      return d.title is string && d.title.size() > 0 && d.title.size() < 200
+        && d.kind in ['haber', 'duyuru', 'kesinti']
+        && d.status in ['draft', 'published', 'archived']
+        && (d.photo == null || (d.photo is string && d.photo.size() < 700000));
+    }
+
+    match /news/{id} {
+      allow read: if resource.data.status == 'published' || isStaff();
+      allow create: if isStaff()
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.status in ['draft', 'published']
+        && newsOk(request.resource.data);
+      allow update: if isStaff() && newsOk(request.resource.data)
+        && request.resource.data.createdBy == resource.data.createdBy
+        && resource.data.status != 'archived'
+        && (isAdmin() || request.resource.data.status in ['draft', 'published']);
+      allow delete: if false;
+    }
+
+    // ---- bildirim kayıtları (sunucu kodu bunları telefonlara gönderecek) ----
+    match /notices/{id} {
+      allow read: if isStaff();
+      allow create: if isStaff();
+      allow update, delete: if false;
+    }
+  }
+}

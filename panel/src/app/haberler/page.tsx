@@ -15,19 +15,27 @@ export default function NewsList() {
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
 
-  const refresh = useCallback(() => setItems(store.news()), []);
-  useEffect(refresh, [refresh]);
+  const refresh = useCallback(async () => {
+    try {
+      setItems(await store.news());
+    } catch {
+      setError('Haberler yüklenemedi.');
+    }
+  }, []);
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
   const shown = useMemo(() => items.filter((n) => kind === 'all' || n.kind === kind), [items, kind]);
 
-  function run(n: News, action: NewsAction) {
+  async function run(n: News, action: NewsAction) {
     if (!user) return;
     setError('');
     setInfo('');
     try {
       const r = transitionNews(n, action, user);
-      store.upsertNews(r.news, r.notice);
+      await store.upsertNews(r.news, r.notice);
       if (r.notice) setInfo(`Yayınlandı. Bildirim kuyruğa alındı: “${r.notice.title} — ${r.notice.body}”`);
-      refresh();
+      await refresh();
     } catch (e) {
       setError((e as Error).message);
     }

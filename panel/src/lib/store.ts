@@ -1,125 +1,99 @@
 'use client';
-import type { News, PanelUser, PushNotice, Vefat } from './types';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc,
+  writeBatch,
+} from 'firebase/firestore';
+import { getDownloadURL, ref, uploadString } from 'firebase/storage';
+import { db, storage, USE_STORAGE } from './firebase';
+import type { Invite, News, PanelUser, PushNotice, Role, Vefat } from './types';
 
-/**
- * Geçici veri katmanı: tarayıcı localStorage'ında saklar.
- * Firebase (Firestore) bağlanınca bu dosyanın içi değişecek, arayüz aynı kalacak.
- */
-interface DB {
-  users: PanelUser[];
-  vefat: Vefat[];
-  news: News[];
-  notices: PushNotice[];
+/** Fotoğraf Storage açıksa yüklenip adresi saklanır; değilse veri adresi belgede kalır. */
+async function resolvePhoto(kind: 'vefat' | 'news', id: string, photo: string | null) {
+  if (!photo || !photo.startsWith('data:') || !USE_STORAGE) return photo;
+  const r = ref(storage, `${kind}/${id}/photo.jpg`);
+  await uploadString(r, photo, 'data_url');
+  return getDownloadURL(r);
 }
 
-const KEY = 'tavas.panel.v1';
-
-const seedUsers: PanelUser[] = [
-  { id: 'u_admin', name: 'Yönetici Örnek', email: 'yonetici@example.com', role: 'admin', active: true },
-  { id: 'u_ed1', name: 'Editör Örnek', email: 'editor1@example.com', role: 'editor', active: true },
-  { id: 'u_ed2', name: 'İkinci Editör', email: 'editor2@example.com', role: 'editor', active: true },
-  { id: 'u_mod', name: 'Moderatör Örnek', email: 'moderator@example.com', role: 'moderator', active: true },
-];
-
-function seed(): DB {
-  const t = new Date().toISOString();
-  return {
-    users: seedUsers,
-    notices: [],
-    news: [
-      {
-        id: 'h_seed1', kind: 'duyuru', subLabel: '', title: 'Belediye hizmet saatlerinde yeni düzenleme',
-        body: 'Ayrıntılar yakında.', source: 'Belediye', photo: null, sendPush: false,
-        status: 'published', createdBy: 'u_ed1', createdAt: t, updatedAt: t, publishedAt: t, publishedBy: 'u_ed1',
-      },
-    ],
-    vefat: [
-      {
-        id: 'v_seed1',
-        name: 'Ayşe Örnek',
-        age: 78,
-        neighborhood: 'Merkez Mah.',
-        prayerDate: t.slice(0, 10),
-        prayerTime: '13:30',
-        mosque: 'Merkez Camii',
-        burialPlace: 'Tavas Mezarlığı',
-        condolenceAddress: '',
-        photo: null,
-        familyConsent: true,
-        status: 'pending',
-        createdBy: 'u_ed1',
-        createdAt: t,
-        updatedAt: t,
-      },
-    ],
-  };
-}
-
-function load(): DB {
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) {
-      const db = JSON.parse(raw) as DB;
-      db.news ??= []; // eski kayıtlarda haber alanı yok
-      return db;
-    }
-  } catch {
-    /* bozuk veri: sıfırdan başla */
-  }
-  return seed();
-}
-
-function save(db: DB) {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(db));
-  } catch {
-    throw new Error('Kayıt yapılamadı (tarayıcı depolaması dolu olabilir; fotoğraf çok büyük mü?).');
-  }
-}
+const byUpdated = <T extends { updatedAt: string }>(a: T, b: T) => b.updatedAt.localeCompare(a.updatedAt);
 
 export const store = {
-  users: () => load().users,
-  vefat: () => load().vefat.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
-  vefatById: (id: string) => load().vefat.find((v) => v.id === id) ?? null,
-  notices: () => load().notices,
-  news: () => load().news.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
-  newsById: (id: string) => load().news.find((n) => n.id === id) ?? null,
-
-  upsertNews(n: News, notice?: PushNotice) {
-    const db = load();
-    const i = db.news.findIndex((x) => x.id === n.id);
-    if (i >= 0) db.news[i] = n;
-    else db.news.push(n);
-    if (notice) db.notices.push(notice);
-    save(db);
+  // ---- kullanıcılar ve davetler (yalnızca yönetici) ----
+  async users(): Promise<PanelUser[]> {
+    const s = await getDocs(collection(db, 'users'));
+    return s.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<PanelUser, 'id'>) }));
   },
 
-  upsertVefat(v: Vefat, notice?: PushNotice) {
-    const db = load();
-    const i = db.vefat.findIndex((x) => x.id === v.id);
-    if (i >= 0) db.vefat[i] = v;
-    else db.vefat.push(v);
-    if (notice) db.notices.push(notice);
-    save(db);
+  async invites(): Promise<Invite[]> {
+    const s = await getDocs(collection(db, 'invites'));
+    return s.docs.map((d) => ({ email: d.id, ...(d.data() as Omit<Invite, 'email'>) }));
   },
 
-  addUser(u: Omit<PanelUser, 'id' | 'active'>) {
-    const db = load();
-    if (db.users.some((x) => x.email.toLowerCase() === u.email.toLowerCase()))
-      throw new Error('Bu e-posta ile zaten bir kullanıcı var.');
-    db.users.push({ ...u, id: `u_${Date.now()}`, active: true });
-    save(db);
+  async addInvite(i: Invite) {
+    const email = i.email.trim().toLowerCase();
+    const users = await this.users();
+    if (users.some((u) => u.email.toLowerCase() === email)) throw new Error('Bu e-posta ile zaten bir kullanıcı var.');
+    await setDoc(doc(db, 'invites', email), { name: i.name.trim(), role: i.role });
   },
 
-  updateUser(id: string, patch: Partial<Pick<PanelUser, 'role' | 'active'>>) {
-    const db = load();
-    const admins = db.users.filter((u) => u.role === 'admin' && u.active);
-    const target = db.users.find((u) => u.id === id);
+  async removeInvite(email: string) {
+    await deleteDoc(doc(db, 'invites', email.toLowerCase()));
+  },
+
+  async updateUser(id: string, patch: Partial<Pick<PanelUser, 'role' | 'active'>>) {
+    const users = await this.users();
+    const target = users.find((u) => u.id === id);
     if (!target) return;
     const next = { ...target, ...patch };
     const losesAdmin = target.role === 'admin' && target.active && !(next.role === 'admin' && next.active);
+    const admins = users.filter((u) => u.role === 'admin' && u.active);
     if (losesAdmin && admins.length <= 1) throw new Error('Son yöneticinin rolü değiştirilemez ya da kapatılamaz.');
-    db.users = db.users.map((u) => (u.id === id ? next : u));
-    save(db);
+    await updateDoc(doc(db, 'users', id), patch);
+  },
+
+  // ---- vefat ----
+  async vefat(): Promise<Vefat[]> {
+    const s = await getDocs(collection(db, 'vefat'));
+    return s.docs.map((d) => d.data() as Vefat).sort(byUpdated);
+  },
+
+  async vefatById(id: string): Promise<Vefat | null> {
+    const s = await getDoc(doc(db, 'vefat', id));
+    return s.exists() ? (s.data() as Vefat) : null;
+  },
+
+  async upsertVefat(v: Vefat, notice?: PushNotice) {
+    const photo = await resolvePhoto('vefat', v.id, v.photo);
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'vefat', v.id), { ...v, photo });
+    if (notice) batch.set(doc(db, 'notices', notice.id), notice);
+    await batch.commit();
+  },
+
+  // ---- haberler ----
+  async news(): Promise<News[]> {
+    const s = await getDocs(collection(db, 'news'));
+    return s.docs.map((d) => d.data() as News).sort(byUpdated);
+  },
+
+  async newsById(id: string): Promise<News | null> {
+    const s = await getDoc(doc(db, 'news', id));
+    return s.exists() ? (s.data() as News) : null;
+  },
+
+  async upsertNews(n: News, notice?: PushNotice) {
+    const photo = await resolvePhoto('news', n.id, n.photo);
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'news', n.id), { ...n, photo });
+    if (notice) batch.set(doc(db, 'notices', notice.id), notice);
+    await batch.commit();
   },
 };
+
+export type { Role };

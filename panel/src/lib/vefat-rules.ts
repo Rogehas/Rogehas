@@ -98,6 +98,7 @@ export function applyEdit(actor: PanelUser, existing: Vefat, next: Vefat): Vefat
     id: existing.id,
     status: existing.status,
     createdBy: existing.createdBy,
+    createdByName: existing.createdByName,
     createdAt: existing.createdAt,
     updatedAt: now(),
   };

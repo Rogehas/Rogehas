@@ -22,6 +22,7 @@ const draft = (over: Partial<Vefat> = {}): Vefat => ({
   familyConsent: true,
   status: 'draft',
   createdBy: 'e1',
+  createdByName: 'E1',
   createdAt: '2026-09-30T08:00:00Z',
   updatedAt: '2026-09-30T08:00:00Z',
   ...over,

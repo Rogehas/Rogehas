@@ -1,19 +1,46 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useSession } from '@/lib/session';
-import { store } from '@/lib/store';
-import { ROLE_LABEL, type PanelUser } from '@/lib/types';
+
+function friendly(e: unknown): string {
+  const code = (e as { code?: string }).code ?? '';
+  if (code.includes('invalid-credential') || code.includes('wrong-password') || code.includes('user-not-found'))
+    return 'E-posta ya da şifre hatalı.';
+  if (code.includes('popup-closed')) return 'Giriş penceresi kapatıldı.';
+  if (code.includes('too-many-requests')) return 'Çok fazla deneme. Biraz bekleyip tekrar dene.';
+  if (code.includes('network')) return 'Bağlantı hatası. İnternetini kontrol et.';
+  return 'Giriş yapılamadı.';
+}
 
 export default function Login() {
-  const { login, user, ready } = useSession();
+  const { user, ready, status, authEmail, loginGoogle, loginEmail, logout } = useSession();
   const router = useRouter();
-  const [users, setUsers] = useState<PanelUser[]>([]);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
 
-  useEffect(() => setUsers(store.users().filter((u) => u.active)), []);
   useEffect(() => {
     if (ready && user) router.replace('/');
   }, [ready, user, router]);
+
+  async function attempt(fn: () => Promise<void>) {
+    setError('');
+    setBusy(true);
+    try {
+      await fn();
+    } catch (e) {
+      setError(friendly(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    void attempt(() => loginEmail(email, password));
+  };
 
   return (
     <div className="login">
@@ -22,31 +49,26 @@ export default function Login() {
         <h1>Tavas Panel</h1>
       </div>
       <div className="card">
-        <h2 style={{ fontSize: 22 }}>Giriş yap</h2>
-        <p className="note" style={{ marginTop: 12 }}>
-          Demo sürüm: gerçek giriş (e-posta / Google) Firebase bağlanınca gelecek. Şimdilik bir kullanıcı seçerek rolleri deneyebilirsin.
-        </p>
-        <div className="users">
-          {users.map((u) => (
-            <button
-              key={u.id}
-              className="user"
-              onClick={() => {
-                login(u.id);
-                router.replace('/');
-              }}
-            >
-              <span className="avatar" style={{ width: 44, height: 44, borderRadius: 22, fontSize: 16 }}>
-                {u.name[0]}
-              </span>
-              <span>
-                <strong>{u.name}</strong>
-                <br />
-                <span className="muted">{ROLE_LABEL[u.role]} · {u.email}</span>
-              </span>
-            </button>
-          ))}
-        </div>
+        <h2 style={{ fontSize: 22, marginBottom: 16 }}>Giriş yap</h2>
+        {status === 'noaccess' && (
+          <div className="err" role="alert">
+            <strong>{authEmail}</strong> hesabı panele yetkili değil. Yöneticiden seni e-posta adresinle davet etmesini iste,
+            sonra tekrar giriş yap.
+            <div style={{ marginTop: 10 }}>
+              <button className="btn sm" onClick={() => void logout()}>Başka hesapla dene</button>
+            </div>
+          </div>
+        )}
+        {error && <div className="err" role="alert">{error}</div>}
+        <button className="btn dark" style={{ width: '100%', height: 52 }} disabled={busy} onClick={() => void attempt(loginGoogle)}>
+          Google ile giriş yap
+        </button>
+        <p className="muted" style={{ textAlign: 'center', margin: '16px 0' }}>ya da e-posta ile</p>
+        <form onSubmit={submit} className="fields" style={{ gridTemplateColumns: '1fr' }}>
+          <div className="field"><label htmlFor="em">E-posta</label><input id="em" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
+          <div className="field"><label htmlFor="pw">Şifre</label><input id="pw" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required /></div>
+          <button className="btn lime" type="submit" disabled={busy} style={{ height: 48 }}>Giriş yap</button>
+        </form>
       </div>
     </div>
   );

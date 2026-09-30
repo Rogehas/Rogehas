@@ -9,11 +9,11 @@ import { useSession } from '@/lib/session';
 import { store } from '@/lib/store';
 import { KIND_LABEL, type News, type NewsKind } from '@/lib/types';
 
-function blank(userId: string): News {
+function blank(userId: string, userName: string): News {
   const t = new Date().toISOString();
   return {
     id: `h_${Date.now()}`, kind: 'haber', subLabel: '', title: '', body: '', source: '', photo: null,
-    sendPush: false, status: 'draft', createdBy: userId, createdAt: t, updatedAt: t,
+    sendPush: false, status: 'draft', createdBy: userId, createdByName: userName, createdAt: t, updatedAt: t,
   };
 }
 
@@ -28,21 +28,22 @@ export default function NewsEdit() {
 
   useEffect(() => {
     if (!user) return;
-    if (isNew) return setN(blank(user.id));
-    const f = store.newsById(id);
-    if (f) setN(f);
-    else setMissing(true);
+    if (isNew) return setN(blank(user.id, user.name));
+    store
+      .newsById(id)
+      .then((f) => (f ? setN(f) : setMissing(true)))
+      .catch(() => setError('Haber yüklenemedi.'));
   }, [id, isNew, user]);
 
   const set = <K extends keyof News>(k: K, v: News[K]) => setN((p) => (p ? { ...p, [k]: v } : p));
 
-  function persist(): News | null {
+  async function persist(): Promise<News | null> {
     if (!user || !n) return null;
     setError('');
     try {
-      const existing = isNew ? null : store.newsById(n.id);
+      const existing = isNew ? null : await store.newsById(n.id);
       const toSave = existing ? applyNewsEdit(user, existing, n) : n;
-      store.upsertNews(toSave);
+      await store.upsertNews(toSave);
       return toSave;
     } catch (e) {
       setError((e as Error).message);
@@ -50,13 +51,13 @@ export default function NewsEdit() {
     }
   }
 
-  function publish() {
+  async function publish() {
     if (!user) return;
-    const saved = persist();
+    const saved = await persist();
     if (!saved) return;
     try {
       const r = transitionNews(saved, 'publish', user);
-      store.upsertNews(r.news, r.notice);
+      await store.upsertNews(r.news, r.notice);
       router.push('/haberler');
     } catch (e) {
       setError((e as Error).message);
@@ -121,8 +122,8 @@ export default function NewsEdit() {
           )}
           {problems.length > 0 && <p className="muted" role="status">Yayınlamak için eksikler: {problems.join(' ')}</p>}
           <div className="actions" style={{ marginTop: 12 }}>
-            <button className="btn" onClick={() => persist() && router.push('/haberler')}>{alreadyPublished ? 'Değişiklikleri kaydet' : 'Taslağı kaydet'}</button>
-            {!alreadyPublished && <button className="btn dark" disabled={problems.length > 0} onClick={publish}>Yayınla</button>}
+            <button className="btn" onClick={async () => { if (await persist()) router.push('/haberler'); }}>{alreadyPublished ? 'Değişiklikleri kaydet' : 'Taslağı kaydet'}</button>
+            {!alreadyPublished && <button className="btn dark" disabled={problems.length > 0} onClick={() => void publish()}>Yayınla</button>}
           </div>
         </div>
       )}

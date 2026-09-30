@@ -114,3 +114,14 @@ Roller: **Yönetici**, **Editör** (birden fazla), **Moderatör**.
 - Tür: Haber / Duyuru / Kesinti (kesintide alt tür zorunlu, ör. SU). Uygulamadaki Haberler ekranıyla aynı üç tür.
 - Editörler onay beklemeden yayınlar ve yayınlanmış haberi düzenler; arşivleme yalnızca yöneticide.
 - "Telefonlara bildirim gönder" seçeneği (özellikle kesinti/duyuru için); bildirim önizlemesi form üzerinde.
+
+## Firebase (proje: `tavas-4f166`)
+
+Panel artık gerçek Firebase'e bağlı (Auth: Google + e-posta/şifre, Firestore). Güvenlik kuralları `panel/firestore.rules` ve `panel/storage.rules`.
+- Roller Firestore `users/{uid}` belgesinde. İlk yönetici elle oluşturulur; diğerleri yönetici panelinden **davet** edilir (`invites/{e-posta}`), davetli kişi doğrulanmış e-postasıyla ilk girişte otomatik yetkilenir.
+- Kurallar sunucuda da uygular: editör yayınlayamaz, aile onayı olmadan yayın olmaz, misafir yalnızca `status == published` okur, moderatör vefat/haber görmez.
+- Testler: `npm test` (iş kuralları), `npm run test:rules` (kurallar, Firestore emülatörü gerekir; Java lazım).
+- Fotoğraflar Blaze planına geçilene kadar belge içinde saklanır (`NEXT_PUBLIC_USE_STORAGE=true` ile Storage'a geçer).
+- Uygulamada okuma sorguları mutlaka `where status == 'published'` içermeli.
+
+Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildirimi (Cloud Functions + FCM), mobil uygulamayı Firebase'e bağlama.

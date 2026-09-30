@@ -9,7 +9,7 @@ import { store } from '@/lib/store';
 import { STATUS_LABEL, type Vefat } from '@/lib/types';
 import { applyEdit, transition, validateVefat } from '@/lib/vefat-rules';
 
-function blank(userId: string): Vefat {
+function blank(userId: string, userName: string): Vefat {
   const t = new Date().toISOString();
   return {
     id: `v_${Date.now()}`,
@@ -25,6 +25,7 @@ function blank(userId: string): Vefat {
     familyConsent: false,
     status: 'draft',
     createdBy: userId,
+    createdByName: userName,
     createdAt: t,
     updatedAt: t,
   };
@@ -41,23 +42,22 @@ export default function VefatEdit() {
 
   useEffect(() => {
     if (!user) return;
-    if (isNew) setV(blank(user.id));
-    else {
-      const found = store.vefatById(id);
-      if (found) setV(found);
-      else setMissing(true);
-    }
+    if (isNew) return setV(blank(user.id, user.name));
+    store
+      .vefatById(id)
+      .then((found) => (found ? setV(found) : setMissing(true)))
+      .catch(() => setError('İlan yüklenemedi.'));
   }, [id, isNew, user]);
 
   const set = <K extends keyof Vefat>(k: K, val: Vefat[K]) => setV((p) => (p ? { ...p, [k]: val } : p));
 
-  function persist(): Vefat | null {
+  async function persist(): Promise<Vefat | null> {
     if (!user || !v) return null;
     setError('');
     try {
-      const existing = isNew ? null : store.vefatById(v.id);
+      const existing = isNew ? null : await store.vefatById(v.id);
       const toSave = existing ? applyEdit(user, existing, v) : v;
-      store.upsertVefat(toSave);
+      await store.upsertVefat(toSave);
       return toSave;
     } catch (e) {
       setError((e as Error).message);
@@ -65,16 +65,16 @@ export default function VefatEdit() {
     }
   }
 
-  const saveDraft = () => {
-    if (persist()) router.push('/vefat');
+  const saveDraft = async () => {
+    if (await persist()) router.push('/vefat');
   };
 
-  function submit() {
+  async function submit() {
     if (!user) return;
-    const saved = persist();
+    const saved = await persist();
     if (!saved) return;
     try {
-      store.upsertVefat(transition(saved, 'submit', user).vefat);
+      await store.upsertVefat(transition(saved, 'submit', user).vefat);
       router.push('/vefat');
     } catch (e) {
       setError((e as Error).message);
@@ -149,8 +149,8 @@ export default function VefatEdit() {
           )}
 
           <div className="actions">
-            <button className="btn" onClick={saveDraft}>Taslağı kaydet</button>
-            <button className="btn dark" onClick={submit} disabled={problems.length > 0}>Onaya gönder</button>
+            <button className="btn" onClick={() => void saveDraft()}>Taslağı kaydet</button>
+            <button className="btn dark" onClick={() => void submit()} disabled={problems.length > 0}>Onaya gönder</button>
           </div>
         </div>
       )}

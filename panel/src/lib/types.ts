@@ -8,6 +8,12 @@ export interface PanelUser {
   active: boolean;
 }
 
+export interface Invite {
+  email: string;
+  name: string;
+  role: Role;
+}
+
 export type VefatStatus = 'draft' | 'pending' | 'published' | 'rejected' | 'archived';
 
 export interface Vefat {
@@ -25,6 +31,7 @@ export interface Vefat {
   familyConsent: boolean;
   status: VefatStatus;
   createdBy: string;
+  createdByName: string;
   createdAt: string;
   updatedAt: string;
   publishedAt?: string;
@@ -47,6 +54,7 @@ export interface News {
   sendPush: boolean;
   status: NewsStatus;
   createdBy: string;
+  createdByName: string;
   createdAt: string;
   updatedAt: string;
   publishedAt?: string;

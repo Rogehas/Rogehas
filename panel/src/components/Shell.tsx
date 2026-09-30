@@ -60,7 +60,7 @@ export function Shell({ section, title, children, actions }: {
             <br />
             <small>Rol: {ROLE_LABEL[user.role]}</small>
           </div>
-          <button onClick={logout}>Çıkış yap</button>
+          <button onClick={() => void logout()}>Çıkış yap</button>
         </div>
       </aside>
       <main className="main">

@@ -4,14 +4,14 @@ import 'package:flutter/foundation.dart';
 /// Firebase projesi `tavas-4f166` (Android uygulaması `com.tavas.tavas`).
 /// Bu değerler gizli değildir (her uygulamanın içinde bulunur); veriyi güvenlik kuralları korur.
 ///
-/// `appId` ve `apiKey` Firebase konsolundaki Android uygulamasının `google-services.json`
-/// dosyasından alınır. Doldurulmadıysa uygulama sahte veri göstermez, hata bildirir.
+/// `appId` ve `apiKey` Android uygulamasının `google-services.json` dosyasından alınmıştır.
+/// Değerler eksik olursa uygulama sahte veri göstermez, hata bildirir.
 class DefaultFirebaseOptions {
   static const _placeholder = 'DOLDURULACAK';
 
   static const android = FirebaseOptions(
-    apiKey: _placeholder,
-    appId: _placeholder,
+    apiKey: 'AIzaSyAX6uiH5tgUF6jc1HDHVp-SY7mnAXzTU9I',
+    appId: '1:227449958610:android:bb6fd1ef4f9a8ee133bd0b',
     messagingSenderId: '227449958610',
     projectId: 'tavas-4f166',
     storageBucket: 'tavas-4f166.firebasestorage.app',

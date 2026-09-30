@@ -98,3 +98,14 @@ Taslaklar: https://claude.ai/artifact/4MBRqJrUnsyqChgYQkbch8 (9 ekran: Giriş, A
 4. Google Play Console hesabı (tek seferlik 25 dolar) ve mağaza kaydı
 5. Gizlilik politikası ve KVKK metni (web adresi gerekir), veri güvenliği formu
 6. Kapalı test (Google zorunlu kılabilir: en az 12 test kullanıcısı, 14 gün) → yayın
+
+## Editör paneli (`panel/`, Next.js)
+
+Roller: **Yönetici**, **Editör** (birden fazla), **Moderatör**.
+- Editör: kendi ilanını taslak yapar, düzenler, onaya gönderir. Yayınlayamaz.
+- Yönetici: onaylar/reddeder (neden zorunlu), doğrudan yayınlar, arşivler, kullanıcı ekler, rol atar, hesap kapatır. Son yönetici kapatılamaz.
+- Moderatör: yalnızca şikâyet ve sohbet moderasyonu.
+- Vefat ilanı: zorunlu alanlar + "Aile onayı alındı" olmadan onaya gönderilemez/yayınlanamaz. Fotoğraf 800 px'e küçültülür.
+- Yayınlanınca bildirim kaydı üretilir (şimdilik yerel; Firebase Cloud Messaging'e bağlanacak).
+- Şimdilik veri tarayıcıda (localStorage) ve giriş demo: Firebase Auth/Firestore bağlanınca `panel/src/lib/store.ts` ve `session.tsx` değişecek.
+- Çalıştırma: `cd panel && npm install && npm run dev`; testler: `npm test`

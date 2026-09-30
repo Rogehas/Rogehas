@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../data/mock_data.dart';
+import '../data/content_repository.dart';
 import '../data/models.dart';
 import '../theme/app_theme.dart';
+import '../data/vefat_filter.dart';
+import '../widgets/data_stream.dart';
 import '../widgets/person_photo.dart';
 
 class VefatScreen extends StatefulWidget {
@@ -18,6 +20,7 @@ class _VefatScreenState extends State<VefatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
     return SafeArea(
       bottom: false,
       child: ListView(
@@ -32,11 +35,14 @@ class _VefatScreenState extends State<VefatScreen> {
                   style: AppTheme.display(34, color: AppColors.darkText),
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.only(bottom: 4),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
                 child: Text(
-                  '30 Eylül · 2 ilan',
-                  style: TextStyle(fontSize: 13, color: AppColors.darkMuted),
+                  turkishDate(now),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.darkMuted,
+                  ),
                 ),
               ),
             ],
@@ -49,21 +55,32 @@ class _VefatScreenState extends State<VefatScreen> {
           const SizedBox(height: 12),
           _Segments(index: _tab, onChanged: (i) => setState(() => _tab = i)),
           const SizedBox(height: 12),
-          if (_tab != 0)
-            const Padding(
-              padding: EdgeInsets.only(top: 60),
-              child: Center(
-                child: Text(
-                  'Bu dönemde ilan yok.',
-                  style: TextStyle(color: AppColors.darkMuted),
-                ),
-              ),
-            )
-          else
-            for (final v in MockData.vefat) ...[
-              _VefatCard(v),
-              const SizedBox(height: 12),
-            ],
+          DataStream<List<VefatItem>>(
+            dark: true,
+            source: ContentScope.of(context).vefat,
+            builder: (context, all) {
+              final items = filterVefat(all, _tab, now);
+              if (items.isEmpty) {
+                return const Padding(
+                  padding: EdgeInsets.only(top: 60),
+                  child: Center(
+                    child: Text(
+                      'Bu dönemde ilan yok.',
+                      style: TextStyle(color: AppColors.darkMuted),
+                    ),
+                  ),
+                );
+              }
+              return Column(
+                children: [
+                  for (final v in items) ...[
+                    _VefatCard(v),
+                    const SizedBox(height: 12),
+                  ],
+                ],
+              );
+            },
+          ),
         ],
       ),
     );

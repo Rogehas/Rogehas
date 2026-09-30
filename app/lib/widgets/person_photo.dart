@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import 'remote_image.dart';
 
 /// Vefat ilanlarındaki kişi fotoğrafı. Fotoğraf yoksa ya da yüklenemezse
 /// baş harfleri gösterir. [enlargeOnTap] ile dokununca tam ekran açılır.
@@ -34,13 +35,7 @@ class PersonPhoto extends StatelessWidget {
   Widget _image({BoxFit fit = BoxFit.cover}) {
     final url = photoUrl;
     if (url == null || url.isEmpty) return _placeholder();
-    return Image.network(
-      url,
-      fit: fit,
-      loadingBuilder: (context, child, progress) =>
-          progress == null ? child : _placeholder(),
-      errorBuilder: (context, error, stack) => _placeholder(),
-    );
+    return RemoteImage(url: url, fit: fit, fallback: _placeholder());
   }
 
   void _open(BuildContext context) {

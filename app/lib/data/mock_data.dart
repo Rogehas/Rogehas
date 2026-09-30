@@ -1,6 +1,7 @@
+import 'content_repository.dart';
 import 'models.dart';
 
-/// Örnek veriler. Firebase bağlanınca yerini gerçek veri alacak.
+/// Örnek veriler: yalnızca testler ve `--dart-define=USE_MOCK=true` ile tanıtım için.
 class MockData {
   static const news = <NewsItem>[
     NewsItem(
@@ -30,26 +31,31 @@ class MockData {
     ),
   ];
 
-  static const vefat = <VefatItem>[
-    VefatItem(
-      name: 'Ayşe Örnek',
-      age: 78,
-      neighborhood: 'Merkez Mah.',
-      prayerTime: 'Bugün 13:30',
-      mosque: 'Merkez Camii',
-      burial: 'Tavas Mezarlığı',
-      ago: '1 sa önce',
-    ),
-    VefatItem(
-      name: 'Mehmet Örnek',
-      age: 84,
-      neighborhood: 'Yeni Mah.',
-      prayerTime: 'Yarın 11:00',
-      mosque: 'Yeni Mah. Camii',
-      burial: 'Tavas Mezarlığı',
-      ago: '3 sa önce',
-    ),
-  ];
+  static List<VefatItem> vefat() {
+    final today = DateTime.now();
+    return [
+      VefatItem(
+        name: 'Ayşe Örnek',
+        age: 78,
+        neighborhood: 'Merkez Mah.',
+        prayerTime: 'Bugün 13:30',
+        mosque: 'Merkez Camii',
+        burial: 'Tavas Mezarlığı',
+        ago: '1 sa önce',
+        prayerAt: today,
+      ),
+      VefatItem(
+        name: 'Mehmet Örnek',
+        age: 84,
+        neighborhood: 'Yeni Mah.',
+        prayerTime: 'Yarın 11:00',
+        mosque: 'Yeni Mah. Camii',
+        burial: 'Tavas Mezarlığı',
+        ago: '3 sa önce',
+        prayerAt: today.add(const Duration(days: 1)),
+      ),
+    ];
+  }
 
   static const prayers = <PrayerTime>[
     PrayerTime('İmsak', '05:14'),
@@ -58,4 +64,12 @@ class MockData {
     PrayerTime('Akşam', '18:52', isNext: true),
     PrayerTime('Yatsı', '20:11'),
   ];
+}
+
+class MockContentRepository implements ContentRepository {
+  @override
+  Stream<List<NewsItem>> watchNews() => Stream.value(MockData.news);
+
+  @override
+  Stream<List<VefatItem>> watchVefat() => Stream.value(MockData.vefat());
 }

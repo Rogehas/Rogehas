@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../data/mock_data.dart';
+import '../data/content_repository.dart';
 import '../data/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
-import '../widgets/scene_art.dart';
+import '../widgets/data_stream.dart';
+import '../widgets/news_visual.dart';
 
 class NewsScreen extends StatefulWidget {
   const NewsScreen({super.key});
@@ -25,12 +26,6 @@ class _NewsScreenState extends State<NewsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final items = MockData.news
-        .where((n) => _filter == null || n.kind == _filter)
-        .toList();
-    final featured = items.isNotEmpty ? items.first : null;
-    final rest = items.skip(1).toList();
-
     return SafeArea(
       bottom: false,
       child: ListView(
@@ -60,20 +55,34 @@ class _NewsScreenState extends State<NewsScreen> {
             ),
           ),
           const SizedBox(height: 14),
-          if (featured == null)
-            const Padding(
-              padding: EdgeInsets.only(top: 60),
-              child: Center(
-                child: Text(
-                  'Bu kategoride haber yok.',
-                  style: TextStyle(color: AppColors.muted),
-                ),
-              ),
-            )
-          else ...[
-            _Featured(featured),
-            for (final n in rest) ...[const SizedBox(height: 14), _Row(n)],
-          ],
+          DataStream<List<NewsItem>>(
+            source: ContentScope.of(context).news,
+            builder: (context, all) {
+              final items = all
+                  .where((n) => _filter == null || n.kind == _filter)
+                  .toList();
+              if (items.isEmpty) {
+                return const Padding(
+                  padding: EdgeInsets.only(top: 60),
+                  child: Center(
+                    child: Text(
+                      'Bu kategoride haber yok.',
+                      style: TextStyle(color: AppColors.muted),
+                    ),
+                  ),
+                );
+              }
+              return Column(
+                children: [
+                  _Featured(items.first),
+                  for (final n in items.skip(1)) ...[
+                    const SizedBox(height: 14),
+                    _Row(n),
+                  ],
+                ],
+              );
+            },
+          ),
         ],
       ),
     );
@@ -91,7 +100,7 @@ class _Featured extends StatelessWidget {
       child: Stack(
         children: [
           Positioned.fill(
-            child: SceneArt(palette: ScenePalette.dusk, radius: 30),
+            child: NewsVisual(item, radius: 30, palette: ScenePalette.dusk),
           ),
           Positioned(
             left: 10,
@@ -145,11 +154,7 @@ class _Row extends StatelessWidget {
       ),
       child: Row(
         children: [
-          SizedBox(
-            width: 84,
-            height: 84,
-            child: SceneArt(palette: item.palette, radius: 18),
-          ),
+          SizedBox(width: 84, height: 84, child: NewsVisual(item, radius: 18)),
           const SizedBox(width: 14),
           Expanded(
             child: Column(

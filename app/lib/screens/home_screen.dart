@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../data/content_repository.dart';
 import '../data/mock_data.dart';
 import '../data/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
+import '../data/vefat_filter.dart';
+import '../widgets/data_stream.dart';
+import '../widgets/news_visual.dart';
 import '../widgets/scene_art.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -56,13 +60,27 @@ class HomeScreen extends StatelessWidget {
           offset: const Offset(0, -46),
           child: SizedBox(
             height: 236,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 4),
-              children: [
-                for (final n in [MockData.news[3], MockData.news[0]])
-                  _NewsCard(n),
-              ],
+            child: DataStream<List<NewsItem>>(
+              source: ContentScope.of(context).news,
+              builder: (context, all) {
+                if (all.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      'Henüz haber yok.',
+                      style: TextStyle(color: AppColors.muted),
+                    ),
+                  );
+                }
+                return ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    bottom: 4,
+                  ),
+                  children: [for (final n in all.take(5)) _NewsCard(n)],
+                );
+              },
             ),
           ),
         ),
@@ -339,11 +357,11 @@ class _VefatBanner extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 14),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Vefat ilanları',
                     style: TextStyle(
                       fontSize: 16,
@@ -351,9 +369,29 @@ class _VefatBanner extends StatelessWidget {
                       color: AppColors.darkText,
                     ),
                   ),
-                  Text(
-                    'Bugün 2 yeni ilan',
-                    style: TextStyle(fontSize: 13, color: AppColors.darkMuted),
+                  StreamBuilder<List<VefatItem>>(
+                    stream: ContentScope.of(context).vefat.stream,
+                    initialData: ContentScope.of(context).vefat.latest,
+                    builder: (context, snap) {
+                      final data = snap.data;
+                      final text = data == null
+                          ? 'İlanları gör'
+                          : switch (filterVefat(
+                              data,
+                              0,
+                              DateTime.now(),
+                            ).length) {
+                              0 => 'Güncel ilan yok',
+                              final n => '$n güncel ilan',
+                            };
+                      return Text(
+                        text,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.darkMuted,
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -464,7 +502,7 @@ class _NewsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 116, child: SceneArt(palette: item.palette)),
+          SizedBox(height: 116, child: NewsVisual(item)),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
             child: Column(

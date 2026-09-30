@@ -9,6 +9,8 @@ class NewsItem {
     required this.meta,
     required this.palette,
     this.label,
+    this.body = '',
+    this.photoUrl,
   });
 
   final NewsKind kind;
@@ -18,6 +20,10 @@ class NewsItem {
 
   /// Etiket metni; verilmezse türden üretilir.
   final String? label;
+  final String body;
+
+  /// Görsel adresi (https ya da data:). Yoksa çizim gösterilir.
+  final String? photoUrl;
 
   String get tagText =>
       label ??
@@ -38,6 +44,7 @@ class VefatItem {
     required this.burial,
     required this.ago,
     this.photoUrl,
+    this.prayerAt,
   });
 
   final String name;
@@ -48,12 +55,18 @@ class VefatItem {
   final String burial;
   final String ago;
 
-  /// Ölen kişinin fotoğrafı (Firebase Storage adresi). Yoksa baş harfler gösterilir.
+  /// Ölen kişinin fotoğrafı (https ya da data:). Yoksa baş harfler gösterilir.
   final String? photoUrl;
 
+  /// Cenaze namazı günü; sekmelere ayırmak için.
+  final DateTime? prayerAt;
+
   String get initials {
-    final parts = name.split(' ');
-    return parts.length > 1 ? '${parts.first[0]}${parts.last[0]}' : name[0];
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.isEmpty || parts.first.isEmpty) return '?';
+    return parts.length > 1
+        ? '${parts.first[0]}${parts.last[0]}'
+        : parts.first[0];
   }
 }
 

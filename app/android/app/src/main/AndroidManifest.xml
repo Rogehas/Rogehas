@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Firestore verisi için gerekli (yayın sürümünde de). -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="tavas"
+        android:label="Tavas"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

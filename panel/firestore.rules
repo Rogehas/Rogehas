@@ -85,6 +85,30 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ---- nöbetçi eczane: herkes okur, yönetici/editör yazar ----
+    function pharmacyOk(d) {
+      return d.name is string && d.name.size() > 0 && d.name.size() < 120
+        && d.phone is string && d.phone.size() <= 20
+        && d.active is bool;
+    }
+
+    match /pharmacies/{id} {
+      allow read: if true;
+      allow create, update: if isStaff() && pharmacyOk(request.resource.data);
+      allow delete: if false;
+    }
+
+    function dutyOk(d, date) {
+      return d.date == date && d.date.size() == 10
+        && d.pharmacyIds is list && d.pharmacyIds.size() <= 10;
+    }
+
+    match /duty/{date} {
+      allow read: if true;
+      allow create, update: if isStaff() && dutyOk(request.resource.data, date);
+      allow delete: if false;
+    }
+
     // ---- bildirim kayıtları (sunucu kodu bunları telefonlara gönderecek) ----
     match /notices/{id} {
       allow read: if isStaff();

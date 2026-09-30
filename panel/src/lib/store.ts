@@ -1,6 +1,8 @@
 'use client';
 import {
   collection,
+  query,
+  where,
   deleteDoc,
   doc,
   getDoc,
@@ -11,7 +13,7 @@ import {
 } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 import { db, storage, USE_STORAGE } from './firebase';
-import type { Invite, News, PanelUser, PushNotice, Role, Vefat } from './types';
+import type { DutyDay, Invite, News, PanelUser, Pharmacy, PushNotice, Role, Vefat } from './types';
 
 /** Fotoğraf Storage açıksa yüklenip adresi saklanır; değilse veri adresi belgede kalır. */
 async function resolvePhoto(kind: 'vefat' | 'news', id: string, photo: string | null) {
@@ -24,6 +26,30 @@ async function resolvePhoto(kind: 'vefat' | 'news', id: string, photo: string | 
 const byUpdated = <T extends { updatedAt: string }>(a: T, b: T) => b.updatedAt.localeCompare(a.updatedAt);
 
 export const store = {
+  // ---- eczaneler ve nöbet takvimi ----
+  async pharmacies(): Promise<Pharmacy[]> {
+    const s = await getDocs(collection(db, 'pharmacies'));
+    return s.docs.map((d) => d.data() as Pharmacy).sort((a, b) => a.name.localeCompare(b.name, 'tr'));
+  },
+
+  async upsertPharmacy(p: Pharmacy) {
+    await setDoc(doc(db, 'pharmacies', p.id), p);
+  },
+
+  /** `from` tarihinden (dahil) sonraki nöbet günleri. */
+  async dutyFrom(from: string): Promise<DutyDay[]> {
+    const s = await getDocs(query(collection(db, 'duty'), where('date', '>=', from)));
+    return s.docs.map((d) => d.data() as DutyDay).sort((a, b) => a.date.localeCompare(b.date));
+  },
+
+  /** Verilen günlerin hepsine aynı eczaneleri yazar (boş liste = o gün girilmemiş sayılır). */
+  async setDuty(dates: string[], pharmacyIds: string[], updatedBy: string) {
+    const batch = writeBatch(db);
+    const updatedAt = new Date().toISOString();
+    for (const date of dates) batch.set(doc(db, 'duty', date), { date, pharmacyIds, updatedAt, updatedBy });
+    await batch.commit();
+  },
+
   // ---- kullanıcılar ve davetler (yalnızca yönetici) ----
   async users(): Promise<PanelUser[]> {
     const s = await getDocs(collection(db, 'users'));

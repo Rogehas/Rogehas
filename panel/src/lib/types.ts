@@ -62,6 +62,27 @@ export interface News {
 }
 
 /** Yayınlanınca telefonlara gidecek bildirim kaydı. */
+export interface Pharmacy {
+  id: string;
+  name: string;
+  neighborhood: string;
+  address: string;
+  /** Yalnızca rakamlar, 0 ile başlayan 11 hane (ör. 02586140000). */
+  phone: string;
+  lat: number | null;
+  lng: number | null;
+  active: boolean;
+  updatedAt: string;
+}
+
+/** Bir günün nöbetçi eczaneleri. Nöbet o günün 09:00'undan ertesi gün 09:00'una kadardır. */
+export interface DutyDay {
+  date: string; // yyyy-mm-dd (belge kimliği de bu)
+  pharmacyIds: string[];
+  updatedAt: string;
+  updatedBy: string;
+}
+
 /** Telefonların abone olduğu konu: vefat / haber / duyuru / kesinti. */
 export type NoticeTopic = 'vefat' | 'haber' | 'duyuru' | 'kesinti';
 

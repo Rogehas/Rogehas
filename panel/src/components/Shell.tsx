@@ -10,7 +10,7 @@ const ITEMS: { label: string; section: Section; href?: string }[] = [
   { label: 'Vefat ilanları', section: 'vefat', href: '/vefat' },
   { label: 'Haberler', section: 'haber', href: '/haberler' },
   { label: 'Etkinlikler', section: 'etkinlik' },
-  { label: 'Nöbetçi eczane', section: 'eczane' },
+  { label: 'Nöbetçi eczane', section: 'eczane', href: '/eczane' },
   { label: 'Esnaf', section: 'esnaf' },
   { label: 'Şikâyetler', section: 'sikayet' },
   { label: 'Sohbet moderasyonu', section: 'chat' },

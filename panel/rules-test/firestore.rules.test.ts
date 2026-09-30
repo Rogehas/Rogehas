@@ -122,3 +122,30 @@ describe('kullanıcılar ve davetler', () => {
     await assertFails(setDoc(doc(as('ed1'), 'invites/b@example.com'), { role: 'admin', name: 'B' }));
   });
 });
+
+describe('nöbetçi eczane', () => {
+  const ph = (over = {}) => ({ name: 'Örnek Eczanesi', phone: '02586140000', active: true, ...over });
+  const duty = (date: string, over = {}) => ({ date, pharmacyIds: ['p1'], updatedAt: 'x', updatedBy: 'ed1', ...over });
+
+  it('herkes (misafir dahil) eczane ve nöbet bilgisini okur', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'pharmacies/p1'), ph());
+      await setDoc(doc(ctx.firestore(), 'duty/2026-09-30'), duty('2026-09-30'));
+    });
+    await assertSucceeds(getDoc(doc(as(null), 'pharmacies/p1')));
+    await assertSucceeds(getDoc(doc(as(null), 'duty/2026-09-30')));
+  });
+  it('editör ve yönetici yazar; moderatör ve misafir yazamaz', async () => {
+    await assertSucceeds(setDoc(doc(as('ed1'), 'pharmacies/p2'), ph()));
+    await assertSucceeds(setDoc(doc(as('adm'), 'duty/2026-10-01'), duty('2026-10-01')));
+    await assertFails(setDoc(doc(as('mod'), 'pharmacies/p3'), ph()));
+    await assertFails(setDoc(doc(as(null), 'duty/2026-10-02'), duty('2026-10-02')));
+    await assertFails(setDoc(doc(as('off'), 'duty/2026-10-03'), duty('2026-10-03')));
+  });
+  it('belge kimliği ile tarih uyuşmazsa ve geçersiz veri yazılamaz', async () => {
+    await assertFails(setDoc(doc(as('ed1'), 'duty/2026-10-05'), duty('2026-10-06')));
+    await assertFails(setDoc(doc(as('ed1'), 'duty/2026-10-07'), duty('2026-10-07', { pharmacyIds: 'p1' })));
+    await assertFails(setDoc(doc(as('ed1'), 'pharmacies/p4'), ph({ name: '' })));
+    await assertFails(setDoc(doc(as('ed1'), 'pharmacies/p5'), ph({ active: 'evet' })));
+  });
+});

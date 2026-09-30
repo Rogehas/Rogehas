@@ -1,5 +1,5 @@
 'use client';
-import type { PanelUser, PushNotice, Vefat } from './types';
+import type { News, PanelUser, PushNotice, Vefat } from './types';
 
 /**
  * Geçici veri katmanı: tarayıcı localStorage'ında saklar.
@@ -8,6 +8,7 @@ import type { PanelUser, PushNotice, Vefat } from './types';
 interface DB {
   users: PanelUser[];
   vefat: Vefat[];
+  news: News[];
   notices: PushNotice[];
 }
 
@@ -25,6 +26,13 @@ function seed(): DB {
   return {
     users: seedUsers,
     notices: [],
+    news: [
+      {
+        id: 'h_seed1', kind: 'duyuru', subLabel: '', title: 'Belediye hizmet saatlerinde yeni düzenleme',
+        body: 'Ayrıntılar yakında.', source: 'Belediye', photo: null, sendPush: false,
+        status: 'published', createdBy: 'u_ed1', createdAt: t, updatedAt: t, publishedAt: t, publishedBy: 'u_ed1',
+      },
+    ],
     vefat: [
       {
         id: 'v_seed1',
@@ -50,7 +58,11 @@ function seed(): DB {
 function load(): DB {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return JSON.parse(raw) as DB;
+    if (raw) {
+      const db = JSON.parse(raw) as DB;
+      db.news ??= []; // eski kayıtlarda haber alanı yok
+      return db;
+    }
   } catch {
     /* bozuk veri: sıfırdan başla */
   }
@@ -70,6 +82,17 @@ export const store = {
   vefat: () => load().vefat.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
   vefatById: (id: string) => load().vefat.find((v) => v.id === id) ?? null,
   notices: () => load().notices,
+  news: () => load().news.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
+  newsById: (id: string) => load().news.find((n) => n.id === id) ?? null,
+
+  upsertNews(n: News, notice?: PushNotice) {
+    const db = load();
+    const i = db.news.findIndex((x) => x.id === n.id);
+    if (i >= 0) db.news[i] = n;
+    else db.news.push(n);
+    if (notice) db.notices.push(notice);
+    save(db);
+  },
 
   upsertVefat(v: Vefat, notice?: PushNotice) {
     const db = load();

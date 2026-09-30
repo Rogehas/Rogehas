@@ -32,10 +32,32 @@ export interface Vefat {
   rejectionNote?: string;
 }
 
+export type NewsKind = 'haber' | 'duyuru' | 'kesinti';
+export type NewsStatus = 'draft' | 'published' | 'archived';
+
+export interface News {
+  id: string;
+  kind: NewsKind;
+  /** Kesinti için alt etiket, ör. "SU" ya da "ELEKTRİK". */
+  subLabel: string;
+  title: string;
+  body: string;
+  source: string;
+  photo: string | null;
+  sendPush: boolean;
+  status: NewsStatus;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt?: string;
+  publishedBy?: string;
+}
+
 /** Yayınlanınca telefonlara gidecek bildirim kaydı. */
 export interface PushNotice {
   id: string;
-  vefatId: string;
+  vefatId?: string;
+  newsId?: string;
   title: string;
   body: string;
   createdAt: string;
@@ -54,3 +76,6 @@ export const STATUS_LABEL: Record<VefatStatus, string> = {
   rejected: 'Reddedildi',
   archived: 'Arşiv',
 };
+
+export const KIND_LABEL: Record<NewsKind, string> = { haber: 'Haber', duyuru: 'Duyuru', kesinti: 'Kesinti' };
+export const NEWS_STATUS_LABEL: Record<NewsStatus, string> = { draft: 'Taslak', published: 'Yayında', archived: 'Arşiv' };

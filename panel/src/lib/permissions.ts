@@ -1,4 +1,4 @@
-import type { PanelUser, Role, Vefat } from './types';
+import type { News, PanelUser, Role, Vefat } from './types';
 
 export type Section =
   | 'vefat'
@@ -37,3 +37,9 @@ export const canPublishDirect = (u: PanelUser, v: Vefat) =>
   isAdmin(u) && (v.status === 'draft' || v.status === 'rejected');
 export const canArchiveVefat = (u: PanelUser, v: Vefat) => isAdmin(u) && v.status === 'published';
 export const canManageUsers = (u: PanelUser) => isAdmin(u);
+
+/** Haberde onay akışı yok: editörler düzenler ve yayınlar; arşivleme yöneticide. */
+const newsRole = (u: PanelUser) => canAccess(u.role, 'haber');
+export const canEditNews = (u: PanelUser, n: News) => newsRole(u) && n.status !== 'archived';
+export const canPublishNews = (u: PanelUser, n: News) => newsRole(u) && n.status === 'draft';
+export const canArchiveNews = (u: PanelUser, n: News) => isAdmin(u) && n.status === 'published';

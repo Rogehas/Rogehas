@@ -8,8 +8,7 @@ import { ROLE_LABEL } from '@/lib/types';
 
 const ITEMS: { label: string; section: Section; href?: string }[] = [
   { label: 'Vefat ilanları', section: 'vefat', href: '/vefat' },
-  { label: 'Haberler', section: 'haber' },
-  { label: 'Duyurular', section: 'duyuru' },
+  { label: 'Haberler', section: 'haber', href: '/haberler' },
   { label: 'Etkinlikler', section: 'etkinlik' },
   { label: 'Nöbetçi eczane', section: 'eczane' },
   { label: 'Esnaf', section: 'esnaf' },

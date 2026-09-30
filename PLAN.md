@@ -109,3 +109,8 @@ Roller: **Yönetici**, **Editör** (birden fazla), **Moderatör**.
 - Yayınlanınca bildirim kaydı üretilir (şimdilik yerel; Firebase Cloud Messaging'e bağlanacak).
 - Şimdilik veri tarayıcıda (localStorage) ve giriş demo: Firebase Auth/Firestore bağlanınca `panel/src/lib/store.ts` ve `session.tsx` değişecek.
 - Çalıştırma: `cd panel && npm install && npm run dev`; testler: `npm test`
+
+### Haber yönetimi (panel)
+- Tür: Haber / Duyuru / Kesinti (kesintide alt tür zorunlu, ör. SU). Uygulamadaki Haberler ekranıyla aynı üç tür.
+- Editörler onay beklemeden yayınlar ve yayınlanmış haberi düzenler; arşivleme yalnızca yöneticide.
+- "Telefonlara bildirim gönder" seçeneği (özellikle kesinti/duyuru için); bildirim önizlemesi form üzerinde.

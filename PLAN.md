@@ -52,3 +52,19 @@ Chat, eczane, rehber, şikâyet: ana sayfadaki kısa yol kartlarından.
 - Kullanıcı içeriği için: şikâyet, engelleme, moderasyon (mağaza zorunluluğu)
 - Hesap silme uygulama içinden yapılabilmeli
 - Apple ile giriş (Google girişi olduğu için zorunlu)
+
+## Onaylanan tasarım (ekran taslakları)
+
+Taslaklar: https://claude.ai/artifact/4MBRqJrUnsyqChgYQkbch8 (9 ekran: Giriş, Ana Sayfa, Haberler, Vefat, Keşfet, Eczane, Sohbet, Şikâyet, Editör Paneli)
+
+**Tasarım dili**
+- Başlık yazı tipi: Bricolage Grotesque (600–800); metin: Manrope
+- Renkler: zümrüt `#0B4D3E`, limon vurgu `#D4F26A`, krem zemin `#F4F1EA`, mürekkep `#10201B`, uyarı/kesinti `#D9532B`
+- Pastel kart renkleri: nane `#D9EBDD`, gökyüzü `#DCEAF2`, kum `#EFE4CB`, lavanta `#E6E0F3`
+- Vefat ekranı koyu tema: zemin `#131A21`, kart `#1D2731`, vurgu `#C9D6E2`
+- Yuvarlak köşeli kartlar (22–30 px), yumuşak gölge, yüzen koyu alt menü (hap biçimli)
+- Alt menü: Ana Sayfa · Haberler · Vefat · Keşfet · Profil
+
+**Notlar**
+- Taslaklardaki tüm içerik örnektir (isimler, haberler, vakitler).
+- Görseller geçici çizimlerdir; gerçek Tavas fotoğrafları eklenecek.

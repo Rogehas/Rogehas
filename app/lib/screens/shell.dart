@@ -7,6 +7,7 @@ import '../theme/app_theme.dart';
 import '../widgets/floating_nav.dart';
 import 'home_screen.dart';
 import 'news_screen.dart';
+import 'explore_screen.dart';
 import 'placeholder_screen.dart';
 import 'vefat_screen.dart';
 
@@ -91,7 +92,7 @@ class _ShellState extends State<Shell> {
                 HomeScreen(onOpenTab: (i) => setState(() => _index = i)),
                 const NewsScreen(),
                 const VefatScreen(),
-                const PlaceholderScreen(title: 'Keşfet'),
+                const ExploreScreen(),
                 const PlaceholderScreen(title: 'Profil'),
               ],
             ),

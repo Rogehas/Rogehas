@@ -81,7 +81,8 @@ Taslaklar: https://claude.ai/artifact/4MBRqJrUnsyqChgYQkbch8 (9 ekran: Giriş, A
 - [ ] Temizlik: deneme ilanları/bildirim kayıtları (Firestore `vefat`, `notices`), API anahtarı kısıtlaması
 - [x] Ana sayfa yeniden tasarlandı (Öneri A: öne çıkan haber + vefat + kısayollar + son haberler). Namaz vakitleri ve sahte hava durumu **kaldırıldı**; ileride gerçek kaynakla (Diyanet/hava API) geri eklenebilir
 - [x] Nöbetçi eczane: panelden elle giriş (eczane kaydı + tarih aralığıyla nöbet takvimi), uygulamada Bugün/Yarın, Ara ve Yol tarifi. Nöbet günü 09:00'da değişir
-- [ ] Faz 2 (kalan): rehber, keşfet/harita, etkinlikler
+- [x] Etkinlikler, Rehber ve Yerel Esnaf: panelden giriş (ortak `ContentManager`), uygulamada Keşfet sekmesi + ana sayfa kısayolları
+- [ ] Faz 2 (kalan): harita
 - [ ] Faz 3: Google girişi + sohbet, şikâyet/öneri, esnaf, favoriler
 - [ ] Play Store: ikon, imza anahtarı, gizlilik politikası/KVKK, hesap silme, kapalı test
 
@@ -158,3 +159,13 @@ Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildi
 
 - Panel önbelleği: Firebase Hosting varsayılan olarak sayfaları ~1 saat önbelleğe alır; editörler yeni sürümü geç görmesin diye `firebase.json`'da `Cache-Control: no-cache` (her seferinde yeniden doğrulama) ayarlı.
 - `panel/out/` (derleme çıktısı) repoda tutulmaz (`.gitignore`); her yayında `npm run deploy` yeniden derler. Bir ara yanlışlıkla commit edilmişti, takipten çıkarıldı.
+
+## Etkinlikler, Rehber, Yerel Esnaf
+
+- Panelde üç bölüm tek ortak bileşenle (`panel/src/components/ContentManager.tsx`) yönetilir. Kayıtlar silinmez, **Gizle/Yayınla** ile uygulamada görünürlük değişir (`published`).
+- Firestore: `events`, `guide`, `businesses` — herkes yalnızca `published == true` olanı okur; aktif yönetici/editör yazar (`updatedBy` kendi kimliği olmalı); silme yok. Fotoğraflar (etkinlik, esnaf) Storage'da `events/…`, `businesses/…`.
+- **Etkinlikler:** uygulamada yalnızca bugün ve sonrası (çok günlü ise bitişi geçmemiş) listelenir; geçmiş otomatik gizlenir. Tarih rozeti, "Bugün/Yarın/4–6 Ekim" etiketi, ayrıntı penceresi.
+- **Rehber:** kategoriye göre gruplu (Acil önce), kategori içinde "sıra"; 112/155 gibi kısa numaralar ve 444'lü hatlar desteklenir; tek dokunuşla arama.
+- **Yerel esnaf:** kategori süzgeci, Ara ve Yol tarifi (koordinat yoksa adrese göre arama), isteğe bağlı fotoğraf.
+- **Keşfet sekmesi** bu üç bölümün merkezi; ana sayfadaki Etkinlik / Rehber / Esnaf kısayolları da açar. Harita ve Kesintiler kısayolu henüz yok.
+- Yayınlama: kurallar ve Storage için `npm run deploy:backend`, panel için `npm run deploy`.

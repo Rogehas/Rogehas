@@ -1,6 +1,6 @@
 import 'dart:ui' show Offset, Size;
 
-import 'package:flutter/material.dart' show Switch;
+import 'package:flutter/material.dart' show Icons, Switch;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tavas/data/content_repository.dart';
@@ -217,6 +217,58 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Nöbetçi Eczane'), findsOneWidget);
     expect(find.text('Örnek Eczanesi'), findsOneWidget);
+  });
+
+  testWidgets(
+    'ana sayfa kısayolları etkinlik, rehber ve esnaf ekranlarını açar',
+    (tester) async {
+      tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        TavasApp(
+          repository: MockContentRepository(),
+          notifications: InMemoryNoticeSettings(),
+        ),
+      );
+      await tester.tap(find.text('Misafir olarak gez'));
+      await tester.pumpAndSettle();
+
+      for (final (tile, content) in [
+        ('Etkinlik', 'Yerel Ürünler Pazarı'),
+        ('Rehber', 'Belediye Santral'),
+        ('Esnaf', 'Lezzet Lokantası'),
+      ]) {
+        await tester.ensureVisible(find.text(tile));
+        await tester.tap(find.text(tile));
+        await tester.pumpAndSettle();
+        expect(find.text(content), findsOneWidget, reason: tile);
+        await tester.tap(find.byIcon(Icons.arrow_back));
+        await tester.pumpAndSettle();
+      }
+    },
+  );
+
+  testWidgets('Keşfet sekmesi artık boş değil, üç bölüm sunar', (tester) async {
+    tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      TavasApp(
+        repository: MockContentRepository(),
+        notifications: InMemoryNoticeSettings(),
+      ),
+    );
+    await tester.tap(find.text('Misafir olarak gez'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Keşfet'));
+    await tester.pumpAndSettle();
+    expect(find.text('Etkinlikler'), findsOneWidget);
+    expect(find.text('Yerel Esnaf'), findsOneWidget);
+    expect(find.text('Rehber'), findsOneWidget);
+    expect(find.textContaining('sonraki fazda'), findsNothing);
   });
 }
 

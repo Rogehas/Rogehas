@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../data/content_repository.dart';
 import '../data/duty_logic.dart';
@@ -7,15 +6,10 @@ import '../data/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
 import '../widgets/data_stream.dart';
-
-/// Adresi/telefonu açar. Testlerde sahte bir sürümle değiştirilir.
-typedef UrlOpener = Future<bool> Function(Uri uri);
-
-Future<bool> _defaultOpen(Uri uri) =>
-    launchUrl(uri, mode: LaunchMode.externalApplication);
+import '../widgets/url_opener.dart';
 
 class EczaneScreen extends StatefulWidget {
-  const EczaneScreen({super.key, this.opener = _defaultOpen});
+  const EczaneScreen({super.key, this.opener = defaultOpen});
   final UrlOpener opener;
 
   @override

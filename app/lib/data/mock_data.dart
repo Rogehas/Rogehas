@@ -51,6 +51,58 @@ class MockData {
     ),
   ];
 
+  static List<EventItem> events() {
+    final t = DateTime.now();
+    final today = DateTime(t.year, t.month, t.day);
+    return [
+      EventItem(
+        id: 'e1',
+        title: 'Yerel Ürünler Pazarı',
+        date: today.add(const Duration(days: 3)),
+        time: '10:00',
+        place: 'Pazar alanı',
+        description: 'Üreticiler ürünlerini tanıtıyor.',
+      ),
+      EventItem(
+        id: 'e2',
+        title: 'Sonbahar Şenliği',
+        date: today.add(const Duration(days: 10)),
+        endDate: today.add(const Duration(days: 12)),
+        place: 'Belediye meydanı',
+      ),
+    ];
+  }
+
+  static const guide = <GuideEntry>[
+    GuideEntry(
+      id: 'g1',
+      name: 'Acil Yardım',
+      category: 'Acil',
+      phone: '112',
+      order: 1,
+    ),
+    GuideEntry(
+      id: 'g2',
+      name: 'Belediye Santral',
+      category: 'Belediye',
+      phone: '02586140000',
+      note: 'Hafta içi 08:00 – 17:00',
+    ),
+  ];
+
+  static const businesses = <Business>[
+    Business(
+      id: 'b1',
+      name: 'Lezzet Lokantası',
+      category: 'Restoran',
+      phone: '02586140001',
+      address: 'Cumhuriyet Cd. No:3',
+      hours: 'Her gün 08:00 – 22:00',
+      description: 'Ev yemekleri.',
+    ),
+    Business(id: 'b2', name: 'Çarşı Kafe', category: 'Kafe', address: 'Çarşı'),
+  ];
+
   /// Bugünün nöbeti p1 + p2, yarın boş (girilmemiş).
   static List<DutyDay> duty() => [
     DutyDay(
@@ -98,4 +150,13 @@ class MockContentRepository implements ContentRepository {
 
   @override
   Stream<List<DutyDay>> watchDuty() => Stream.value(MockData.duty());
+
+  @override
+  Stream<List<EventItem>> watchEvents() => Stream.value(MockData.events());
+
+  @override
+  Stream<List<GuideEntry>> watchGuide() => Stream.value(MockData.guide);
+
+  @override
+  Stream<List<Business>> watchBusinesses() => Stream.value(MockData.businesses);
 }

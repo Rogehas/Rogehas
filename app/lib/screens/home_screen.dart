@@ -8,7 +8,10 @@ import '../widgets/common.dart';
 import '../widgets/data_stream.dart';
 import '../widgets/news_visual.dart';
 import '../widgets/scene_art.dart';
+import 'business_screen.dart';
 import 'eczane_screen.dart';
+import 'events_screen.dart';
+import 'guide_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key, required this.onOpenTab});
@@ -362,6 +365,15 @@ class _ShortcutGrid extends StatelessWidget {
     (Icons.map_outlined, 'Harita', AppColors.sky),
   ];
 
+  /// Etiketine göre açılacak sayfa; henüz yapılmamışsa `null`.
+  static Widget? _pageFor(String label) => switch (label) {
+    final l when l.startsWith('Nöbetçi') => const EczaneScreen(),
+    'Etkinlik' => const EventsScreen(),
+    'Rehber' => const GuideScreen(),
+    'Esnaf' => const BusinessScreen(),
+    _ => null,
+  };
+
   @override
   Widget build(BuildContext context) {
     return GridView(
@@ -377,10 +389,10 @@ class _ShortcutGrid extends StatelessWidget {
         for (final (icon, label, bg) in _tiles)
           GestureDetector(
             onTap: () {
-              if (label.startsWith('Nöbetçi')) {
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(builder: (_) => const EczaneScreen()),
-                );
+              final page = _pageFor(label);
+              if (page != null) {
+                Navigator.of(context)
+                    .push(MaterialPageRoute<void>(builder: (_) => page));
                 return;
               }
               ScaffoldMessenger.of(context).showSnackBar(

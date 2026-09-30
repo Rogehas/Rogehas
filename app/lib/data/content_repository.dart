@@ -14,6 +14,9 @@ abstract class ContentRepository {
   Stream<List<VefatItem>> watchVefat();
   Stream<List<Pharmacy>> watchPharmacies();
   Stream<List<DutyDay>> watchDuty();
+  Stream<List<EventItem>> watchEvents();
+  Stream<List<GuideEntry>> watchGuide();
+  Stream<List<Business>> watchBusinesses();
 }
 
 /// Yalnızca `status == published` belgeleri okur (güvenlik kuralları misafire yalnızca bunu açar).
@@ -58,6 +61,30 @@ class FirestoreContentRepository implements ContentRepository {
     });
   }
 
+  /// `published == true` olanlar (güvenlik kuralları misafire yalnızca bunu açar).
+  Stream<List<T>> _visible<T>(
+    String collection,
+    T? Function(String id, Map<String, dynamic> data) map,
+  ) {
+    return _db
+        .collection(collection)
+        .where('published', isEqualTo: true)
+        .snapshots()
+        .map((snap) => [for (final d in snap.docs) ?map(d.id, d.data())]);
+  }
+
+  @override
+  Stream<List<EventItem>> watchEvents() =>
+      _visible('events', ContentMapper.event);
+
+  @override
+  Stream<List<GuideEntry>> watchGuide() =>
+      _visible('guide', ContentMapper.guide);
+
+  @override
+  Stream<List<Business>> watchBusinesses() =>
+      _visible('businesses', ContentMapper.business);
+
   /// Dünden itibaren nöbet günleri (09:00'dan önce hâlâ dünün nöbeti sürer).
   @override
   Stream<List<DutyDay>> watchDuty() {
@@ -90,6 +117,15 @@ class UnavailableContentRepository implements ContentRepository {
 
   @override
   Stream<List<DutyDay>> watchDuty() => Stream.error(error);
+
+  @override
+  Stream<List<EventItem>> watchEvents() => Stream.error(error);
+
+  @override
+  Stream<List<GuideEntry>> watchGuide() => Stream.error(error);
+
+  @override
+  Stream<List<Business>> watchBusinesses() => Stream.error(error);
 }
 
 /// Bir akışa tek kez abone olur, son değeri/hatayı saklar ve ekranlara paylaştırır
@@ -127,18 +163,27 @@ class ContentHub {
     : news = Shared(repo.watchNews()),
       vefat = Shared(repo.watchVefat()),
       pharmacies = Shared(repo.watchPharmacies()),
-      duty = Shared(repo.watchDuty());
+      duty = Shared(repo.watchDuty()),
+      events = Shared(repo.watchEvents()),
+      guide = Shared(repo.watchGuide()),
+      businesses = Shared(repo.watchBusinesses());
 
   final Shared<List<NewsItem>> news;
   final Shared<List<VefatItem>> vefat;
   final Shared<List<Pharmacy>> pharmacies;
   final Shared<List<DutyDay>> duty;
+  final Shared<List<EventItem>> events;
+  final Shared<List<GuideEntry>> guide;
+  final Shared<List<Business>> businesses;
 
   void dispose() {
     news.dispose();
     vefat.dispose();
     pharmacies.dispose();
     duty.dispose();
+    events.dispose();
+    guide.dispose();
+    businesses.dispose();
   }
 }
 

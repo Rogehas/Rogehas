@@ -1,3 +1,4 @@
+import 'links.dart';
 import 'models.dart';
 import 'vefat_filter.dart' show turkishDate;
 
@@ -42,18 +43,14 @@ List<Pharmacy>? pharmaciesOnDuty(
 }
 
 /// Telefon arama adresi.
-Uri telUri(String phone) => Uri(scheme: 'tel', path: phone);
+Uri telUri(String phone) => telLink(phone);
 
 /// Google Haritalar yol tarifi adresi: koordinat varsa tam konum, yoksa adres metni.
-Uri directionsUri(Pharmacy p) {
-  final destination = (p.lat != null && p.lng != null)
-      ? '${p.lat},${p.lng}'
-      : '${p.name} ${p.address} Tavas Denizli'.trim();
-  return Uri.https('www.google.com', '/maps/dir/', {
-    'api': '1',
-    'destination': destination,
-  });
-}
+Uri directionsUri(Pharmacy p) => mapsLink(
+  lat: p.lat,
+  lng: p.lng,
+  query: '${p.name} ${p.address} Tavas Denizli',
+);
 
 /// "0258 614 00 00" biçiminde gösterim (11 haneli değilse olduğu gibi).
 String formatPhone(String phone) {

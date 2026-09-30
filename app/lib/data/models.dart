@@ -98,3 +98,77 @@ class DutyDay {
   final String date; // yyyy-mm-dd
   final List<String> pharmacyIds;
 }
+
+class EventItem {
+  const EventItem({
+    required this.id,
+    required this.title,
+    required this.date,
+    required this.place,
+    this.endDate,
+    this.time = '',
+    this.description = '',
+    this.photoUrl,
+  });
+
+  final String id;
+  final String title;
+  final DateTime date;
+
+  /// Çok günlü etkinliğin son günü (tek günlükse `null`).
+  final DateTime? endDate;
+
+  /// SS:DD ya da boş.
+  final String time;
+  final String place;
+  final String description;
+  final String? photoUrl;
+
+  DateTime get lastDay => endDate ?? date;
+}
+
+class GuideEntry {
+  const GuideEntry({
+    required this.id,
+    required this.name,
+    required this.category,
+    required this.phone,
+    this.address = '',
+    this.note = '',
+    this.order = 0,
+  });
+
+  final String id;
+  final String name;
+  final String category;
+  final String phone;
+  final String address;
+  final String note;
+  final int order;
+}
+
+class Business {
+  const Business({
+    required this.id,
+    required this.name,
+    required this.category,
+    this.description = '',
+    this.phone = '',
+    this.address = '',
+    this.hours = '',
+    this.lat,
+    this.lng,
+    this.photoUrl,
+  });
+
+  final String id;
+  final String name;
+  final String category;
+  final String description;
+  final String phone;
+  final String address;
+  final String hours;
+  final double? lat;
+  final double? lng;
+  final String? photoUrl;
+}

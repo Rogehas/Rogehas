@@ -43,6 +43,69 @@ class ContentMapper {
     );
   }
 
+  static String _s(Object? v) => (v as String? ?? '').trim();
+
+  static String _phone(Object? v) => _s(v).replaceAll(RegExp(r'\D'), '');
+
+  static DateTime? _ymd(Object? v) {
+    if (v is! String || !RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(v)) {
+      return null;
+    }
+    final p = v.split('-').map(int.parse).toList();
+    final d = DateTime(p[0], p[1], p[2]);
+    // 31 Şubat gibi geçersiz tarihler DateTime'da kayar; bunları eşleştirme.
+    return d.month == p[1] && d.day == p[2] ? d : null;
+  }
+
+  static EventItem? event(String id, Map<String, dynamic> m) {
+    final title = _s(m['title']);
+    final date = _ymd(m['date']);
+    if (m['published'] == false || title.isEmpty || date == null) return null;
+    final end = _ymd(m['endDate']);
+    return EventItem(
+      id: id,
+      title: title,
+      date: date,
+      endDate: end != null && !end.isBefore(date) ? end : null,
+      time: _s(m['time']),
+      place: _s(m['place']),
+      description: _s(m['description']),
+      photoUrl: _photo(m['photo']),
+    );
+  }
+
+  static GuideEntry? guide(String id, Map<String, dynamic> m) {
+    final name = _s(m['name']);
+    final phone = _phone(m['phone']);
+    if (m['published'] == false || name.isEmpty || phone.isEmpty) return null;
+    return GuideEntry(
+      id: id,
+      name: name,
+      category: _s(m['category']),
+      phone: phone,
+      address: _s(m['address']),
+      note: _s(m['note']),
+      order: (m['order'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  static Business? business(String id, Map<String, dynamic> m) {
+    final name = _s(m['name']);
+    if (m['published'] == false || name.isEmpty) return null;
+    return Business(
+      id: id,
+      name: name,
+      category: _s(m['category']),
+      description: _s(m['description']),
+      phone: _phone(m['phone']),
+      address: _s(m['address']),
+      hours: _s(m['hours']),
+      lat: (m['lat'] as num?)?.toDouble(),
+      lng: (m['lng'] as num?)?.toDouble(),
+      photoUrl: _photo(m['photo']),
+    );
+  }
+
   static DutyDay? duty(Map<String, dynamic> m) {
     final date = m['date'];
     if (date is! String || !RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(date)) {

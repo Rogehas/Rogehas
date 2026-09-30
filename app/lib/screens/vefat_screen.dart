@@ -68,6 +68,7 @@ class _VefatScreenState extends State<VefatScreen> {
             builder: (context, _) => _NotifyCard(
               value: NotificationScope.of(context)
                   .isEnabled(NoticeTopics.vefat),
+              problem: NotificationScope.of(context).problem,
               onChanged: _toggleNotify,
             ),
           ),
@@ -107,8 +108,13 @@ class _VefatScreenState extends State<VefatScreen> {
 }
 
 class _NotifyCard extends StatelessWidget {
-  const _NotifyCard({required this.value, required this.onChanged});
+  const _NotifyCard({
+    required this.value,
+    required this.onChanged,
+    this.problem,
+  });
   final bool value;
+  final String? problem;
   final ValueChanged<bool> onChanged;
 
   @override
@@ -129,13 +135,32 @@ class _NotifyCard extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              value ? 'Vefat bildirimleri açık' : 'Vefat bildirimleri kapalı',
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: AppColors.darkText,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value
+                      ? 'Vefat bildirimleri açık'
+                      : 'Vefat bildirimleri kapalı',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.darkText,
+                  ),
+                ),
+                if (problem != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Text(
+                      problem!,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        height: 1.3,
+                        color: Color(0xFFFFB4A1),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
           Switch(

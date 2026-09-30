@@ -123,4 +123,26 @@ void main() {
     expect(find.text('Vefat · Deneme'), findsOneWidget);
     expect(find.text('Gör'), findsOneWidget);
   });
+
+  testWidgets('bildirim kurulamadıysa neden vefat ekranında yazar', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      TavasApp(
+        repository: MockContentRepository(),
+        notifications: InMemoryNoticeSettings(
+          initialProblem: 'Bildirim izni verilmedi.',
+        ),
+      ),
+    );
+    await tester.tap(find.text('Misafir olarak gez'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Vefat'));
+    await tester.pumpAndSettle();
+    expect(find.text('Bildirim izni verilmedi.'), findsOneWidget);
+  });
 }

@@ -31,6 +31,9 @@ class NoticeTopics {
 abstract class NoticeSettings extends ChangeNotifier {
   bool isEnabled(String topic);
 
+  /// Bildirimlerin neden çalışmadığını açıklayan kısa mesaj (yoksa `null`).
+  String? get problem => null;
+
   /// Konuyu açar/kapatır. Açarken bildirim izni reddedilirse `false` döner ve konu açılmaz.
   Future<bool> setEnabled(String topic, bool enabled);
 
@@ -43,7 +46,12 @@ abstract class NoticeSettings extends ChangeNotifier {
 
 /// Firebase'siz çalışma (testler, tanıtım sürümü): tercihler bellekte tutulur, bildirim gelmez.
 class InMemoryNoticeSettings extends NoticeSettings {
-  InMemoryNoticeSettings({this.grantPermission = true});
+  InMemoryNoticeSettings({this.grantPermission = true, this.initialProblem});
+
+  final String? initialProblem;
+
+  @override
+  String? get problem => initialProblem;
 
   /// `false` ise izin reddedilmiş gibi davranır (test için).
   final bool grantPermission;

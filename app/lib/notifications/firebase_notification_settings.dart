@@ -17,6 +17,21 @@ class FirebaseNoticeSettings extends NoticeSettings {
   final FirebaseMessaging _fm;
   final _controller = StreamController<NoticeMessage>.broadcast();
   StreamSubscription<RemoteMessage>? _sub;
+  String? _problem;
+
+  @override
+  String? get problem => _problem;
+
+  void _setProblem(String? p) {
+    if (_problem == p) return;
+    _problem = p;
+    notifyListeners();
+  }
+
+  static String _short(Object e) {
+    final s = e.toString().replaceAll('\n', ' ');
+    return s.length > 140 ? '${s.substring(0, 140)}…' : s;
+  }
 
   static Future<FirebaseNoticeSettings> create() async =>
       FirebaseNoticeSettings(await SharedPreferences.getInstance());
@@ -32,15 +47,21 @@ class FirebaseNoticeSettings extends NoticeSettings {
 
   @override
   Future<bool> setEnabled(String topic, bool enabled) async {
-    if (enabled) {
-      if (!await _requestPermission()) return false;
-      await _fm.subscribeToTopic(topic);
-    } else {
-      await _fm.unsubscribeFromTopic(topic);
+    try {
+      if (enabled) {
+        if (!await _requestPermission()) return false;
+        await _fm.subscribeToTopic(topic);
+      } else {
+        await _fm.unsubscribeFromTopic(topic);
+      }
+      await _prefs.setBool(_key(topic), enabled);
+      _setProblem(null);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _setProblem('Bildirim ayarı kaydedilemedi: ${_short(e)}');
+      return false;
     }
-    await _prefs.setBool(_key(topic), enabled);
-    notifyListeners();
-    return true;
   }
 
   @override
@@ -67,6 +88,7 @@ class FirebaseNoticeSettings extends NoticeSettings {
           await _prefs.setBool(_key(t), on);
         }
         await _prefs.setBool(_initKey, true);
+        if (!granted) _setProblem('Bildirim izni verilmedi.');
       } else {
         // Sonraki açılışlar: abonelikleri tazele (telefon değişikliği/yeniden kurulum sonrası sağlamlık).
         for (final t in NoticeTopics.all) {
@@ -74,8 +96,9 @@ class FirebaseNoticeSettings extends NoticeSettings {
         }
       }
       notifyListeners();
-    } catch (_) {
+    } catch (e) {
       // Ağ yoksa tercihler olduğu gibi kalır; bir sonraki açılışta tekrar denenir.
+      _setProblem('Bildirim kaydı yapılamadı: ${_short(e)}');
     }
   }
 

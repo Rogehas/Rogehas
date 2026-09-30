@@ -23,6 +23,7 @@ describe('haber yönetimi', () => {
   it('editör onay olmadan yayınlar ve bildirim üretir', () => {
     const r = transitionNews(news(), 'publish', editor);
     expect(r.news.status).toBe('published');
+    expect(r.notice?.topic).toBe('kesinti');
     expect(r.notice?.title).toBe('Kesinti · SU');
     expect(r.notice?.body).toBe('Yarın su kesintisi');
   });

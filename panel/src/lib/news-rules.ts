@@ -15,6 +15,7 @@ export function newsNotice(n: News): PushNotice {
   const prefix = n.kind === 'kesinti' ? `Kesinti · ${n.subLabel.trim()}` : n.kind === 'duyuru' ? 'Duyuru' : 'Haber';
   return {
     id: `n_${n.id}_${Date.now()}`,
+    topic: n.kind,
     newsId: n.id,
     title: prefix,
     body: n.title.trim(),

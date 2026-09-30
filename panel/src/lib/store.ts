@@ -16,7 +16,7 @@ import type { Invite, News, PanelUser, PushNotice, Role, Vefat } from './types';
 /** Fotoğraf Storage açıksa yüklenip adresi saklanır; değilse veri adresi belgede kalır. */
 async function resolvePhoto(kind: 'vefat' | 'news', id: string, photo: string | null) {
   if (!photo || !photo.startsWith('data:') || !USE_STORAGE) return photo;
-  const r = ref(storage, `${kind}/${id}/photo.jpg`);
+  const r = ref(storage, `${kind}/${id}/photo-${Date.now()}.jpg`);
   await uploadString(r, photo, 'data_url');
   return getDownloadURL(r);
 }

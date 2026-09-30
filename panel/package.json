@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run src",
     "test:rules": "firebase emulators:exec --only firestore --project tavas-rules-test \"vitest run rules-test\"",
-    "deploy": "next build && firebase deploy --only hosting"
+    "deploy": "next build && firebase deploy --only hosting",
+    "deploy:backend": "firebase deploy --only functions,firestore:rules,storage"
   },
   "dependencies": {
     "firebase": "^12.19.0",

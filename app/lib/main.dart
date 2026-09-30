@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'data/content_repository.dart';
 import 'data/mock_data.dart';
 import 'firebase_options.dart';
+import 'notifications/firebase_notification_settings.dart';
+import 'notifications/notification_settings.dart';
 import 'screens/login_screen.dart';
 import 'theme/app_theme.dart';
 
@@ -12,11 +14,14 @@ const _useMock = bool.fromEnvironment('USE_MOCK');
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(TavasApp(repository: await _createRepository()));
+  final (repository, notifications) = await _bootstrap();
+  runApp(TavasApp(repository: repository, notifications: notifications));
 }
 
-Future<ContentRepository> _createRepository() async {
-  if (_useMock) return MockContentRepository();
+Future<(ContentRepository, NoticeSettings)> _bootstrap() async {
+  if (_useMock) {
+    return (MockContentRepository(), InMemoryNoticeSettings());
+  }
   try {
     if (!DefaultFirebaseOptions.isConfigured) {
       throw StateError('Firebase yapılandırması eksik.');
@@ -24,16 +29,24 @@ Future<ContentRepository> _createRepository() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    return FirestoreContentRepository();
+    return (
+      FirestoreContentRepository(),
+      await FirebaseNoticeSettings.create(),
+    );
   } catch (e) {
     // Sahte veri göstermek yerine ekranlarda "yüklenemedi" mesajı çıkar.
-    return UnavailableContentRepository(e);
+    return (UnavailableContentRepository(e), InMemoryNoticeSettings());
   }
 }
 
 class TavasApp extends StatefulWidget {
-  const TavasApp({super.key, required this.repository});
+  const TavasApp({
+    super.key,
+    required this.repository,
+    required this.notifications,
+  });
   final ContentRepository repository;
+  final NoticeSettings notifications;
 
   @override
   State<TavasApp> createState() => _TavasAppState();
@@ -45,6 +58,7 @@ class _TavasAppState extends State<TavasApp> {
   @override
   void dispose() {
     _hub.dispose();
+    widget.notifications.dispose();
     super.dispose();
   }
 
@@ -52,11 +66,14 @@ class _TavasAppState extends State<TavasApp> {
   Widget build(BuildContext context) {
     return ContentScope(
       hub: _hub,
-      child: MaterialApp(
-        title: 'Tavas',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.light,
-        home: const LoginScreen(),
+      child: NotificationScope(
+        settings: widget.notifications,
+        child: MaterialApp(
+          title: 'Tavas',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light,
+          home: const LoginScreen(),
+        ),
       ),
     );
   }

@@ -62,8 +62,12 @@ export interface News {
 }
 
 /** Yayınlanınca telefonlara gidecek bildirim kaydı. */
+/** Telefonların abone olduğu konu: vefat / haber / duyuru / kesinti. */
+export type NoticeTopic = 'vefat' | 'haber' | 'duyuru' | 'kesinti';
+
 export interface PushNotice {
   id: string;
+  topic: NoticeTopic;
   vefatId?: string;
   newsId?: string;
   title: string;

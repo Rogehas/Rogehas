@@ -1,10 +1,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Firestore verisi için gerekli (yayın sürümünde de). -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Android 13+ için bildirim izni. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
         android:label="Tavas"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="genel" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

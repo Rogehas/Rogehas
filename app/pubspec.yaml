@@ -9,9 +9,11 @@ environment:
 dependencies:
   cloud_firestore: ^6.10.0
   firebase_core: ^4.15.0
+  firebase_messaging: ^16.7.0
   flutter:
     sdk: flutter
   google_fonts: ^6.3.3
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:

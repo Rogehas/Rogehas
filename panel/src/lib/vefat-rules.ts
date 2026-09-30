@@ -37,6 +37,7 @@ export function buildNotice(v: Vefat): PushNotice {
   const when = isToday ? 'bugün' : `${d.toString().padStart(2, '0')}.${m.toString().padStart(2, '0')}`;
   return {
     id: `n_${v.id}_${Date.now()}`,
+    topic: 'vefat',
     vefatId: v.id,
     title: `Vefat · ${v.name}`,
     body: `Cenaze namazı ${when} ${v.prayerTime}, ${v.mosque}.`,

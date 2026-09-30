@@ -66,6 +66,7 @@ describe('yayın akışı', () => {
     const { vefat, notice } = transition(pending, 'approve', admin);
     expect(vefat.status).toBe('published');
     expect(vefat.publishedBy).toBe('a1');
+    expect(notice?.topic).toBe('vefat');
     expect(notice?.title).toBe('Vefat · Ayşe Örnek');
     expect(notice?.body).toContain('13:30');
   });

@@ -135,3 +135,12 @@ Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildi
 - Düzenleme sayfaları adres parametresiyle çalışır: `/vefat/edit?id=…`, `/haberler/edit?id=…` (yeni kayıt için `id` yok).
 - Yayınlama: `cd panel && npm install && npm run deploy` (önce bir kez `npx firebase login`).
 - Giriş için `tavas-4f166.web.app` alan adı Firebase Authentication'da varsayılan olarak yetkilidir.
+
+## Bildirimler (FCM) ve fotoğraf depolama
+
+- Panel bir ilan/haber yayınlayınca `notices` kaydı yazar (`topic`: vefat / haber / duyuru / kesinti). `panel/functions/` içindeki `sendNotice` (Cloud Functions, 2. nesil) kayıt oluşunca o konuya abone telefonlara FCM mesajı gönderir; kaydı `sentAt` ile işaretler (tekrar gönderilmez). Hata olursa `error`/`failedAt` yazılır, yeniden denenmez (eski vefat bildirimi geç gitmesin).
+- Uygulama ilk açılışta bildirim izni ister; varsayılan abonelikler: vefat, duyuru, kesinti (haber kapalı). Vefat ekranındaki anahtar `vefat` konusuna abone olur/çıkar; izin reddedilmişse uyarır.
+- Android kanalları: `vefat` (yüksek önem), `genel` (`MainActivity.kt`; adlar `functions/notify.js` ile aynı olmalı).
+- Fotoğraflar artık Firebase Storage'a yüklenir (`vefat/{id}/photo-<zaman>.jpg`, `news/...`); herkes okur, yalnızca aktif yönetici/editör yazar, 2 MB ve `image/*` sınırı.
+- Yayınlama: `cd panel && npm run deploy:backend` (fonksiyon + Firestore/Storage kuralları) ve `npm run deploy` (panel).
+- Doğrulama durumu: fonksiyonun tetiklenmesi ve mesaj üretimi emülatör/birim testlerinde doğrulandı; gerçek FCM gönderimi, Storage kuralları ve telefonda bildirim görünmesi gerçek projede denenecek (emülatör bu servisleri burada doğrulayamadı).

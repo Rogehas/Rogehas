@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/content_repository.dart';
+import '../notifications/notification_settings.dart';
 import '../data/models.dart';
 import '../theme/app_theme.dart';
 import '../data/vefat_filter.dart';
@@ -15,8 +16,22 @@ class VefatScreen extends StatefulWidget {
 }
 
 class _VefatScreenState extends State<VefatScreen> {
-  bool _notify = true;
   int _tab = 0;
+
+  Future<void> _toggleNotify(bool on) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final ok = await NotificationScope.of(context)
+        .setEnabled(NoticeTopics.vefat, on);
+    if (!ok && mounted) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Bildirim izni kapalı. Telefonun Ayarlar > Uygulamalar > Tavas > Bildirimler bölümünden izin ver.',
+          ),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,9 +63,13 @@ class _VefatScreenState extends State<VefatScreen> {
             ],
           ),
           const SizedBox(height: 14),
-          _NotifyCard(
-            value: _notify,
-            onChanged: (v) => setState(() => _notify = v),
+          ListenableBuilder(
+            listenable: NotificationScope.of(context),
+            builder: (context, _) => _NotifyCard(
+              value: NotificationScope.of(context)
+                  .isEnabled(NoticeTopics.vefat),
+              onChanged: _toggleNotify,
+            ),
           ),
           const SizedBox(height: 12),
           _Segments(index: _tab, onChanged: (i) => setState(() => _tab = i)),

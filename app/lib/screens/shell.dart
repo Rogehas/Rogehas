@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import '../notifications/notification_settings.dart';
 import '../theme/app_theme.dart';
 import '../widgets/floating_nav.dart';
 import 'home_screen.dart';
@@ -25,6 +28,54 @@ class Shell extends StatefulWidget {
 class _ShellState extends State<Shell> {
   int _index = 0;
   static const _vefatIndex = 2;
+  StreamSubscription<NoticeMessage>? _sub;
+  bool _started = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    final settings = NotificationScope.of(context);
+    // İlk açılışta bildirim izni istenir ve varsayılan konulara abone olunur.
+    unawaited(settings.start());
+    _sub = settings.foreground.listen(_showNotice);
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
+
+  /// Uygulama açıkken gelen bildirimi ekranda gösterir.
+  void _showNotice(NoticeMessage m) {
+    if (!mounted) return;
+    final isVefat = m.topic == NoticeTopics.vefat;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 10),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(m.title, style: const TextStyle(fontWeight: FontWeight.w800)),
+            if (m.body.isNotEmpty) Text(m.body),
+          ],
+        ),
+        action: isVefat
+            ? SnackBarAction(
+                label: 'Gör',
+                onPressed: () => setState(() => _index = _vefatIndex),
+              )
+            : null,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

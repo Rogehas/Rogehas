@@ -29,5 +29,5 @@ if (!existing && process.env.NEXT_PUBLIC_USE_EMULATOR === 'true') {
   connectFirestoreEmulator(db, '127.0.0.1', 8080);
 }
 
-/** Storage (Blaze planı gerektirir) açılana kadar fotoğraflar belgenin içinde saklanır. */
-export const USE_STORAGE = process.env.NEXT_PUBLIC_USE_STORAGE === 'true';
+/** Fotoğraflar Firebase Storage'a yüklenir; `NEXT_PUBLIC_USE_STORAGE=false` ile belge içine yazılır (yerel deneme). */
+export const USE_STORAGE = process.env.NEXT_PUBLIC_USE_STORAGE !== 'false';

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/mock_data.dart';
 import '../data/models.dart';
 import '../theme/app_theme.dart';
+import '../widgets/person_photo.dart';
 
 class VefatScreen extends StatefulWidget {
   const VefatScreen({super.key});
@@ -176,19 +177,15 @@ class _VefatCard extends StatelessWidget {
       child: Column(
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 58,
-                height: 58,
-                alignment: Alignment.center,
-                decoration: const BoxDecoration(
-                  color: AppColors.darkLine,
-                  shape: BoxShape.circle,
-                ),
-                child: Text(
-                  v.initials,
-                  style: AppTheme.display(22, color: AppColors.darkAccent),
-                ),
+              PersonPhoto(
+                photoUrl: v.photoUrl,
+                initials: v.initials,
+                name: v.name,
+                width: 92,
+                height: 116,
+                enlargeOnTap: true,
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -196,25 +193,34 @@ class _VefatCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
+                      v.ago,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.darkMuted,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
                       v.name,
                       style: AppTheme.display(23, color: AppColors.darkText),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Text(
-                      '${v.age} yaşında · ${v.neighborhood}',
+                      '${v.age} yaşında',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.darkAccent,
+                      ),
+                    ),
+                    Text(
+                      v.neighborhood,
                       style: const TextStyle(
                         fontSize: 13,
                         color: AppColors.darkMuted,
                       ),
                     ),
                   ],
-                ),
-              ),
-              Text(
-                v.ago,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.darkMuted,
                 ),
               ),
             ],

@@ -80,3 +80,21 @@ Taslaklar: https://claude.ai/artifact/4MBRqJrUnsyqChgYQkbch8 (9 ekran: Giriş, A
 - [ ] Faz 2 ve Faz 3 ekranları
 
 Çalıştırma: `cd app && flutter pub get && flutter run` — testler: `flutter test`
+
+## Vefat ilanlarında fotoğraf
+
+- Editör ilanda ölen kişinin fotoğrafını yükler; kullanıcılar kartta görür, dokununca tam ekran büyütür (yakınlaştırılabilir).
+- Fotoğraf yoksa ya da yüklenemezse baş harfler gösterilir.
+- Depolama: Firebase Storage. Yüklerken yeniden boyutlandırılıp sıkıştırılacak (hızlı yükleme, düşük maliyet).
+- Fotoğraf yüklemeden önce "Aile onayı alındı" işaretlenmeli (editör panelinde zorunlu).
+- Fotoğraf sadece yetkili editör/yönetici tarafından eklenir ve değiştirilir; kullanıcılar yükleyemez.
+- Arşive alınan ilanlarda fotoğraf gösterimi yönetici kararıyla kapatılabilir.
+
+## Android yayın adımları
+
+1. Firebase projesi ve `google-services.json` (repoya konmaz)
+2. Uygulama adı, ikon, açılış ekranı
+3. İmzalama anahtarı (keystore) oluşturma ve güvenli saklama
+4. Google Play Console hesabı (tek seferlik 25 dolar) ve mağaza kaydı
+5. Gizlilik politikası ve KVKK metni (web adresi gerekir), veri güvenliği formu
+6. Kapalı test (Google zorunlu kılabilir: en az 12 test kullanıcısı, 14 gün) → yayın

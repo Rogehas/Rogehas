@@ -37,6 +37,7 @@ class VefatItem {
     required this.mosque,
     required this.burial,
     required this.ago,
+    this.photoUrl,
   });
 
   final String name;
@@ -46,6 +47,9 @@ class VefatItem {
   final String mosque;
   final String burial;
   final String ago;
+
+  /// Ölen kişinin fotoğrafı (Firebase Storage adresi). Yoksa baş harfler gösterilir.
+  final String? photoUrl;
 
   String get initials {
     final parts = name.split(' ');

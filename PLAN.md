@@ -155,3 +155,5 @@ Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildi
 - Nöbet, günün 09:00'undan ertesi gün 09:00'una kadar sürer; uygulama saat 09:00'dan önce dünün nöbetini gösterir.
 - Girilmemiş gün: uygulama "nöbet bilgisi henüz girilmedi" der (yanlış eczane göstermek yerine).
 - Yayınlama: kurallar için `npm run deploy:backend`, panel için `npm run deploy`.
+
+- Panel önbelleği: Firebase Hosting varsayılan olarak sayfaları ~1 saat önbelleğe alır; editörler yeni sürümü geç görmesin diye `firebase.json`'da `Cache-Control: no-cache` (her seferinde yeniden doğrulama) ayarlı.

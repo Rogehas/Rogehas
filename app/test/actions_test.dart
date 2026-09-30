@@ -29,9 +29,13 @@ void main() {
     await tester.pumpWidget(
       TavasApp(repository: MockContentRepository(), notifications: s),
     );
-    await tester.tap(find.text('Başla'));
     await tester.pumpAndSettle();
     return s;
+  }
+
+  Future<void> openVefat(WidgetTester tester) async {
+    await tester.tap(find.bySemanticsLabel('Vefat'));
+    await tester.pumpAndSettle();
   }
 
   /// Sayfayı tek başına, sahte açıcı/paylaşıcıyla kurar.
@@ -55,18 +59,72 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  group('giriş ekranı', () {
-    testWidgets('çalışmayan Google/Apple düğmeleri yok', (tester) async {
-      bigScreen(tester);
-      await tester.pumpWidget(
-        TavasApp(
-          repository: MockContentRepository(),
-          notifications: InMemoryNoticeSettings(),
-        ),
+  group('açılış', () {
+    testWidgets(
+      'giriş ekranı yok; ana sayfa doğrudan açılır, Google/Apple düğmesi yok',
+      (tester) async {
+        await pumpApp(tester);
+        expect(find.text('Başla'), findsNothing);
+        expect(find.textContaining(', Tavas'), findsOneWidget);
+        expect(find.textContaining('Google'), findsNothing);
+        expect(find.textContaining('Apple'), findsNothing);
+      },
+    );
+  });
+
+  group('ana sayfa üstü ve alt menü', () {
+    testWidgets('alt menü sırası: Haberler, Sohbet, Ana Sayfa, Profil, Vefat', (
+      tester,
+    ) async {
+      await pumpApp(tester);
+      const labels = ['Haberler', 'Sohbet', 'Ana Sayfa', 'Profil', 'Vefat'];
+      final xs = [
+        for (final l in labels) tester.getCenter(find.bySemanticsLabel(l)).dx,
+      ];
+      expect(xs, orderedEquals([...xs]..sort()));
+      // Ana Sayfa ortadaki düğmedir.
+      final mid =
+          tester.view.physicalSize.width / tester.view.devicePixelRatio / 2;
+      expect((xs[2] - mid).abs(), lessThan(1));
+    });
+
+    testWidgets('üstteki haberler oklarla ve kaydırarak gezilir', (
+      tester,
+    ) async {
+      await pumpApp(tester);
+      const first = "Tavas'ta sonbahar etkinlik takvimi açıklandı";
+      expect(find.text(first), findsOneWidget);
+
+      await tester.tap(
+        find.widgetWithIcon(RoundIconButton, Icons.chevron_right),
       );
-      expect(find.textContaining('Google'), findsNothing);
-      expect(find.textContaining('Apple'), findsNothing);
-      expect(find.text('Başla'), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.text(first), findsNothing);
+
+      await tester.tap(
+        find.widgetWithIcon(RoundIconButton, Icons.chevron_left),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(first), findsOneWidget);
+
+      await tester.drag(find.text(first), const Offset(-300, 0));
+      await tester.pumpAndSettle();
+      expect(find.text(first), findsNothing);
+    });
+
+    testWidgets('üstteki habere dokununca metni açılır', (tester) async {
+      await pumpApp(tester);
+      await tester.tap(
+        find.text("Tavas'ta sonbahar etkinlik takvimi açıklandı"),
+      );
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Sonbahar boyunca'), findsOneWidget);
+    });
+
+    testWidgets('Vefat ve Haberler sekmeleri menüden açılır', (tester) async {
+      await pumpApp(tester);
+      await openVefat(tester);
+      expect(find.text('Vefat bildirimleri açık'), findsOneWidget);
     });
   });
 

@@ -9,8 +9,7 @@ class MockData {
       kind: NewsKind.haber,
       title: "Tavas'ta sonbahar etkinlik takvimi açıklandı",
       meta: 'Bugün · Editör',
-      body:
-          'Sonbahar boyunca çeşitli etkinlikler düzenlenecek. Ayrıntılar yakında duyurulacak.',
+      body: 'Sonbahar boyunca çeşitli etkinlikler düzenlenecek. Ayrıntılar yakında duyurulacak.',
       palette: ScenePalette.dusk,
     ),
     NewsItem(

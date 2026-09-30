@@ -5,6 +5,10 @@ import {
   where,
   deleteDoc,
   doc,
+  limit,
+  orderBy,
+  serverTimestamp,
+  Timestamp,
   getDoc,
   getDocs,
   setDoc,
@@ -13,7 +17,7 @@ import {
 } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 import { db, storage, USE_STORAGE } from './firebase';
-import type { DutyDay, Invite, News, PanelUser, Pharmacy, PushNotice, Role, Vefat } from './types';
+import type { ChatMsg, ChatReport, DutyDay, Invite, Mute, News, PanelUser, Pharmacy, PushNotice, Role, Vefat } from './types';
 
 /** Fotoğraf Storage açıksa yüklenip adresi saklanır; değilse veri adresi belgede kalır. */
 export type ContentCollection = 'events' | 'guide' | 'businesses';
@@ -136,6 +140,61 @@ export const store = {
     batch.set(doc(db, 'news', n.id), { ...n, photo });
     if (notice) batch.set(doc(db, 'notices', notice.id), notice);
     await batch.commit();
+  },
+
+  // ---- sohbet moderasyonu (moderatör ve yönetici) ----
+  async chatMessages(): Promise<ChatMsg[]> {
+    const s = await getDocs(query(collection(db, 'chat'), orderBy('createdAt', 'desc'), limit(100)));
+    return s.docs.map((d) => {
+      const x = d.data();
+      return {
+        id: d.id,
+        uid: String(x.uid ?? ''),
+        name: String(x.name ?? ''),
+        text: String(x.text ?? ''),
+        hidden: x.hidden === true,
+        createdAt: x.createdAt instanceof Timestamp ? x.createdAt.toDate().toISOString() : '',
+      };
+    });
+  },
+
+  /** Mesajı herkese gizler (silmez); geri açılabilir. */
+  async setChatHidden(id: string, hidden: boolean) {
+    await updateDoc(doc(db, 'chat', id), { hidden });
+  },
+
+  async chatReports(): Promise<ChatReport[]> {
+    const s = await getDocs(query(collection(db, 'chatReports'), orderBy('createdAt', 'desc'), limit(100)));
+    return s.docs.map((d) => {
+      const x = d.data();
+      return {
+        id: d.id,
+        messageId: String(x.messageId ?? ''),
+        messageUid: String(x.messageUid ?? ''),
+        messageName: String(x.messageName ?? ''),
+        text: String(x.text ?? ''),
+        reason: String(x.reason ?? ''),
+        handled: x.handled === true,
+        createdAt: x.createdAt instanceof Timestamp ? x.createdAt.toDate().toISOString() : '',
+      };
+    });
+  },
+
+  async markReportHandled(id: string) {
+    await updateDoc(doc(db, 'chatReports', id), { handled: true });
+  },
+
+  async mutes(): Promise<Mute[]> {
+    const s = await getDocs(collection(db, 'mutes'));
+    return s.docs.map((d) => ({ uid: d.id, name: String(d.data().name ?? '') }));
+  },
+
+  async mute(uid: string, name: string, by: string) {
+    await setDoc(doc(db, 'mutes', uid), { name, by, at: serverTimestamp() });
+  },
+
+  async unmute(uid: string) {
+    await deleteDoc(doc(db, 'mutes', uid));
   },
 };
 

@@ -1,5 +1,5 @@
 import { assertFails, assertSucceeds, initializeTestEnvironment, type RulesTestEnvironment } from '@firebase/rules-unit-testing';
-import { deleteDoc, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { deleteDoc, doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import { readFileSync } from 'node:fs';
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest';
 
@@ -195,5 +195,87 @@ describe('etkinlik, rehber ve esnaf', () => {
     await assertFails(setDoc(doc(as('ed1'), 'guide/n4'), gd('ed1', { phone: 'x'.repeat(30) })));
     await assertFails(setDoc(doc(as('ed1'), 'businesses/n4'), bs('ed1', { published: 'evet' })));
     await assertFails(deleteDoc(doc(as('adm'), 'events/pub')));
+  });
+});
+
+describe('genel sohbet', () => {
+  const msg = (uid: string, over = {}) => ({
+    uid, name: 'Ali', text: 'Merhaba', createdAt: serverTimestamp(), hidden: false, ...over,
+  });
+  const report = (uid: string, over = {}) => ({
+    messageId: 'm1', messageUid: 'u2', messageName: 'Veli', text: 'kötü mesaj', reporterUid: uid,
+    reason: 'uygunsuz', handled: false, createdAt: serverTimestamp(), ...over,
+  });
+
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      await setDoc(doc(db, 'chat/m1'), { uid: 'u2', name: 'Veli', text: 'selam', createdAt: new Date(), hidden: false });
+      await setDoc(doc(db, 'mutes/u3'), { name: 'Susturulan', by: 'adm' });
+    });
+  });
+
+  it('misafir sohbeti okuyamaz ve yazamaz; üye okur', async () => {
+    await assertFails(getDoc(doc(as(null), 'chat/m1')));
+    await assertFails(setDoc(doc(as(null), 'chat/x'), msg('u1')));
+    await assertSucceeds(getDoc(doc(as('u1'), 'chat/m1')));
+  });
+
+  it('üye kendi adına geçerli mesaj yazar', async () => {
+    await assertSucceeds(setDoc(doc(as('u1'), 'chat/x'), msg('u1')));
+  });
+
+  it('başkası adına, uzun, boş, gizli-işaretli veya sahte saatli mesaj reddedilir', async () => {
+    await assertFails(setDoc(doc(as('u1'), 'chat/a'), msg('u2')));
+    await assertFails(setDoc(doc(as('u1'), 'chat/b'), msg('u1', { text: 'a'.repeat(501) })));
+    await assertFails(setDoc(doc(as('u1'), 'chat/c'), msg('u1', { text: '' })));
+    await assertFails(setDoc(doc(as('u1'), 'chat/d'), msg('u1', { hidden: true })));
+    await assertFails(setDoc(doc(as('u1'), 'chat/e'), msg('u1', { createdAt: new Date('2020-01-01') })));
+    await assertFails(setDoc(doc(as('u1'), 'chat/f'), msg('u1', { extra: 1 })));
+  });
+
+  it('susturulan üye yazamaz', async () => {
+    await assertFails(setDoc(doc(as('u3'), 'chat/x'), msg('u3')));
+  });
+
+  it('üye yalnızca kendi mesajını siler; başkasınınkini düzenleyemez', async () => {
+    await assertSucceeds(deleteDoc(doc(as('u2'), 'chat/m1')));
+    await assertFails(deleteDoc(doc(as('u1'), 'chat/m1')));
+    await assertFails(updateDoc(doc(as('u2'), 'chat/m1'), { text: 'değişti' }));
+  });
+
+  it('moderatör ve yönetici mesajı gizler; başka alanı değiştiremez; editör gizleyemez', async () => {
+    await assertSucceeds(updateDoc(doc(as('mod'), 'chat/m1'), { hidden: true }));
+    await assertSucceeds(updateDoc(doc(as('adm'), 'chat/m1'), { hidden: true }));
+    await assertFails(updateDoc(doc(as('mod'), 'chat/m1'), { text: 'sansür' }));
+    await assertFails(updateDoc(doc(as('ed1'), 'chat/m1'), { hidden: true }));
+  });
+
+  it('üye şikâyet eder, aynı mesajı ikinci kez bildiremez, başkası adına bildiremez', async () => {
+    await assertSucceeds(setDoc(doc(as('u1'), 'chatReports/u1_m1'), report('u1')));
+    await assertFails(setDoc(doc(as('u1'), 'chatReports/u1_m1'), report('u1')));
+    await assertFails(setDoc(doc(as('u1'), 'chatReports/u2_m1'), report('u2')));
+    await assertFails(setDoc(doc(as('u1'), 'chatReports/u1_m9'), report('u1')));
+    await assertFails(setDoc(doc(as(null), 'chatReports/x_m1'), report('x')));
+  });
+
+  it('şikâyetleri yalnızca moderatör/yönetici okur ve işaretler', async () => {
+    await assertSucceeds(setDoc(doc(as('u1'), 'chatReports/u1_m1'), report('u1')));
+    await assertFails(getDoc(doc(as('u1'), 'chatReports/u1_m1')));
+    await assertFails(getDoc(doc(as('ed1'), 'chatReports/u1_m1')));
+    await assertSucceeds(getDoc(doc(as('mod'), 'chatReports/u1_m1')));
+    await assertSucceeds(updateDoc(doc(as('mod'), 'chatReports/u1_m1'), { handled: true }));
+    await assertFails(updateDoc(doc(as('mod'), 'chatReports/u1_m1'), { text: 'x' }));
+  });
+
+  it('susturma: moderatör/yönetici ekler ve kaldırır; üye yalnızca kendi kaydını okur', async () => {
+    await assertSucceeds(setDoc(doc(as('mod'), 'mutes/u1'), { name: 'Ali', by: 'mod' }));
+    await assertFails(setDoc(doc(as('mod'), 'mutes/u4'), { name: 'Ali', by: 'adm' }));
+    await assertFails(setDoc(doc(as('u1'), 'mutes/u5'), { name: 'Ali', by: 'u1' }));
+    await assertFails(setDoc(doc(as('ed1'), 'mutes/u6'), { name: 'Ali', by: 'ed1' }));
+    await assertSucceeds(getDoc(doc(as('u3'), 'mutes/u3')));
+    await assertFails(getDoc(doc(as('u1'), 'mutes/u3')));
+    await assertSucceeds(deleteDoc(doc(as('adm'), 'mutes/u3')));
+    await assertFails(deleteDoc(doc(as('u1'), 'mutes/u3')));
   });
 });

@@ -1,23 +1,26 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../data/models.dart';
 import '../notifications/notification_settings.dart';
 import '../theme/app_theme.dart';
 import '../widgets/floating_nav.dart';
+import 'chat_screen.dart';
 import 'home_screen.dart';
 import 'news_screen.dart';
-import 'explore_screen.dart';
 import 'profile_screen.dart';
+import 'tabs.dart';
 import 'vefat_screen.dart';
 
-const _items = [
-  NavItem(Icons.home_outlined, 'Ana Sayfa'),
-  NavItem(Icons.article_outlined, 'Haberler'),
-  NavItem(Icons.local_fire_department_outlined, 'Vefat'),
-  NavItem(Icons.explore_outlined, 'Keşfet'),
-  NavItem(Icons.person_outline, 'Profil'),
+/// Sıra [Tabs] ile aynıdır: Haberler, Sohbet, Ana Sayfa (ortada), Profil, Vefat.
+final _items = [
+  const NavItem(Icons.article_outlined, 'Haberler'),
+  const NavItem(Icons.chat_bubble_outline, 'Sohbet'),
+  const NavItem(Icons.home_rounded, 'Ana Sayfa'),
+  const NavItem(Icons.person_outline, 'Profil'),
+  NavItem.custom((c) => TombstoneIcon(color: c), 'Vefat'),
 ];
 
 class Shell extends StatefulWidget {
@@ -28,8 +31,7 @@ class Shell extends StatefulWidget {
 }
 
 class _ShellState extends State<Shell> {
-  int _index = 0;
-  static const _vefatIndex = 2;
+  int _index = Tabs.ana; // Uygulama doğrudan ana sayfada açılır.
   StreamSubscription<NoticeMessage>? _sub;
   StreamSubscription<NoticeMessage>? _openedSub;
   bool _started = false;
@@ -64,16 +66,16 @@ class _ShellState extends State<Shell> {
     setState(() {
       switch (m.topic) {
         case NoticeTopics.vefat:
-          _index = _vefatIndex;
+          _index = Tabs.vefat;
         case NoticeTopics.kesinti:
           _newsFilter.value = NewsKind.kesinti;
-          _index = 1;
+          _index = Tabs.haberler;
         case NoticeTopics.duyuru:
           _newsFilter.value = NewsKind.duyuru;
-          _index = 1;
+          _index = Tabs.haberler;
         default:
           _newsFilter.value = null;
-          _index = 1;
+          _index = Tabs.haberler;
       }
     });
   }
@@ -100,7 +102,7 @@ class _ShellState extends State<Shell> {
         action: isVefat
             ? SnackBarAction(
                 label: 'Gör',
-                onPressed: () => setState(() => _index = _vefatIndex),
+                onPressed: () => setState(() => _index = Tabs.vefat),
               )
             : null,
       ),
@@ -109,44 +111,55 @@ class _ShellState extends State<Shell> {
 
   @override
   Widget build(BuildContext context) {
-    final dark = _index == _vefatIndex;
-    return Scaffold(
-      backgroundColor: dark ? AppColors.darkBg : AppColors.bg,
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: IndexedStack(
-              index: _index,
-              children: [
-                HomeScreen(
-                  onOpenTab: (i) => setState(() => _index = i),
-                  onOpenNews: (kind) => setState(() {
-                    _newsFilter.value = kind;
-                    _index = 1;
-                  }),
-                ),
-                _newsScreen,
-                const VefatScreen(),
-                const ExploreScreen(),
-                const ProfileScreen(),
-              ],
-            ),
-          ),
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 18,
-            child: SafeArea(
-              top: false,
-              child: FloatingNav(
-                items: _items,
+    final dark = _index == Tabs.vefat;
+    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
+    // Ana sayfanın üstü koyu yeşil, vefat koyu tema: durum çubuğu simgeleri açık renk.
+    final lightIcons = _index == Tabs.ana || dark;
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: lightIcons
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
+      child: Scaffold(
+        backgroundColor: dark ? AppColors.darkBg : AppColors.bg,
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: IndexedStack(
                 index: _index,
-                dark: dark,
-                onChanged: (i) => setState(() => _index = i),
+                children: [
+                  _newsScreen,
+                  const ChatScreen(),
+                  HomeScreen(
+                    onOpenTab: (i) => setState(() => _index = i),
+                    onOpenNews: (kind) => setState(() {
+                      _newsFilter.value = kind;
+                      _index = Tabs.haberler;
+                    }),
+                  ),
+                  const ProfileScreen(),
+                  const VefatScreen(),
+                ],
               ),
             ),
-          ),
-        ],
+            // Klavye açıkken (sohbet yazarken) menü yazı alanını kapatmasın.
+            if (!keyboardOpen)
+              Positioned(
+                left: 16,
+                right: 16,
+                bottom: 18,
+                child: SafeArea(
+                  top: false,
+                  child: FloatingNav(
+                    items: _items,
+                    index: _index,
+                    centerIndex: Tabs.ana,
+                    dark: dark,
+                    onChanged: (i) => setState(() => _index = i),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

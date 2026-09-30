@@ -155,3 +155,29 @@ export const STATUS_LABEL: Record<VefatStatus, string> = {
 
 export const KIND_LABEL: Record<NewsKind, string> = { haber: 'Haber', duyuru: 'Duyuru', kesinti: 'Kesinti' };
 export const NEWS_STATUS_LABEL: Record<NewsStatus, string> = { draft: 'Taslak', published: 'Yayında', archived: 'Arşiv' };
+
+/** Sohbet mesajı (uygulamadaki genel sohbet). `createdAt` ISO biçiminde, yoksa boş. */
+export interface ChatMsg {
+  id: string;
+  uid: string;
+  name: string;
+  text: string;
+  hidden: boolean;
+  createdAt: string;
+}
+
+export interface ChatReport {
+  id: string;
+  messageId: string;
+  messageUid: string;
+  messageName: string;
+  text: string;
+  reason: string;
+  handled: boolean;
+  createdAt: string;
+}
+
+export interface Mute {
+  uid: string;
+  name: string;
+}

@@ -56,6 +56,11 @@ class AppTheme {
       ),
     );
     return base.copyWith(
+      // Mesajlar yüzen alt menünün üstünde kalsın, menüyü kapatmasın.
+      snackBarTheme: const SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        insetPadding: EdgeInsets.fromLTRB(16, 0, 16, 120),
+      ),
       textTheme: GoogleFonts.manropeTextTheme(base.textTheme)
           .apply(bodyColor: AppColors.ink, displayColor: AppColors.ink),
     );

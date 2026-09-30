@@ -178,3 +178,13 @@ Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildi
 - Bildirim kök nedeni: "haber" konusu varsayılan kapalıydı ve ayarı yoktu. Artık dört konu da varsayılan açık; eski kurulumlar otomatik taşınır (şema 2). Profil sekmesinde konu anahtarları var.
 - Bildirime dokununca ilgili sekme açılır (vefat → Vefat, kesinti/duyuru → Haberler süzgeçli).
 - Panel: haber formunda "kime gider" notu, yayınlanınca listede onay mesajı, vefat formunda Taziye adresinin Yol tarifi için kullanıldığı yazıyor.
+
+## Ana sayfa yenilemesi, üyelik ve sohbet
+- **Açılış:** giriş ekranı kalktı; uygulama doğrudan Ana Sayfa'da açılır. Üyelik yalnızca sohbet için gerekir.
+- **Alt menü (soldan sağa):** Haberler · Sohbet · Ana Sayfa (ortada, yukarı taşan yuvarlak düğme) · Profil · Vefat (mezar taşı simgesi). Keşfet sekmesi kalktı; içindekiler ana sayfa kısayollarında.
+- **Ana sayfa:** üstte kaydırmalı/oklu son haberler ("İyi akşamlar, Tavas" — selamlama saate göre), altında 8 kısayol ve "Son gönderiler". Vefat bandı kaldırıldı (Vefat menüde).
+- **Üyelik:** e-posta + şifre (Firebase Auth); şifre sıfırlama, çıkış, uygulama içinden hesap silme (mesajlar da silinir). Google/Apple girişi sonraya.
+- **Genel sohbet:** yalnızca üyeler okur/yazar; 500 karakter; 2 sn bekleme; uygunsuz kelime engeli; mesaj şikâyeti, kişi engelleme (cihazda), kendi mesajını silme.
+- **Moderasyon (panel → Sohbet moderasyonu):** şikâyetler, mesaj gizleme/geri açma, kişi susturma/kaldırma. Rol: moderatör veya yönetici.
+- **Firestore kuralları:** `chat`, `chatReports`, `mutes` eklendi (32 kural testi).
+- Henüz yok: Şikâyet/Öneri (ana sayfada kısayolu yok), Google/Apple girişi, e-posta doğrulaması, sohbette fotoğraf.

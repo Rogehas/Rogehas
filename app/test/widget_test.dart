@@ -26,11 +26,9 @@ void main() {
         notifications: InMemoryNoticeSettings(),
       ),
     );
-    expect(find.text('Tavas cebinde.'), findsOneWidget);
-
-    await tester.tap(find.text('Başla'));
     await tester.pumpAndSettle();
-    expect(find.text("Tavas'ta bugün"), findsOneWidget);
+    // Giriş ekranı yok: uygulama doğrudan ana sayfada açılır.
+    expect(find.textContaining(', Tavas'), findsOneWidget);
 
     await tester.tap(find.bySemanticsLabel('Vefat'));
     await tester.pumpAndSettle();
@@ -61,7 +59,6 @@ void main() {
         notifications: InMemoryNoticeSettings(),
       ),
     );
-    await tester.tap(find.text('Başla'));
     await tester.pumpAndSettle();
     await tester.tap(find.bySemanticsLabel('Vefat'));
     await tester.pumpAndSettle();
@@ -80,7 +77,6 @@ void main() {
     await tester.pumpWidget(
       TavasApp(repository: MockContentRepository(), notifications: denied),
     );
-    await tester.tap(find.text('Başla'));
     await tester.pumpAndSettle();
     await tester.tap(find.bySemanticsLabel('Vefat'));
     await tester.pumpAndSettle();
@@ -110,7 +106,6 @@ void main() {
     await tester.pumpWidget(
       TavasApp(repository: MockContentRepository(), notifications: settings),
     );
-    await tester.tap(find.text('Başla'));
     await tester.pumpAndSettle();
 
     settings.simulateForeground(
@@ -141,7 +136,6 @@ void main() {
         ),
       ),
     );
-    await tester.tap(find.text('Başla'));
     await tester.pumpAndSettle();
     await tester.tap(find.bySemanticsLabel('Vefat'));
     await tester.pumpAndSettle();
@@ -161,14 +155,12 @@ void main() {
           notifications: InMemoryNoticeSettings(),
         ),
       );
-      await tester.tap(find.text('Başla'));
       await tester.pumpAndSettle();
 
       expect(
         find.text("Tavas'ta sonbahar etkinlik takvimi açıklandı"),
         findsOneWidget,
       );
-      expect(find.text('Vefat ilanları'), findsOneWidget);
       expect(find.text('SIRADAKİ VAKİT'), findsNothing);
       expect(find.textContaining('24°'), findsNothing);
     },
@@ -185,7 +177,6 @@ void main() {
         notifications: InMemoryNoticeSettings(),
       ),
     );
-    await tester.tap(find.text('Başla'));
     await tester.pumpAndSettle();
     expect(find.text('Henüz haber yok.'), findsOneWidget);
   });
@@ -210,7 +201,6 @@ void main() {
         notifications: InMemoryNoticeSettings(),
       ),
     );
-    await tester.tap(find.text('Başla'));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Nöbetçi\nEczane'));
     await tester.tap(find.text('Nöbetçi\nEczane'));
@@ -232,7 +222,6 @@ void main() {
           notifications: InMemoryNoticeSettings(),
         ),
       );
-      await tester.tap(find.text('Başla'));
       await tester.pumpAndSettle();
 
       for (final (tile, content) in [
@@ -249,27 +238,6 @@ void main() {
       }
     },
   );
-
-  testWidgets('Keşfet sekmesi artık boş değil, üç bölüm sunar', (tester) async {
-    tester.view.physicalSize = const Size(390 * 3, 844 * 3);
-    tester.view.devicePixelRatio = 3;
-    addTearDown(tester.view.reset);
-
-    await tester.pumpWidget(
-      TavasApp(
-        repository: MockContentRepository(),
-        notifications: InMemoryNoticeSettings(),
-      ),
-    );
-    await tester.tap(find.text('Başla'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.bySemanticsLabel('Keşfet'));
-    await tester.pumpAndSettle();
-    expect(find.text('Etkinlikler'), findsOneWidget);
-    expect(find.text('Yerel Esnaf'), findsOneWidget);
-    expect(find.text('Rehber'), findsOneWidget);
-    expect(find.textContaining('sonraki fazda'), findsNothing);
-  });
 }
 
 class _NoNewsRepository extends MockContentRepository {

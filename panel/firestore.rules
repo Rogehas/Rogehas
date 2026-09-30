@@ -10,6 +10,8 @@ service cloud.firestore {
     function isAdmin() { return active() && get(profilePath()).data.role == 'admin'; }
     function isEditor() { return active() && get(profilePath()).data.role == 'editor'; }
     function isStaff() { return isAdmin() || isEditor(); }
+    function isModerator() { return active() && get(profilePath()).data.role == 'moderator'; }
+    function canModerate() { return isAdmin() || isModerator(); }
 
     // ---- kullanıcılar ----
     // Profil kaydı: yönetici oluşturur/günceller. Davet edilen kişi, doğrulanmış e-postasıyla
@@ -137,6 +139,53 @@ service cloud.firestore {
       allow create, update: if isStaff() && contentOk(request.resource.data)
         && request.resource.data.name is string && request.resource.data.name.size() > 0;
       allow delete: if false;
+    }
+
+
+    // ---- genel sohbet: yalnızca giriş yapmış üyeler okur ve yazar ----
+    // Üye yalnızca kendi adına, en fazla 500 karakterlik mesaj yazar; susturulmuş üye yazamaz.
+    // Üye kendi mesajını siler; yönetici/moderatör mesajı gizler (silmez) ve şikâyetleri yönetir.
+    match /chat/{id} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'text', 'createdAt', 'hidden'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 40
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 500
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.hidden == false
+        && !exists(/databases/$(database)/documents/mutes/$(request.auth.uid));
+      allow update: if canModerate()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hidden']);
+      allow delete: if (signedIn() && resource.data.uid == request.auth.uid) || canModerate();
+    }
+
+    // Şikâyet: belge kimliği "<şikâyet eden>_<mesaj>" olduğundan aynı kişi aynı mesajı bir kez bildirir.
+    match /chatReports/{id} {
+      allow read: if canModerate();
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(
+             ['messageId', 'messageUid', 'messageName', 'text', 'reporterUid', 'reason', 'handled', 'createdAt'])
+        && request.resource.data.reporterUid == request.auth.uid
+        && id == request.auth.uid + '_' + request.resource.data.messageId
+        && request.resource.data.text is string && request.resource.data.text.size() <= 500
+        && request.resource.data.reason is string && request.resource.data.reason.size() <= 100
+        && request.resource.data.handled == false
+        && request.resource.data.createdAt == request.time;
+      allow update: if canModerate()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['handled']);
+      allow delete: if false;
+    }
+
+    // Susturulan üyeler: belge kimliği üyenin uid'sidir.
+    match /mutes/{uid} {
+      allow read: if canModerate() || (signedIn() && request.auth.uid == uid);
+      allow create: if canModerate() && request.resource.data.by == request.auth.uid
+        && request.resource.data.name is string;
+      allow update: if false;
+      allow delete: if canModerate();
     }
 
     // ---- bildirim kayıtları (sunucu kodu bunları telefonlara gönderecek) ----

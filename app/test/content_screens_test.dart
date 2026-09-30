@@ -9,7 +9,6 @@ import 'package:tavas/data/mock_data.dart';
 import 'package:tavas/data/models.dart';
 import 'package:tavas/screens/business_screen.dart';
 import 'package:tavas/screens/events_screen.dart';
-import 'package:tavas/screens/explore_screen.dart';
 import 'package:tavas/screens/guide_screen.dart';
 
 EventItem ev(String id, DateTime d, {DateTime? end, String time = ''}) =>
@@ -270,21 +269,6 @@ void main() {
       );
       expect(find.textContaining('İçerik yüklenemedi'), findsOneWidget);
       expect(find.text('Lezzet Lokantası'), findsNothing);
-    });
-
-    testWidgets('Keşfet üç bölüme açılır', (tester) async {
-      await pump(tester, (_) => const Scaffold(body: ExploreScreen()));
-      for (final (card, title) in [
-        ('Etkinlikler', 'Yerel Ürünler Pazarı'),
-        ('Yerel Esnaf', 'Lezzet Lokantası'),
-        ('Rehber', 'Belediye Santral'),
-      ]) {
-        await tester.tap(find.text(card).first);
-        await tester.pumpAndSettle();
-        expect(find.text(title), findsOneWidget, reason: card);
-        await tester.tap(find.byIcon(Icons.arrow_back));
-        await tester.pumpAndSettle();
-      }
     });
   });
 }

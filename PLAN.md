@@ -68,3 +68,15 @@ Taslaklar: https://claude.ai/artifact/4MBRqJrUnsyqChgYQkbch8 (9 ekran: Giriş, A
 **Notlar**
 - Taslaklardaki tüm içerik örnektir (isimler, haberler, vakitler).
 - Görseller geçici çizimlerdir; gerçek Tavas fotoğrafları eklenecek.
+
+## İlerleme
+
+- [x] Flutter iskeleti (`app/`): tema, yüzen alt menü, örnek veri
+- [x] Giriş ekranı (misafir modu çalışıyor; Google/Apple Firebase bağlanınca)
+- [x] Ana Sayfa, Haberler (filtreli), Vefat (koyu tema, bildirim anahtarı)
+- [ ] Firebase kurulumu (Auth, Firestore, Cloud Messaging)
+- [ ] Vefat push bildirimi
+- [ ] Editör paneli (web)
+- [ ] Faz 2 ve Faz 3 ekranları
+
+Çalıştırma: `cd app && flutter pub get && flutter run` — testler: `flutter test`

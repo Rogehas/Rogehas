@@ -146,6 +146,8 @@ void main() {
       await pumpApp(tester);
       await tester.tap(find.bySemanticsLabel('Haberler'));
       await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Başvuru tarihleri uzatıldı'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Başvuru tarihleri uzatıldı'));
       await tester.pumpAndSettle();
       expect(find.textContaining('ek açıklama girilmemiş'), findsOneWidget);

@@ -133,10 +133,9 @@ class _NewsScreenState extends State<NewsScreen> {
                 }
                 return Column(
                   children: [
-                    _Featured(items.first, onTap: () => _open(items.first)),
-                    for (final n in items.skip(1)) ...[
-                      const SizedBox(height: 14),
-                      _Row(n, onTap: () => _open(n)),
+                    for (final n in items) ...[
+                      _FeedCard(n, onTap: () => _open(n)),
+                      const SizedBox(height: 26),
                     ],
                   ],
                 );
@@ -149,8 +148,9 @@ class _NewsScreenState extends State<NewsScreen> {
   }
 }
 
-class _Featured extends StatelessWidget {
-  const _Featured(this.item, {required this.onTap});
+/// Akış kartı: büyük görsel, üstünde etiket; altında başlık ve kaynak/zaman.
+class _FeedCard extends StatelessWidget {
+  const _FeedCard(this.item, {required this.onTap});
   final NewsItem item;
   final VoidCallback onTap;
 
@@ -158,102 +158,43 @@ class _Featured extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: SizedBox(
-        height: 250,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: NewsVisual(item, radius: 30, palette: ScenePalette.dusk),
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AspectRatio(
+            aspectRatio: 16 / 10,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                NewsVisual(item, radius: 22),
+                Positioned(
+                  left: 12,
+                  top: 12,
+                  child: TagChip(item.tagText, item.kind),
+                ),
+              ],
             ),
-            Positioned(
-              left: 10,
-              right: 10,
-              bottom: 10,
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-                decoration: BoxDecoration(
-                  color: const Color(0xEB092821),
-                  borderRadius: BorderRadius.circular(22),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TagChip(item.tagText, item.kind),
-                    const SizedBox(height: 8),
-                    Text(
-                      item.title,
-                      style: AppTheme.display(21, color: Colors.white),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      item.meta,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFFB8CBC4),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            item.title,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              height: 1.25,
+            ),
+          ),
+          if (item.meta.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              item.meta,
+              style: const TextStyle(fontSize: 13, color: AppColors.muted),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Row extends StatelessWidget {
-  const _Row(this.item, {required this.onTap});
-  final NewsItem item;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: AppTheme.cardShadow,
-        ),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 84,
-              height: 84,
-              child: NewsVisual(item, radius: 18),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TagChip(item.tagText, item.kind),
-                  const SizedBox(height: 6),
-                  Text(
-                    item.title,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      height: 1.3,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    item.meta,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.muted,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }

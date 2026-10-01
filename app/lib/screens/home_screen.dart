@@ -354,7 +354,18 @@ class _Slide extends StatelessWidget {
           SizedBox(
             height: imageHeight,
             width: double.infinity,
-            child: NewsVisual(item, palette: ScenePalette.dusk),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                NewsVisual(item, palette: ScenePalette.dusk),
+                // Haber / Duyuru / Kesinti etiketi fotoğrafın sol üst köşesinde.
+                Positioned(
+                  left: 14,
+                  top: 14,
+                  child: TagChip(item.tagText, item.kind),
+                ),
+              ],
+            ),
           ),
           Expanded(
             child: Container(

@@ -206,3 +206,7 @@ Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildi
 - Panel: Sohbet moderasyonu sayfasında "Son haber yorumları" (gizle/geri aç/sustur); şikâyetler aynı kutuda ("haber yorumu" etiketiyle).
 - Kurallar: `comments` koleksiyonu; yorumu kapalı/taslak haberde yazma reddedilir (44 kural testi).
 - Yok: yoruma yanıt, yorum bildirimi.
+
+## Hava durumu
+- Ana sayfa üst çubuğunda Tavas'ın anlık havası (simge, derece, kısa açıklama). Kaynak: Open-Meteo (anahtarsız, ücretsiz; Tavas 37.5736 K, 29.0722 D). Açılışta ve 30 dakikada bir tazelenir; alınamazsa hiçbir şey gösterilmez (sahte veri yok).
+- Not: Open-Meteo ücretsiz sürümü ticari olmayan kullanım içindir; uygulama ticari hale gelirse ücretli plan/anahtar gerekir. Namaz vakitleri hâlâ yok.

@@ -15,6 +15,7 @@ import 'events_screen.dart';
 import 'guide_screen.dart';
 import 'news_detail_screen.dart';
 import 'tabs.dart';
+import '../weather/weather.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({
@@ -160,6 +161,8 @@ class _HeroState extends State<_Hero> {
                   ),
                 ),
               ),
+              if (WeatherScope.of(context) case final w?) _WeatherChip(w),
+              const SizedBox(width: 6),
               RoundIconButton(
                 icon: Icons.notifications_none,
                 label: 'Bildirim ayarları',
@@ -262,6 +265,40 @@ class _HeroState extends State<_Hero> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Üst çubukta Tavas'ın anlık havası: simge, derece ve kısa açıklama.
+class _WeatherChip extends StatelessWidget {
+  const _WeatherChip(this.w);
+  final Weather w;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'Tavas hava durumu: ${w.tempC} derece, ${w.label}',
+      excludeSemantics: true,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(w.icon, size: 20, color: Colors.white),
+          const SizedBox(width: 5),
+          Text(
+            '${w.tempC}°',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            w.label,
+            style: const TextStyle(fontSize: 12, color: Color(0xFFF3C9CD)),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -12,6 +12,7 @@ import 'firebase_options.dart';
 import 'notifications/firebase_notification_settings.dart';
 import 'notifications/notification_settings.dart';
 import 'screens/shell.dart';
+import 'weather/weather.dart';
 import 'theme/app_theme.dart';
 
 /// `--dart-define=USE_MOCK=true` ile örnek veriyle çalışır (tanıtım/deneme).
@@ -28,6 +29,7 @@ Future<void> main() async {
       chat: s.chat,
       complaints: s.complaints,
       comments: s.comments,
+      weather: s.weather,
       blocks: s.blocks,
     ),
   );
@@ -40,6 +42,7 @@ typedef _Services = ({
   ChatRepository chat,
   ComplaintRepository complaints,
   CommentRepository comments,
+  WeatherSource weather,
   BlockList blocks,
 });
 
@@ -53,6 +56,9 @@ Future<_Services> _bootstrap() async {
       chat: InMemoryChatRepository(),
       complaints: InMemoryComplaintRepository(),
       comments: InMemoryCommentRepository(),
+      weather: FixedWeatherSource(
+        const Weather(tempC: 21, code: 1, isDay: true),
+      ),
       blocks: blocks,
     );
   }
@@ -70,6 +76,7 @@ Future<_Services> _bootstrap() async {
       chat: FirestoreChatRepository(),
       complaints: FirestoreComplaintRepository(),
       comments: FirestoreCommentRepository(),
+      weather: OpenMeteoWeatherSource(),
       blocks: blocks,
     );
   } catch (e) {
@@ -81,6 +88,7 @@ Future<_Services> _bootstrap() async {
       chat: InMemoryChatRepository(),
       complaints: InMemoryComplaintRepository(),
       comments: InMemoryCommentRepository(),
+      weather: NoWeatherSource(),
       blocks: blocks,
     );
   }
@@ -95,6 +103,7 @@ class TavasApp extends StatefulWidget {
     this.chat,
     this.complaints,
     this.comments,
+    this.weather,
     this.blocks,
   });
   final ContentRepository repository;
@@ -105,6 +114,9 @@ class TavasApp extends StatefulWidget {
   final ChatRepository? chat;
   final ComplaintRepository? complaints;
   final CommentRepository? comments;
+
+  /// Verilmezse hava durumu gösterilmez (testler).
+  final WeatherSource? weather;
   final BlockList? blocks;
 
   @override
@@ -119,11 +131,15 @@ class _TavasAppState extends State<TavasApp> {
       widget.complaints ?? InMemoryComplaintRepository();
   late final CommentRepository _comments =
       widget.comments ?? InMemoryCommentRepository();
+  late final WeatherController _weather = WeatherController(
+    widget.weather ?? NoWeatherSource(),
+  )..start();
   late final BlockList _blocks = widget.blocks ?? BlockList.memory();
 
   @override
   void dispose() {
     _hub.dispose();
+    _weather.dispose();
     widget.notifications.dispose();
     if (widget.auth == null) _auth.dispose();
     super.dispose();
@@ -137,19 +153,22 @@ class _TavasAppState extends State<TavasApp> {
         settings: widget.notifications,
         child: AuthScope(
           service: _auth,
-          child: CommentScope(
-            repository: _comments,
-            child: ComplaintScope(
-              repository: _complaints,
-              child: ChatScope(
-                repository: _chat,
-                blocks: _blocks,
-                child: MaterialApp(
-                  title: 'Tavas',
-                  debugShowCheckedModeBanner: false,
-                  theme: AppTheme.dark,
-                  // Uygulama doğrudan ana sayfada açılır; giriş yalnızca sohbet için gerekir.
-                  home: const Shell(),
+          child: WeatherScope(
+            controller: _weather,
+            child: CommentScope(
+              repository: _comments,
+              child: ComplaintScope(
+                repository: _complaints,
+                child: ChatScope(
+                  repository: _chat,
+                  blocks: _blocks,
+                  child: MaterialApp(
+                    title: 'Tavas',
+                    debugShowCheckedModeBanner: false,
+                    theme: AppTheme.dark,
+                    // Uygulama doğrudan ana sayfada açılır; giriş yalnızca sohbet için gerekir.
+                    home: const Shell(),
+                  ),
                 ),
               ),
             ),

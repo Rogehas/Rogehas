@@ -174,7 +174,7 @@ class _HeroState extends State<_Hero> {
           ),
         ),
         SizedBox(
-          height: 400,
+          height: 420,
           child: Stack(
             children: [
               const Positioned.fill(
@@ -212,7 +212,7 @@ class _HeroState extends State<_Hero> {
                         if (slides.length > 1) ...[
                           Positioned(
                             left: 14,
-                            top: 140,
+                            top: 108,
                             child: _Arrow(
                               icon: Icons.chevron_left,
                               label: 'Önceki haber',
@@ -223,7 +223,7 @@ class _HeroState extends State<_Hero> {
                           ),
                           Positioned(
                             right: 14,
-                            top: 140,
+                            top: 108,
                             child: _Arrow(
                               icon: Icons.chevron_right,
                               label: 'Sonraki haber',
@@ -233,7 +233,7 @@ class _HeroState extends State<_Hero> {
                           Positioned(
                             left: 0,
                             right: 0,
-                            bottom: 20,
+                            bottom: 12,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -327,51 +327,51 @@ class _Slide extends StatelessWidget {
   final NewsItem item;
   final VoidCallback onTap;
 
+  /// Fotoğraf alanının yüksekliği; altındaki yazı alanı koyu zeminde durur.
+  static const imageHeight = 270.0;
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Stack(
-        fit: StackFit.expand,
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          NewsVisual(item, palette: ScenePalette.dusk),
-          const DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                stops: [0, 0.3, 1],
-                colors: [
-                  Color(0x59092821),
-                  Color(0x00092821),
-                  Color(0xEB092821),
-                ],
-              ),
+          // Fotoğrafın üstüne renk bindirilmez; özgün renkleri ve netliği korunur.
+          SizedBox(
+            height: imageHeight,
+            width: double.infinity,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                NewsVisual(item, palette: ScenePalette.dusk),
+                Positioned(
+                  left: 14,
+                  top: 14,
+                  child: TagChip(item.tagText, item.kind),
+                ),
+              ],
             ),
           ),
-          Positioned(
-            left: 20,
-            right: 20,
-            bottom: 50,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TagChip(item.tagText, item.kind),
-                const SizedBox(height: 10),
                 Text(
                   item.title,
-                  maxLines: 3,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTheme.display(26, color: Colors.white),
+                  style: AppTheme.display(23, color: AppColors.ink),
                 ),
                 if (item.meta.isNotEmpty) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
                     item.meta,
                     style: const TextStyle(
                       fontSize: 12,
-                      color: Color(0xFFD5E2DD),
+                      color: AppColors.muted,
                     ),
                   ),
                 ],

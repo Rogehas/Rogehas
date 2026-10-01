@@ -17,7 +17,7 @@ import {
 } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 import { db, storage, USE_STORAGE } from './firebase';
-import type { ChatMsg, ChatReport, DutyDay, Invite, Mute, News, PanelUser, Pharmacy, PushNotice, Role, Vefat } from './types';
+import type { ChatMsg, ChatReport, ComplaintItem, ComplaintStatus, DutyDay, Invite, Mute, News, PanelUser, Pharmacy, PushNotice, Role, Vefat } from './types';
 
 /** Fotoğraf Storage açıksa yüklenip adresi saklanır; değilse veri adresi belgede kalır. */
 export type ContentCollection = 'events' | 'guide' | 'businesses';
@@ -195,6 +195,30 @@ export const store = {
 
   async unmute(uid: string) {
     await deleteDoc(doc(db, 'mutes', uid));
+  },
+
+  // ---- şikâyet / öneri (moderatör ve yönetici) ----
+  async complaints(): Promise<ComplaintItem[]> {
+    const s = await getDocs(query(collection(db, 'complaints'), orderBy('createdAt', 'desc'), limit(200)));
+    return s.docs.map((d) => {
+      const x = d.data();
+      return {
+        id: d.id,
+        uid: String(x.uid ?? ''),
+        name: String(x.name ?? ''),
+        email: String(x.email ?? ''),
+        category: String(x.category ?? ''),
+        neighborhood: String(x.neighborhood ?? ''),
+        text: String(x.text ?? ''),
+        status: (['new', 'progress', 'resolved', 'closed'].includes(x.status) ? x.status : 'new') as ComplaintStatus,
+        reply: String(x.reply ?? ''),
+        createdAt: x.createdAt instanceof Timestamp ? x.createdAt.toDate().toISOString() : '',
+      };
+    });
+  },
+
+  async answerComplaint(id: string, status: ComplaintStatus, reply: string, by: string) {
+    await updateDoc(doc(db, 'complaints', id), { status, reply, updatedAt: serverTimestamp(), handledBy: by });
   },
 };
 

@@ -193,3 +193,9 @@ Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildi
 - Tüm uygulama koyu gri zeminli (`#1A1A1A`), kartlar `#262626`, vurgu kırmızı (`#A8141F` düğme/üst çubuk, `#C8102E` canlı vurgu, `#FF4B55` koyu zeminde kırmızı yazı). Vefat ekranı kendi mavi-koyu temasında kaldı.
 - Ana sayfa: ince kırmızı üst çubuk (küçük "İyi akşamlar, Tavas" + bildirim), altında kaydırmalı haber alanı.
 - Kısayollar renkli gradyanlı yuvarlak kare simgeler (Eczane yeşil, Rehber mavi, Etkinlik mor, Esnaf turuncu, Kesintiler sarı, Duyurular pembe, Harita turkuaz, Bildirimler çivit).
+
+## Şikâyet / Öneri
+- Uygulama: ana sayfada "Şikâyet Öneri" kısayolu (Bildirimler kısayolunun yerine; bildirim ayarı zilde ve Profil'de). Üyelik gerekir; konu + mahalle + mesaj gönderilir; "Gönderdiklerim" listesinde durum (Alındı/İnceleniyor/Çözüldü/Kapatıldı) ve yanıt görünür.
+- Panel: "Şikâyet / öneri" sayfası (moderatör + yönetici): duruma göre süzme, yanıt yazma, durum değiştirme.
+- Kurallar: `complaints` (üye kendi kaydını okur; yalnızca moderatör/yönetici durum ve yanıt yazar; silme yok). 36 kural testi.
+- Henüz yok: fotoğraf ve konum ekleme.

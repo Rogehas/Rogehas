@@ -188,6 +188,30 @@ service cloud.firestore {
       allow delete: if canModerate();
     }
 
+    // ---- şikâyet / öneri: üye kendi mesajını gönderir ve okur; yönetici/moderatör hepsini görür, durum ve yanıt yazar ----
+    match /complaints/{id} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || canModerate());
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(
+             ['uid', 'name', 'email', 'category', 'neighborhood', 'text', 'status', 'reply', 'createdAt'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.name is string && request.resource.data.name.size() <= 40
+        && request.resource.data.email is string && request.resource.data.email.size() <= 120
+        && request.resource.data.category is string
+        && request.resource.data.category.size() > 0 && request.resource.data.category.size() <= 40
+        && request.resource.data.neighborhood is string && request.resource.data.neighborhood.size() <= 60
+        && request.resource.data.text is string
+        && request.resource.data.text.size() >= 10 && request.resource.data.text.size() <= 1000
+        && request.resource.data.status == 'new'
+        && request.resource.data.reply == ''
+        && request.resource.data.createdAt == request.time;
+      allow update: if canModerate()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'reply', 'updatedAt', 'handledBy'])
+        && request.resource.data.status in ['new', 'progress', 'resolved', 'closed']
+        && request.resource.data.reply is string && request.resource.data.reply.size() <= 1000;
+      allow delete: if false;
+    }
+
     // ---- bildirim kayıtları (sunucu kodu bunları telefonlara gönderecek) ----
     match /notices/{id} {
       allow read: if isStaff();

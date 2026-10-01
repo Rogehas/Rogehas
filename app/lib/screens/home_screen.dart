@@ -7,6 +7,7 @@ import '../widgets/common.dart';
 import '../widgets/data_stream.dart';
 import '../widgets/news_visual.dart';
 import 'business_screen.dart';
+import 'complaint_screen.dart';
 import '../widgets/notice_prefs.dart';
 import '../widgets/url_opener.dart';
 import 'eczane_screen.dart';
@@ -384,11 +385,11 @@ enum _Shortcut {
     Color(0xFFDB2777),
   ),
   harita(Icons.map_rounded, 'Harita', Color(0xFF2DD4BF), Color(0xFF0D9488)),
-  bildirim(
-    Icons.notifications_rounded,
-    'Bildirimler',
-    Color(0xFF818CF8),
-    Color(0xFF4F46E5),
+  sikayet(
+    Icons.rate_review_rounded,
+    'Şikâyet\nÖneri',
+    Color(0xFFFB7185),
+    Color(0xFFE11D48),
   );
 
   const _Shortcut(this.icon, this.label, this.light, this.deep);
@@ -430,8 +431,8 @@ class _ShortcutGrid extends StatelessWidget {
         onOpenNews(NewsKind.duyuru);
       case _Shortcut.harita:
         openOrWarn(context, opener, tavasMapUri);
-      case _Shortcut.bildirim:
-        showNoticePrefsSheet(context);
+      case _Shortcut.sikayet:
+        _push(context, const ComplaintScreen());
     }
   }
 

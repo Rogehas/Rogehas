@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'auth/auth_service.dart';
 import 'auth/firebase_auth_service.dart';
 import 'chat/chat_repository.dart';
+import 'complaints/complaint_repository.dart';
 import 'data/content_repository.dart';
 import 'data/mock_data.dart';
 import 'firebase_options.dart';
@@ -24,6 +25,7 @@ Future<void> main() async {
       notifications: s.notifications,
       auth: s.auth,
       chat: s.chat,
+      complaints: s.complaints,
       blocks: s.blocks,
     ),
   );
@@ -34,6 +36,7 @@ typedef _Services = ({
   NoticeSettings notifications,
   AuthService auth,
   ChatRepository chat,
+  ComplaintRepository complaints,
   BlockList blocks,
 });
 
@@ -45,6 +48,7 @@ Future<_Services> _bootstrap() async {
       notifications: InMemoryNoticeSettings(),
       auth: InMemoryAuthService(),
       chat: InMemoryChatRepository(),
+      complaints: InMemoryComplaintRepository(),
       blocks: blocks,
     );
   }
@@ -60,6 +64,7 @@ Future<_Services> _bootstrap() async {
       notifications: await FirebaseNoticeSettings.create(),
       auth: FirebaseAuthService(),
       chat: FirestoreChatRepository(),
+      complaints: FirestoreComplaintRepository(),
       blocks: blocks,
     );
   } catch (e) {
@@ -69,6 +74,7 @@ Future<_Services> _bootstrap() async {
       notifications: InMemoryNoticeSettings(),
       auth: InMemoryAuthService(available: false),
       chat: InMemoryChatRepository(),
+      complaints: InMemoryComplaintRepository(),
       blocks: blocks,
     );
   }
@@ -81,6 +87,7 @@ class TavasApp extends StatefulWidget {
     required this.notifications,
     this.auth,
     this.chat,
+    this.complaints,
     this.blocks,
   });
   final ContentRepository repository;
@@ -89,6 +96,7 @@ class TavasApp extends StatefulWidget {
   /// Verilmezse bellekte çalışan örnekler kullanılır (testler, tanıtım).
   final AuthService? auth;
   final ChatRepository? chat;
+  final ComplaintRepository? complaints;
   final BlockList? blocks;
 
   @override
@@ -99,6 +107,8 @@ class _TavasAppState extends State<TavasApp> {
   late final ContentHub _hub = ContentHub(widget.repository);
   late final AuthService _auth = widget.auth ?? InMemoryAuthService();
   late final ChatRepository _chat = widget.chat ?? InMemoryChatRepository();
+  late final ComplaintRepository _complaints =
+      widget.complaints ?? InMemoryComplaintRepository();
   late final BlockList _blocks = widget.blocks ?? BlockList.memory();
 
   @override
@@ -117,15 +127,18 @@ class _TavasAppState extends State<TavasApp> {
         settings: widget.notifications,
         child: AuthScope(
           service: _auth,
-          child: ChatScope(
-            repository: _chat,
-            blocks: _blocks,
-            child: MaterialApp(
-              title: 'Tavas',
-              debugShowCheckedModeBanner: false,
-              theme: AppTheme.dark,
-              // Uygulama doğrudan ana sayfada açılır; giriş yalnızca sohbet için gerekir.
-              home: const Shell(),
+          child: ComplaintScope(
+            repository: _complaints,
+            child: ChatScope(
+              repository: _chat,
+              blocks: _blocks,
+              child: MaterialApp(
+                title: 'Tavas',
+                debugShowCheckedModeBanner: false,
+                theme: AppTheme.dark,
+                // Uygulama doğrudan ana sayfada açılır; giriş yalnızca sohbet için gerekir.
+                home: const Shell(),
+              ),
             ),
           ),
         ),

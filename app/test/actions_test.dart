@@ -304,12 +304,11 @@ void main() {
       expect(tavasMapUri.queryParameters['query'], 'Tavas, Denizli');
     });
 
-    testWidgets('Bildirimler kısayolu ve zil aynı tercih penceresini açar', (
-      tester,
-    ) async {
+    testWidgets('zil bildirim tercih penceresini açar', (tester) async {
       final s = await pumpApp(tester);
-      await tester.ensureVisible(find.text('Bildirimler'));
-      await tester.tap(find.text('Bildirimler'));
+      await tester.tap(
+        find.widgetWithIcon(RoundIconButton, Icons.notifications_none),
+      );
       await tester.pumpAndSettle();
       for (final label in NoticeTopics.labels.values) {
         expect(find.text(label), findsWidgets, reason: label);
@@ -320,9 +319,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(s.isEnabled(NoticeTopics.haber), isFalse);
 
-      await tester.tapAt(const Offset(10, 10)); // pencereyi kapat
-      await tester.pumpAndSettle();
-      await tester.drag(find.byType(Scrollable).first, const Offset(0, 2000));
+      // Pencereyi kapat; tekrar açılır.
+      await tester.tapAt(const Offset(10, 10));
       await tester.pumpAndSettle();
       await tester.tap(
         find.widgetWithIcon(RoundIconButton, Icons.notifications_none),

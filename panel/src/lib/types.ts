@@ -181,3 +181,25 @@ export interface Mute {
   uid: string;
   name: string;
 }
+
+export type ComplaintStatus = 'new' | 'progress' | 'resolved' | 'closed';
+export const COMPLAINT_STATUS_LABEL: Record<ComplaintStatus, string> = {
+  new: 'Yeni',
+  progress: 'İnceleniyor',
+  resolved: 'Çözüldü',
+  closed: 'Kapatıldı',
+};
+
+/** Uygulamadan gelen şikâyet/öneri. */
+export interface ComplaintItem {
+  id: string;
+  uid: string;
+  name: string;
+  email: string;
+  category: string;
+  neighborhood: string;
+  text: string;
+  status: ComplaintStatus;
+  reply: string;
+  createdAt: string;
+}

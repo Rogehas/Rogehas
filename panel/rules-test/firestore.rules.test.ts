@@ -279,3 +279,49 @@ describe('genel sohbet', () => {
     await assertFails(deleteDoc(doc(as('u1'), 'mutes/u3')));
   });
 });
+
+describe('şikâyet ve öneri', () => {
+  const complaint = (uid: string, over = {}) => ({
+    uid, name: 'Ali', email: 'ali@example.com', category: 'Aydınlatma', neighborhood: 'Merkez',
+    text: 'Sokak lambası yanmıyor', status: 'new', reply: '', createdAt: serverTimestamp(), ...over,
+  });
+
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'complaints/c1'), {
+        uid: 'u2', name: 'Veli', email: 'v@example.com', category: 'Öneri', neighborhood: '',
+        text: 'Parka bank konulsun', status: 'new', reply: '', createdAt: new Date(),
+      });
+    });
+  });
+
+  it('misafir gönderemez; üye kendi adına gönderir', async () => {
+    await assertFails(setDoc(doc(as(null), 'complaints/x'), complaint('u1')));
+    await assertSucceeds(setDoc(doc(as('u1'), 'complaints/x'), complaint('u1')));
+  });
+
+  it('başkası adına, kısa/uzun metin, sahte durum veya sahte saat reddedilir', async () => {
+    await assertFails(setDoc(doc(as('u1'), 'complaints/a'), complaint('u2')));
+    await assertFails(setDoc(doc(as('u1'), 'complaints/b'), complaint('u1', { text: 'kısa' })));
+    await assertFails(setDoc(doc(as('u1'), 'complaints/c'), complaint('u1', { text: 'a'.repeat(1001) })));
+    await assertFails(setDoc(doc(as('u1'), 'complaints/d'), complaint('u1', { status: 'resolved' })));
+    await assertFails(setDoc(doc(as('u1'), 'complaints/e'), complaint('u1', { reply: 'Çözüldü' })));
+    await assertFails(setDoc(doc(as('u1'), 'complaints/f'), complaint('u1', { createdAt: new Date('2020-01-01') })));
+  });
+
+  it('üye yalnızca kendi mesajını okur; moderatör ve yönetici hepsini okur; editör okuyamaz', async () => {
+    await assertSucceeds(getDoc(doc(as('u2'), 'complaints/c1')));
+    await assertFails(getDoc(doc(as('u1'), 'complaints/c1')));
+    await assertFails(getDoc(doc(as('ed1'), 'complaints/c1')));
+    await assertSucceeds(getDoc(doc(as('mod'), 'complaints/c1')));
+    await assertSucceeds(getDoc(doc(as('adm'), 'complaints/c1')));
+  });
+
+  it('moderatör durum ve yanıt yazar; metni değiştiremez; üye kendi mesajını değiştiremez', async () => {
+    await assertSucceeds(updateDoc(doc(as('mod'), 'complaints/c1'), { status: 'resolved', reply: 'Yapıldı', updatedAt: new Date(), handledBy: 'mod' }));
+    await assertFails(updateDoc(doc(as('mod'), 'complaints/c1'), { text: 'sansür' }));
+    await assertFails(updateDoc(doc(as('mod'), 'complaints/c1'), { status: 'bilinmeyen' }));
+    await assertFails(updateDoc(doc(as('u2'), 'complaints/c1'), { status: 'resolved' }));
+    await assertFails(deleteDoc(doc(as('adm'), 'complaints/c1')));
+  });
+});

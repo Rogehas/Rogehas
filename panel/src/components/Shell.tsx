@@ -13,7 +13,7 @@ const ITEMS: { label: string; section: Section; href?: string }[] = [
   { label: 'Nöbetçi eczane', section: 'eczane', href: '/eczane' },
   { label: 'Rehber', section: 'rehber', href: '/rehber' },
   { label: 'Yerel esnaf', section: 'esnaf', href: '/esnaf' },
-  { label: 'Şikâyetler', section: 'sikayet' },
+  { label: 'Şikâyet / öneri', section: 'sikayet', href: '/sikayetler' },
   { label: 'Sohbet moderasyonu', section: 'chat', href: '/moderasyon' },
   { label: 'Kullanıcılar', section: 'kullanici', href: '/kullanicilar' },
 ];

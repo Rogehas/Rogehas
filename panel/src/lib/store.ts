@@ -17,7 +17,7 @@ import {
 } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 import { db, storage, USE_STORAGE } from './firebase';
-import type { ChatMsg, ChatReport, ComplaintItem, ComplaintStatus, DutyDay, Invite, Mute, News, PanelUser, Pharmacy, PushNotice, Role, Vefat } from './types';
+import type { ChatMsg, ChatReport, CommentItem, ComplaintItem, ComplaintStatus, DutyDay, Invite, Mute, News, PanelUser, Pharmacy, PushNotice, Role, Vefat } from './types';
 
 /** Fotoğraf Storage açıksa yüklenip adresi saklanır; değilse veri adresi belgede kalır. */
 export type ContentCollection = 'events' | 'guide' | 'businesses';
@@ -175,9 +175,30 @@ export const store = {
         text: String(x.text ?? ''),
         reason: String(x.reason ?? ''),
         handled: x.handled === true,
+        source: x.source === 'comment' ? 'comment' : undefined,
         createdAt: x.createdAt instanceof Timestamp ? x.createdAt.toDate().toISOString() : '',
       };
     });
+  },
+
+  async comments(): Promise<CommentItem[]> {
+    const s = await getDocs(query(collection(db, 'comments'), orderBy('createdAt', 'desc'), limit(100)));
+    return s.docs.map((d) => {
+      const x = d.data();
+      return {
+        id: d.id,
+        newsId: String(x.newsId ?? ''),
+        uid: String(x.uid ?? ''),
+        name: String(x.name ?? ''),
+        text: String(x.text ?? ''),
+        hidden: x.hidden === true,
+        createdAt: x.createdAt instanceof Timestamp ? x.createdAt.toDate().toISOString() : '',
+      };
+    });
+  },
+
+  async setCommentHidden(id: string, hidden: boolean) {
+    await updateDoc(doc(db, 'comments', id), { hidden });
   },
 
   async markReportHandled(id: string) {

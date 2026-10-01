@@ -199,3 +199,10 @@ Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildi
 - Panel: "Şikâyet / öneri" sayfası (moderatör + yönetici): duruma göre süzme, yanıt yazma, durum değiştirme.
 - Kurallar: `complaints` (üye kendi kaydını okur; yalnızca moderatör/yönetici durum ve yanıt yazar; silme yok). 36 kural testi.
 - Henüz yok: fotoğraf ve konum ekleme.
+
+## Haber yorumları
+- Haber detayının altında "Yorumlar": herkes okur, giriş yapan üye yazar (300 karakter, 3 sn bekleme, uygunsuz kelime engeli). Şikâyet et, kişiyi engelle, kendi yorumunu sil. Susturulan üye yazamaz.
+- Varsayılan açık; panelde haber formundaki "Üyeler yorum yapabilsin" kutusuyla haber bazında kapatılır (haber/duyuru/kesinti hepsinde). Yayınlanmış haberde de değiştirilebilir.
+- Panel: Sohbet moderasyonu sayfasında "Son haber yorumları" (gizle/geri aç/sustur); şikâyetler aynı kutuda ("haber yorumu" etiketiyle).
+- Kurallar: `comments` koleksiyonu; yorumu kapalı/taslak haberde yazma reddedilir (44 kural testi).
+- Yok: yoruma yanıt, yorum bildirimi.

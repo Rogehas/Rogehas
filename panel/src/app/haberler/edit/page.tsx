@@ -13,7 +13,7 @@ function blank(userId: string, userName: string): News {
   const t = new Date().toISOString();
   return {
     id: `h_${Date.now()}`, kind: 'haber', subLabel: '', title: '', body: '', source: '', photo: null,
-    sendPush: false, status: 'draft', createdBy: userId, createdByName: userName, createdAt: t, updatedAt: t,
+    sendPush: false, commentsOpen: true, status: 'draft', createdBy: userId, createdByName: userName, createdAt: t, updatedAt: t,
   };
 }
 
@@ -121,6 +121,10 @@ function NewsEditInner() {
             </div>
           </div>
 
+          <label className="check" style={{ margin: '20px 0 0' }}>
+            <input type="checkbox" checked={n.commentsOpen !== false} onChange={(e) => set('commentsOpen', e.target.checked)} />
+            <span>Üyeler yorum yapabilsin (kapatırsan haberin altında “yorumlar kapalı” yazar)</span>
+          </label>
           {!alreadyPublished && (
             <label className="check" style={{ margin: '20px 0' }}>
               <input type="checkbox" checked={n.sendPush} onChange={(e) => set('sendPush', e.target.checked)} />

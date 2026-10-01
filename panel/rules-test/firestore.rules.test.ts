@@ -325,3 +325,72 @@ describe('şikâyet ve öneri', () => {
     await assertFails(deleteDoc(doc(as('adm'), 'complaints/c1')));
   });
 });
+
+describe('haber yorumları', () => {
+  const comment = (uid: string, over = {}) => ({
+    newsId: 'pub', uid, name: 'Ali', text: 'Güzel haber', createdAt: serverTimestamp(), hidden: false, ...over,
+  });
+
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      await setDoc(doc(db, 'news/closed'), news({ status: 'published', commentsOpen: false }));
+      await setDoc(doc(db, 'news/openx'), news({ status: 'published', commentsOpen: true }));
+      await setDoc(doc(db, 'comments/c1'), { newsId: 'pub', uid: 'u2', name: 'Veli', text: 'selam', createdAt: new Date(), hidden: false });
+      await setDoc(doc(db, 'comments/h1'), { newsId: 'pub', uid: 'u2', name: 'Veli', text: 'gizli', createdAt: new Date(), hidden: true });
+      await setDoc(doc(db, 'mutes/u3'), { name: 'Susturulan', by: 'adm' });
+    });
+  });
+
+  it('misafir görünür yorumu okur, gizliyi okuyamaz; moderatör ikisini de okur', async () => {
+    await assertSucceeds(getDoc(doc(as(null), 'comments/c1')));
+    await assertFails(getDoc(doc(as(null), 'comments/h1')));
+    await assertFails(getDoc(doc(as('u1'), 'comments/h1')));
+    await assertSucceeds(getDoc(doc(as('mod'), 'comments/h1')));
+  });
+
+  it('misafir yorum yazamaz; üye yayındaki haberde yazar (yorumu açık/belirsiz)', async () => {
+    await assertFails(setDoc(doc(as(null), 'comments/x'), comment('u1')));
+    await assertSucceeds(setDoc(doc(as('u1'), 'comments/x'), comment('u1'))); // commentsOpen alanı yok = açık
+    await assertSucceeds(setDoc(doc(as('u1'), 'comments/y'), comment('u1', { newsId: 'openx' })));
+  });
+
+  it('yorumu kapalı, taslak veya olmayan haberde yorum yazılamaz', async () => {
+    await assertFails(setDoc(doc(as('u1'), 'comments/a'), comment('u1', { newsId: 'closed' })));
+    await assertFails(setDoc(doc(as('u1'), 'comments/b'), comment('u1', { newsId: 'drf' })));
+    await assertFails(setDoc(doc(as('u1'), 'comments/c'), comment('u1', { newsId: 'yok' })));
+  });
+
+  it('başkası adına, uzun, boş, gizli-işaretli, sahte saatli veya fazla alanlı yorum reddedilir', async () => {
+    await assertFails(setDoc(doc(as('u1'), 'comments/a'), comment('u2')));
+    await assertFails(setDoc(doc(as('u1'), 'comments/b'), comment('u1', { text: 'a'.repeat(301) })));
+    await assertFails(setDoc(doc(as('u1'), 'comments/c'), comment('u1', { text: '' })));
+    await assertFails(setDoc(doc(as('u1'), 'comments/d'), comment('u1', { hidden: true })));
+    await assertFails(setDoc(doc(as('u1'), 'comments/e'), comment('u1', { createdAt: new Date('2020-01-01') })));
+    await assertFails(setDoc(doc(as('u1'), 'comments/f'), comment('u1', { extra: 1 })));
+  });
+
+  it('susturulan üye yorum yazamaz', async () => {
+    await assertFails(setDoc(doc(as('u3'), 'comments/x'), comment('u3')));
+  });
+
+  it('üye kendi yorumunu siler, başkasınınkini silemez veya düzenleyemez', async () => {
+    await assertSucceeds(deleteDoc(doc(as('u2'), 'comments/c1')));
+    await assertFails(deleteDoc(doc(as('u1'), 'comments/h1')));
+    await assertFails(updateDoc(doc(as('u2'), 'comments/c1'), { text: 'değişti' }));
+  });
+
+  it('moderatör yorumu gizler ve siler; metni değiştiremez; editör gizleyemez', async () => {
+    await assertSucceeds(updateDoc(doc(as('mod'), 'comments/c1'), { hidden: true }));
+    await assertFails(updateDoc(doc(as('mod'), 'comments/c1'), { text: 'sansür' }));
+    await assertFails(updateDoc(doc(as('ed1'), 'comments/c1'), { hidden: true }));
+    await assertSucceeds(deleteDoc(doc(as('adm'), 'comments/c1')));
+  });
+
+  it('yorum şikâyeti kaynak ve haber alanlarıyla kabul edilir', async () => {
+    await assertSucceeds(setDoc(doc(as('u1'), 'chatReports/u1_c1'), {
+      messageId: 'c1', messageUid: 'u2', messageName: 'Veli', text: 'selam', reporterUid: 'u1', reason: 'uygunsuz',
+      handled: false, source: 'comment', newsId: 'pub', createdAt: serverTimestamp(),
+    }));
+  });
+});

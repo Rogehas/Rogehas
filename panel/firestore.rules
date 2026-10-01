@@ -167,7 +167,8 @@ service cloud.firestore {
       allow read: if canModerate();
       allow create: if signedIn()
         && request.resource.data.keys().hasOnly(
-             ['messageId', 'messageUid', 'messageName', 'text', 'reporterUid', 'reason', 'handled', 'createdAt'])
+             ['messageId', 'messageUid', 'messageName', 'text', 'reporterUid', 'reason', 'handled', 'createdAt',
+              'source', 'newsId'])
         && request.resource.data.reporterUid == request.auth.uid
         && id == request.auth.uid + '_' + request.resource.data.messageId
         && request.resource.data.text is string && request.resource.data.text.size() <= 500
@@ -210,6 +211,30 @@ service cloud.firestore {
         && request.resource.data.status in ['new', 'progress', 'resolved', 'closed']
         && request.resource.data.reply is string && request.resource.data.reply.size() <= 1000;
       allow delete: if false;
+    }
+
+    // ---- haber yorumları: yayındaki haberde herkes okur, giriş yapan üye yazar ----
+    // Gizlenen yorumu yalnızca moderatör/yönetici okur. Yorum kapatılmış (commentsOpen == false) haberde
+    // ve susturulmuş üyeye yazma yok. Üye kendi yorumunu siler; moderatör gizler.
+    match /comments/{id} {
+      allow read: if resource.data.hidden == false || canModerate();
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['newsId', 'uid', 'name', 'text', 'createdAt', 'hidden'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.newsId is string
+        && request.resource.data.newsId.size() > 0 && request.resource.data.newsId.size() <= 100
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 40
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 300
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.hidden == false
+        && !exists(/databases/$(database)/documents/mutes/$(request.auth.uid))
+        && get(/databases/$(database)/documents/news/$(request.resource.data.newsId)).data.status == 'published'
+        && get(/databases/$(database)/documents/news/$(request.resource.data.newsId)).data.get('commentsOpen', true) == true;
+      allow update: if canModerate()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hidden']);
+      allow delete: if (signedIn() && resource.data.uid == request.auth.uid) || canModerate();
     }
 
     // ---- bildirim kayıtları (sunucu kodu bunları telefonlara gönderecek) ----

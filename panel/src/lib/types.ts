@@ -52,6 +52,8 @@ export interface News {
   source: string;
   photo: string | null;
   sendPush: boolean;
+  /** Üyeler yorum yazabilir mi? Eski kayıtlarda yoksa açık sayılır. */
+  commentsOpen?: boolean;
   status: NewsStatus;
   createdBy: string;
   createdByName: string;
@@ -174,6 +176,8 @@ export interface ChatReport {
   text: string;
   reason: string;
   handled: boolean;
+  /** 'comment': haber yorumu şikâyeti; yoksa sohbet mesajı. */
+  source?: 'comment';
   createdAt: string;
 }
 
@@ -201,5 +205,16 @@ export interface ComplaintItem {
   text: string;
   status: ComplaintStatus;
   reply: string;
+  createdAt: string;
+}
+
+/** Haber altındaki yorum. */
+export interface CommentItem {
+  id: string;
+  newsId: string;
+  uid: string;
+  name: string;
+  text: string;
+  hidden: boolean;
   createdAt: string;
 }

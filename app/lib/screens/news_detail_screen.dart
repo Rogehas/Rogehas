@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/models.dart';
 import '../theme/app_theme.dart';
+import '../widgets/comments_section.dart';
 import '../widgets/common.dart';
 import '../widgets/news_visual.dart';
 import '../widgets/share.dart';
@@ -87,6 +88,11 @@ class NewsDetailScreen extends StatelessWidget {
             ),
           ),
         ),
+        // Kimliği olmayan (örnek) haberlerde yorum bölümü gösterilmez.
+        if (item.id.isNotEmpty) ...[
+          const SizedBox(height: 28),
+          CommentsSection(newsId: item.id, open: item.commentsOpen),
+        ],
       ],
     );
   }

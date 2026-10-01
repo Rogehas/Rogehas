@@ -124,6 +124,8 @@ class ContentMapper {
     final source = (m['source'] as String? ?? '').trim();
     final t = ago(publishedAt(m), now ?? DateTime.now());
     return NewsItem(
+      id: (m['id'] as String? ?? '').trim(),
+      commentsOpen: m['commentsOpen'] as bool? ?? true,
       kind: kind,
       label: kind == NewsKind.kesinti && sub.isNotEmpty
           ? 'KESİNTİ · ${sub.toUpperCase()}'

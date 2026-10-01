@@ -8,10 +8,18 @@ class NewsItem {
     required this.title,
     required this.meta,
     required this.palette,
+    this.id = '',
     this.label,
     this.body = '',
     this.photoUrl,
+    this.commentsOpen = true,
   });
+
+  /// Haber belge kimliği; yorumlar buna bağlanır. Örnek verilerde boş olabilir.
+  final String id;
+
+  /// Üyeler yorum yazabilir mi? Yayınlayan kapatabilir; belgede yoksa açık sayılır.
+  final bool commentsOpen;
 
   final NewsKind kind;
   final String title;

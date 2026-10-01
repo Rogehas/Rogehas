@@ -6,6 +6,7 @@ import 'models.dart';
 class MockData {
   static const news = <NewsItem>[
     NewsItem(
+      id: 'n1',
       kind: NewsKind.haber,
       title: "Tavas'ta sonbahar etkinlik takvimi açıklandı",
       meta: 'Bugün · Editör',
@@ -13,6 +14,7 @@ class MockData {
       palette: ScenePalette.dusk,
     ),
     NewsItem(
+      id: 'n2',
       kind: NewsKind.kesinti,
       label: 'KESİNTİ · SU',
       title: 'Yarın 09:00–14:00 arası planlı su kesintisi',
@@ -21,12 +23,15 @@ class MockData {
       palette: ScenePalette.sand,
     ),
     NewsItem(
+      id: 'n3',
       kind: NewsKind.duyuru,
       title: 'Başvuru tarihleri uzatıldı',
       meta: 'Belediye · Dün',
       palette: ScenePalette.day,
     ),
     NewsItem(
+      id: 'n4',
+      commentsOpen: false,
       kind: NewsKind.duyuru,
       title: 'Belediye hizmet saatlerinde yeni düzenleme',
       meta: '2 saat önce · Belediye',

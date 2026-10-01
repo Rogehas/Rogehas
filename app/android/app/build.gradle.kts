@@ -30,11 +30,21 @@ android {
         versionName = flutter.versionName
     }
 
+    // Test amaçlı sabit imza anahtarı: her derleme aynı anahtarla imzalandığı için
+    // telefondaki uygulama silinmeden güncellenebilir. Play Store için ayrı, gizli bir
+    // yükleme anahtarı kullanılacak (bu anahtar mağazaya gitmeyecek).
+    signingConfigs {
+        create("tavasTest") {
+            storeFile = file("tavas-test.keystore")
+            storePassword = "tavas-test-123"
+            keyAlias = "tavas"
+            keyPassword = "tavas-test-123"
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("tavasTest")
         }
     }
 }

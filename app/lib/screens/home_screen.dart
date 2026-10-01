@@ -174,7 +174,7 @@ class _HeroState extends State<_Hero> {
           ),
         ),
         SizedBox(
-          height: 420,
+          height: 372,
           child: Stack(
             children: [
               const Positioned.fill(
@@ -200,19 +200,25 @@ class _HeroState extends State<_Hero> {
                     final page = _page.clamp(0, slides.length - 1);
                     return Stack(
                       children: [
-                        PageView.builder(
-                          controller: _controller,
-                          itemCount: slides.length,
-                          onPageChanged: (i) => setState(() => _page = i),
-                          itemBuilder: (context, i) => _Slide(
-                            slides[i],
-                            onTap: () => widget.onOpen(slides[i]),
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          top: 0,
+                          bottom: 26,
+                          child: PageView.builder(
+                            controller: _controller,
+                            itemCount: slides.length,
+                            onPageChanged: (i) => setState(() => _page = i),
+                            itemBuilder: (context, i) => _Slide(
+                              slides[i],
+                              onTap: () => widget.onOpen(slides[i]),
+                            ),
                           ),
                         ),
                         if (slides.length > 1) ...[
                           Positioned(
                             left: 14,
-                            top: 108,
+                            top: 106,
                             child: _Arrow(
                               icon: Icons.chevron_left,
                               label: 'Önceki haber',
@@ -223,36 +229,43 @@ class _HeroState extends State<_Hero> {
                           ),
                           Positioned(
                             right: 14,
-                            top: 108,
+                            top: 106,
                             child: _Arrow(
                               icon: Icons.chevron_right,
                               label: 'Sonraki haber',
                               onTap: () => _go((page + 1) % slides.length),
                             ),
                           ),
+                          // Noktalar fotoğrafın ve başlığın altında, kendi ince şeridinde durur.
                           Positioned(
                             left: 0,
                             right: 0,
-                            bottom: 12,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                for (var i = 0; i < slides.length; i++)
-                                  AnimatedContainer(
-                                    duration: const Duration(milliseconds: 200),
-                                    margin: const EdgeInsets.symmetric(
-                                      horizontal: 3.5,
+                            bottom: 0,
+                            height: 26,
+                            child: ColoredBox(
+                              color: AppColors.bg,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  for (var i = 0; i < slides.length; i++)
+                                    AnimatedContainer(
+                                      duration: const Duration(
+                                        milliseconds: 200,
+                                      ),
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                      ),
+                                      width: i == page ? 20 : 7,
+                                      height: 7,
+                                      decoration: BoxDecoration(
+                                        color: i == page
+                                            ? AppColors.lime
+                                            : const Color(0xFF5A5A5A),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
                                     ),
-                                    width: i == page ? 26 : 8,
-                                    height: 8,
-                                    decoration: BoxDecoration(
-                                      color: i == page
-                                          ? AppColors.lime
-                                          : const Color(0x73FFFFFF),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                  ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ],
@@ -327,8 +340,8 @@ class _Slide extends StatelessWidget {
   final NewsItem item;
   final VoidCallback onTap;
 
-  /// Fotoğraf alanının yüksekliği; altındaki yazı alanı koyu zeminde durur.
-  static const imageHeight = 270.0;
+  /// Fotoğraf alanının yüksekliği; altındaki koyu şerit yalnızca başlığı taşır.
+  static const imageHeight = 260.0;
 
   @override
   Widget build(BuildContext context) {
@@ -336,46 +349,30 @@ class _Slide extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Fotoğrafın üstüne renk bindirilmez; özgün renkleri ve netliği korunur.
           SizedBox(
             height: imageHeight,
             width: double.infinity,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                NewsVisual(item, palette: ScenePalette.dusk),
-                Positioned(
-                  left: 14,
-                  top: 14,
-                  child: TagChip(item.tagText, item.kind),
-                ),
-              ],
-            ),
+            child: NewsVisual(item, palette: ScenePalette.dusk),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTheme.display(23, color: AppColors.ink),
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              color: const Color(0xFF0E0E0E),
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              alignment: Alignment.centerLeft,
+              child: Text(
+                item.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 21,
+                  fontWeight: FontWeight.w800,
+                  height: 1.25,
+                  color: Colors.white,
                 ),
-                if (item.meta.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    item.meta,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.muted,
-                    ),
-                  ),
-                ],
-              ],
+              ),
             ),
           ),
         ],

@@ -6,7 +6,7 @@ import '../data/links.dart';
 import '../notifications/notification_settings.dart';
 import '../data/models.dart';
 import '../theme/app_theme.dart';
-import '../data/vefat_filter.dart';
+import '../data/vefat_filter.dart' show turkishDate;
 import '../widgets/data_stream.dart';
 import '../widgets/person_photo.dart';
 import '../widgets/share.dart';
@@ -26,8 +26,6 @@ class VefatScreen extends StatefulWidget {
 }
 
 class _VefatScreenState extends State<VefatScreen> {
-  int _tab = 0;
-
   Future<void> _toggleNotify(bool on) async {
     final messenger = ScaffoldMessenger.of(context);
     final ok = await NotificationScope.of(context)
@@ -83,19 +81,17 @@ class _VefatScreenState extends State<VefatScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          _Segments(index: _tab, onChanged: (i) => setState(() => _tab = i)),
-          const SizedBox(height: 12),
           DataStream<List<VefatItem>>(
             dark: true,
             source: ContentScope.of(context).vefat,
             builder: (context, all) {
-              final items = filterVefat(all, _tab, now);
+              final items = all;
               if (items.isEmpty) {
                 return const Padding(
                   padding: EdgeInsets.only(top: 60),
                   child: Center(
                     child: Text(
-                      'Bu dönemde ilan yok.',
+                      'Şu an yayında vefat ilanı yok.',
                       style: TextStyle(color: AppColors.darkMuted),
                     ),
                   ),
@@ -194,54 +190,6 @@ class _NotifyCard extends StatelessWidget {
   }
 }
 
-class _Segments extends StatelessWidget {
-  const _Segments({required this.index, required this.onChanged});
-  final int index;
-  final ValueChanged<int> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    const labels = ['Bugün', 'Bu hafta', 'Arşiv'];
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: AppColors.darkSurface,
-        borderRadius: BorderRadius.circular(25),
-      ),
-      child: Row(
-        children: [
-          for (var i = 0; i < labels.length; i++)
-            Expanded(
-              child: GestureDetector(
-                onTap: () => onChanged(i),
-                child: Container(
-                  height: 42,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: i == index
-                        ? AppColors.darkAccent
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(21),
-                  ),
-                  child: Text(
-                    labels[i],
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: i == index
-                          ? AppColors.darkBg
-                          : AppColors.darkMuted,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
 class _VefatCard extends StatelessWidget {
   const _VefatCard(this.v, {required this.onDirections, required this.onShare});
   final VefatItem v;
@@ -259,54 +207,68 @@ class _VefatCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              PersonPhoto(
-                photoUrl: v.photoUrl,
-                initials: v.initials,
-                name: v.name,
-                width: 92,
-                height: 116,
-                enlargeOnTap: true,
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      v.ago,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.darkMuted,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      v.name,
-                      style: AppTheme.display(23, color: AppColors.darkText),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${v.age} yaşında',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.darkAccent,
-                      ),
-                    ),
-                    Text(
-                      v.neighborhood,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: AppColors.darkMuted,
-                      ),
-                    ),
-                  ],
+          // Büyük fotoğraf; üstünde ilan zamanı. Dokununca tam ekran açılır.
+          LayoutBuilder(
+            builder: (context, box) => Stack(
+              children: [
+                PersonPhoto(
+                  photoUrl: v.photoUrl,
+                  initials: v.initials,
+                  name: v.name,
+                  width: box.maxWidth,
+                  height: box.maxWidth * 1.1,
+                  enlargeOnTap: true,
                 ),
-              ),
-            ],
+                if (v.ago.isNotEmpty)
+                  Positioned(
+                    left: 12,
+                    top: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xB3131A21),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        v.ago,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.darkText,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  v.name,
+                  style: AppTheme.display(28, color: AppColors.darkText),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  [
+                    if (v.age > 0) '${v.age} yaşında',
+                    if (v.neighborhood.isNotEmpty) v.neighborhood,
+                  ].join(' · '),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.darkAccent,
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 14),
           Row(

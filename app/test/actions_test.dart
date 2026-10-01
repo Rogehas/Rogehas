@@ -14,8 +14,8 @@ import 'package:tavas/widgets/common.dart';
 void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
 
-  void bigScreen(WidgetTester tester) {
-    tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+  void bigScreen(WidgetTester tester, {double height = 844}) {
+    tester.view.physicalSize = Size(390 * 3, height * 3);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
   }
@@ -43,8 +43,9 @@ void main() {
     WidgetTester tester,
     Widget page, {
     InMemoryNoticeSettings? settings,
+    double height = 844,
   }) async {
-    bigScreen(tester);
+    bigScreen(tester, height: height);
     final hub = ContentHub(MockContentRepository());
     addTearDown(hub.dispose);
     await tester.pumpWidget(
@@ -208,6 +209,7 @@ void main() {
       final shared = <String>[];
       await pumpPage(
         tester,
+        height: 3000,
         VefatScreen(
           opener: (u) async {
             opened.add(u);
@@ -237,10 +239,20 @@ void main() {
       expect(shared.single, contains('Tavas uygulaması'));
     });
 
+    testWidgets('sekme yok: yayındaki tüm ilanlar tek listede görünür', (
+      tester,
+    ) async {
+      await pumpPage(tester, const VefatScreen(), height: 3000);
+      expect(find.text('Bu hafta'), findsNothing);
+      expect(find.text('Arşiv'), findsNothing);
+      expect(find.text('Ayşe Örnek'), findsOneWidget);
+      expect(find.text('Mehmet Örnek'), findsOneWidget);
+    });
+
     testWidgets('taziye adresi yoksa Yol tarifi düğmesi gösterilmez', (
       tester,
     ) async {
-      await pumpPage(tester, const VefatScreen());
+      await pumpPage(tester, const VefatScreen(), height: 3000);
       // İki ilan var, yalnızca biri taziye adresli; iki Paylaş, bir Yol tarifi.
       expect(find.text('Paylaş'), findsNWidgets(2));
       expect(find.text('Yol tarifi'), findsOneWidget);

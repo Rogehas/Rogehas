@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tavas/data/content_mapper.dart';
-import 'package:tavas/data/mock_data.dart';
 import 'package:tavas/data/models.dart';
 import 'package:tavas/data/vefat_filter.dart';
 
@@ -77,36 +76,6 @@ void main() {
       final v = ContentMapper.vefat({'name': ' '}, now: now);
       expect(v.age, 0);
       expect(v.initials, '?');
-    });
-  });
-
-  group('vefat sekmeleri', () {
-    VefatItem at(DateTime? d) => VefatItem(
-      name: 'A B',
-      age: 1,
-      neighborhood: '',
-      prayerTime: '',
-      mosque: '',
-      burial: '',
-      ago: '',
-      prayerAt: d,
-    );
-
-    test('bugün ve gelecek Bugün, 1-7 gün önce Bu hafta, daha eski Arşiv', () {
-      final items = [
-        at(DateTime(2026, 9, 30)),
-        at(DateTime(2026, 10, 1)),
-        at(DateTime(2026, 9, 25)),
-        at(DateTime(2026, 9, 1)),
-        at(null),
-      ];
-      expect(filterVefat(items, 0, now).length, 3);
-      expect(filterVefat(items, 1, now).length, 1);
-      expect(filterVefat(items, 2, now).length, 1);
-    });
-
-    test('mock veri Bugün sekmesinde görünür', () {
-      expect(filterVefat(MockData.vefat(), 0, DateTime.now()).length, 2);
     });
   });
 

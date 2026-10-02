@@ -271,7 +271,7 @@ class _ChatRoomState extends State<_ChatRoom> {
           child: Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              'Saygılı ol. Uygunsuz mesajlar silinir, kurala uymayanlar susturulur.',
+              'Saygılı ol. Uygunsuz mesajlar silinir, kurala uymayanlar susturulur. Mesajlar 30 gün sonra otomatik silinir.',
               style: TextStyle(fontSize: 12, color: AppColors.muted),
             ),
           ),

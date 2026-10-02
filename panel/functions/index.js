@@ -3,8 +3,10 @@ const { initializeApp } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
 const { onDocumentCreated } = require('firebase-functions/v2/firestore');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
 const logger = require('firebase-functions/logger');
 const { handleNotice } = require('./notify');
+const { CHAT_RETENTION_DAYS, cutoffDate, purgeOlderThan } = require('./retention');
 
 initializeApp();
 
@@ -30,3 +32,13 @@ exports.sendNotice = onDocumentCreated(
   },
 );
 
+
+/** Her gece 04:00'te (Türkiye saati) 30 günden eski genel sohbet mesajlarını siler. */
+exports.cleanupChat = onSchedule(
+  { schedule: 'every day 04:00', timeZone: 'Europe/Istanbul', region: REGION, retryCount: 1 },
+  async () => {
+    const cutoff = cutoffDate(new Date(), CHAT_RETENTION_DAYS);
+    const deleted = await purgeOlderThan(getFirestore(), 'chat', cutoff);
+    logger.info('Eski sohbet mesajları silindi', { deleted, cutoff: cutoff.toISOString() });
+  },
+);

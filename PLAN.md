@@ -225,3 +225,9 @@ Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildi
 - Veri: `comments` belgesine `parentId` + `replyToName`. Kurallar: ana yorum aynı haberde, gizli olmayan ve kendisi yanıt olmayan bir yorum olmalı (46 kural testi).
 - Ana yorum gizlenir/silinirse yanıtları da görünmez. Panelde yanıtlar "X kişisine yanıt" etiketiyle listelenir; gizleme/susturma aynı.
 - Yok: yanıt bildirimi.
+
+## Sohbet saklama süresi
+- Genel sohbet mesajları 30 gün sonra otomatik silinir: zamanlanmış fonksiyon `cleanupChat` (her gün 04:00 Türkiye saati, `panel/functions/retention.js`). Sohbet ekranında bu süre yazar.
+- Ekran davranışı aynı: son 100 mesaj gösterilir. Haber yorumları ve şikâyet/öneri kayıtları bu silmeden etkilenmez.
+- KVKK/gizlilik metninde: sohbet mesajları 30 gün saklanır, kullanıcı hesabını silince mesajları da silinir.
+- Şikâyet edilen mesajın kopyası (`chatReports`) kapatılana kadar durur; ayrı bir silme kuralı henüz yok.

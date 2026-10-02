@@ -16,12 +16,44 @@ class Comment {
     required this.name,
     required this.text,
     required this.at,
+    this.parentId,
+    this.replyToName = '',
   });
   final String id;
   final String uid;
   final String name;
   final String text;
   final DateTime? at;
+
+  /// Yanıtsa, ait olduğu ana yorumun kimliği; ana yorumda null.
+  final String? parentId;
+
+  /// Yanıtın kime verildiği (görünen ad); ana yorumda boş.
+  final String replyToName;
+
+  bool get isReply => parentId != null;
+}
+
+/// Bir ana yorum ve ona verilen yanıtlar.
+class CommentThread {
+  const CommentThread(this.root, this.replies);
+  final Comment root;
+  final List<Comment> replies;
+}
+
+/// Düz listeyi (en yeni başta) konuşmalara ayırır: ana yorumlar en yeni üstte,
+/// yanıtlar konuşma sırasıyla (en eski üstte). Ana yorumu gizlenmiş/silinmiş yanıtlar düşer.
+List<CommentThread> groupComments(List<Comment> all) {
+  final replies = <String, List<Comment>>{};
+  for (final c in all) {
+    final p = c.parentId;
+    if (p != null) (replies[p] ??= []).add(c);
+  }
+  return [
+    for (final c in all)
+      if (!c.isReply)
+        CommentThread(c, (replies[c.id] ?? const []).reversed.toList()),
+  ];
 }
 
 /// Gönderilebilir yorum ise null; değilse kullanıcıya gösterilecek neden.
@@ -47,7 +79,14 @@ class CommentFailure implements Exception {
 abstract class CommentRepository {
   /// Haberin gizlenmemiş yorumları, en yeni başta.
   Stream<List<Comment>> watch(String newsId);
-  Future<void> send(AuthUser user, String newsId, String text);
+
+  /// [replyTo] verilirse yorum bir yanıttır; her zaman ana yorumun altına eklenir.
+  Future<void> send(
+    AuthUser user,
+    String newsId,
+    String text, {
+    Comment? replyTo,
+  });
   Future<void> delete(String id);
   Future<void> report(AuthUser reporter, String newsId, Comment c);
 }
@@ -74,6 +113,8 @@ class FirestoreCommentRepository implements CommentRepository {
                 name: (d.data()['name'] as String?) ?? 'Üye',
                 text: (d.data()['text'] as String?) ?? '',
                 at: (d.data()['createdAt'] as Timestamp?)?.toDate(),
+                parentId: d.data()['parentId'] as String?,
+                replyToName: (d.data()['replyToName'] as String?) ?? '',
               ),
           ];
           final now = DateTime.now();
@@ -83,7 +124,12 @@ class FirestoreCommentRepository implements CommentRepository {
   }
 
   @override
-  Future<void> send(AuthUser user, String newsId, String text) async {
+  Future<void> send(
+    AuthUser user,
+    String newsId,
+    String text, {
+    Comment? replyTo,
+  }) async {
     try {
       await _db.collection('comments').add({
         'newsId': newsId,
@@ -92,6 +138,11 @@ class FirestoreCommentRepository implements CommentRepository {
         'text': text.trim(),
         'createdAt': FieldValue.serverTimestamp(),
         'hidden': false,
+        if (replyTo != null) ...{
+          // Yanıtın yanıtı da ana yorumun altına bağlanır (tek seviye).
+          'parentId': replyTo.parentId ?? replyTo.id,
+          'replyToName': replyTo.name,
+        },
       });
     } on FirebaseException catch (e) {
       if (e.code == 'permission-denied') {
@@ -145,7 +196,13 @@ class InMemoryCommentRepository implements CommentRepository {
   final _changes = StreamController<void>.broadcast();
   int _n = 0;
 
-  void seed(String newsId, String uid, String name, String text) {
+  void seed(
+    String newsId,
+    String uid,
+    String name,
+    String text, {
+    Comment? replyTo,
+  }) {
     _all.add((
       newsId,
       Comment(
@@ -154,6 +211,8 @@ class InMemoryCommentRepository implements CommentRepository {
         name: name,
         text: text,
         at: DateTime(2026, 10, 2, 10, 15),
+        parentId: replyTo == null ? null : (replyTo.parentId ?? replyTo.id),
+        replyToName: replyTo?.name ?? '',
       ),
     ));
     _changes.add(null);
@@ -172,8 +231,13 @@ class InMemoryCommentRepository implements CommentRepository {
   }
 
   @override
-  Future<void> send(AuthUser user, String newsId, String text) async {
-    seed(newsId, user.uid, user.name, text.trim());
+  Future<void> send(
+    AuthUser user,
+    String newsId,
+    String text, {
+    Comment? replyTo,
+  }) async {
+    seed(newsId, user.uid, user.name, text.trim(), replyTo: replyTo);
   }
 
   @override

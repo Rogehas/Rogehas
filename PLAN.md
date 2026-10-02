@@ -219,3 +219,9 @@ Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildi
 - Ana sayfadaki kayan bölüm yayındaki haber/duyuru/kesinti ile vefat ilanlarını yayınlanma zamanına göre karışık (yeni üstte) gösterir; en fazla 15 slayt (`lib/data/hero_slides.dart`).
 - Vefat slaytı: ölen kişinin fotoğrafı (yüz için üst kısım tutulur), altta siyah şeritte "Vefat: Ad Soyad", sol üstte VEFAT rozeti; dokununca Vefat sekmesi açılır. Fotoğraf yoksa baş harfler.
 - Arşivlenen ilanlar uygulamada zaten görünmez (yalnızca yayındakiler okunur).
+
+## Yorumlara yanıt
+- Her yorumun altında "Yanıtla". Yanıt tek seviyelidir: yanıta yanıt verilirse de aynı ana yorumun altına bağlanır ve "↪ kişi" olarak kime verildiği görünür. Yazma alanında "X adlı kişiye yanıt yazıyorsun" ve iptal düğmesi. Üye değilken Yanıtla giriş ekranını açar.
+- Veri: `comments` belgesine `parentId` + `replyToName`. Kurallar: ana yorum aynı haberde, gizli olmayan ve kendisi yanıt olmayan bir yorum olmalı (46 kural testi).
+- Ana yorum gizlenir/silinirse yanıtları da görünmez. Panelde yanıtlar "X kişisine yanıt" etiketiyle listelenir; gizleme/susturma aynı.
+- Yok: yanıt bildirimi.

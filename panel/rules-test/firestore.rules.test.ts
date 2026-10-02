@@ -387,6 +387,24 @@ describe('haber yorumları', () => {
     await assertSucceeds(deleteDoc(doc(as('adm'), 'comments/c1')));
   });
 
+  it('yanıt: ana yoruma, aynı haberde, tek seviye yazılır', async () => {
+    await assertSucceeds(setDoc(doc(as('u1'), 'comments/r1'), comment('u1', { parentId: 'c1', replyToName: 'Veli' })));
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'comments/rr'), { newsId: 'pub', uid: 'u2', name: 'Veli', text: 'yanıt', createdAt: new Date(), hidden: false, parentId: 'c1', replyToName: 'Ali' });
+    });
+    // yanıta yanıt (ana yorum olmayan) reddedilir
+    await assertFails(setDoc(doc(as('u1'), 'comments/r2'), comment('u1', { parentId: 'rr', replyToName: 'Veli' })));
+  });
+
+  it('yanıt: olmayan, gizli veya başka haberdeki ana yoruma ve geçersiz alanlarla reddedilir', async () => {
+    await assertFails(setDoc(doc(as('u1'), 'comments/a'), comment('u1', { parentId: 'yok', replyToName: 'X' })));
+    await assertFails(setDoc(doc(as('u1'), 'comments/b'), comment('u1', { parentId: 'h1', replyToName: 'Veli' })));
+    await assertFails(setDoc(doc(as('u1'), 'comments/c'), comment('u1', { parentId: 'c1', replyToName: 'Veli', newsId: 'openx' })));
+    await assertFails(setDoc(doc(as('u1'), 'comments/d'), comment('u1', { parentId: 'c1' })));
+    await assertFails(setDoc(doc(as('u1'), 'comments/e'), comment('u1', { replyToName: 'Veli' })));
+    await assertFails(setDoc(doc(as('u3'), 'comments/f'), comment('u3', { parentId: 'c1', replyToName: 'Veli' })));
+  });
+
   it('yorum şikâyeti kaynak ve haber alanlarıyla kabul edilir', async () => {
     await assertSucceeds(setDoc(doc(as('u1'), 'chatReports/u1_c1'), {
       messageId: 'c1', messageUid: 'u2', messageName: 'Veli', text: 'selam', reporterUid: 'u1', reason: 'uygunsuz',

@@ -146,6 +146,74 @@ void main() {
       },
     );
 
+    testWidgets(
+      'yoruma yanıt yazılır; yanıt ana yorumun altında, kime verildiğiyle görünür',
+      (tester) async {
+        comments.seed('n1', 'u9', 'Ayşe', 'Katılıyorum');
+        await auth.signUp(
+          name: 'Mehmet',
+          email: 'm@o.com',
+          password: 'sifre123',
+        );
+        await openNews(tester, open);
+
+        await tester.tap(find.text('Yanıtla'));
+        await tester.pumpAndSettle();
+        expect(find.text('Ayşe adlı kişiye yanıt yazıyorsun'), findsOneWidget);
+        await tester.enterText(find.byType(TextField), 'Ben de');
+        await tester.tap(find.byIcon(Icons.send));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Ben de'), findsOneWidget);
+        expect(find.text('↪ Ayşe'), findsOneWidget);
+        // Yanıt gönderilince yanıt kipi kapanır.
+        expect(find.textContaining('yanıt yazıyorsun'), findsNothing);
+      },
+    );
+
+    testWidgets('yanıta yanıt da aynı ana yorumun altına bağlanır', (
+      tester,
+    ) async {
+      comments.seed('n1', 'u9', 'Ayşe', 'Ana yorum');
+      final root = (await comments.watch('n1').first).single;
+      comments.seed('n1', 'u8', 'Veli', 'İlk yanıt', replyTo: root);
+      await auth.signUp(name: 'Mehmet', email: 'm@o.com', password: 'sifre123');
+      await openNews(tester, open);
+
+      // İki "Yanıtla" var: ana yorumunki ve Veli'ninki.
+      await tester.tap(find.text('Yanıtla').last);
+      await tester.pumpAndSettle();
+      expect(find.text('Veli adlı kişiye yanıt yazıyorsun'), findsOneWidget);
+      await tester.enterText(find.byType(TextField), 'Katılıyorum Veli');
+      await tester.tap(find.byIcon(Icons.send));
+      await tester.pumpAndSettle();
+
+      final all = await comments.watch('n1').first;
+      final mine = all.firstWhere((c) => c.text == 'Katılıyorum Veli');
+      expect(mine.parentId, root.id); // yanıtın yanıtı değil, ana yoruma bağlı
+      expect(mine.replyToName, 'Veli');
+    });
+
+    testWidgets('yanıt kipi iptal edilebilir', (tester) async {
+      comments.seed('n1', 'u9', 'Ayşe', 'Katılıyorum');
+      await auth.signUp(name: 'Mehmet', email: 'm@o.com', password: 'sifre123');
+      await openNews(tester, open);
+      await tester.tap(find.text('Yanıtla'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('yanıt yazıyorsun'), findsNothing);
+    });
+
+    testWidgets('üye değilken Yanıtla giriş ekranını açar', (tester) async {
+      comments.seed('n1', 'u9', 'Ayşe', 'Katılıyorum');
+      await openNews(tester, open);
+      await tester.tap(find.text('Yanıtla'));
+      await tester.pumpAndSettle();
+      expect(find.text('Giriş yap'), findsWidgets);
+      expect(find.byType(TextField), findsWidgets); // e-posta ve şifre alanları
+    });
+
     testWidgets('susturulan üye yorum yazamaz', (tester) async {
       await auth.signUp(name: 'Mehmet', email: 'm@o.com', password: 'sifre123');
       chat.setMuted(auth.user!.uid, true);

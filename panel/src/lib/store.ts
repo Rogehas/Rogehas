@@ -192,6 +192,8 @@ export const store = {
         name: String(x.name ?? ''),
         text: String(x.text ?? ''),
         hidden: x.hidden === true,
+        parentId: typeof x.parentId === 'string' ? x.parentId : undefined,
+        replyToName: typeof x.replyToName === 'string' ? x.replyToName : undefined,
         createdAt: x.createdAt instanceof Timestamp ? x.createdAt.toDate().toISOString() : '',
       };
     });

@@ -216,5 +216,9 @@ export interface CommentItem {
   name: string;
   text: string;
   hidden: boolean;
+  /** Yanıtsa ana yorumun kimliği. */
+  parentId?: string;
+  /** Yanıtın kime verildiği. */
+  replyToName?: string;
   createdAt: string;
 }

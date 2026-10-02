@@ -19,6 +19,8 @@ class CommentsSection extends StatefulWidget {
 
 class _CommentsSectionState extends State<CommentsSection> {
   final _input = TextEditingController();
+  final _focus = FocusNode();
+  Comment? _replyTo;
   Stream<List<Comment>>? _stream;
   CommentRepository? _repo;
   bool _sending = false;
@@ -37,6 +39,7 @@ class _CommentsSectionState extends State<CommentsSection> {
   @override
   void dispose() {
     _input.dispose();
+    _focus.dispose();
     super.dispose();
   }
 
@@ -52,15 +55,30 @@ class _CommentsSectionState extends State<CommentsSection> {
     }
     setState(() => _sending = true);
     try {
-      await _repo!.send(user, widget.newsId, _input.text);
+      await _repo!.send(user, widget.newsId, _input.text, replyTo: _replyTo);
       _lastSent = DateTime.now();
       _input.clear();
+      if (mounted) setState(() => _replyTo = null);
       if (mounted) FocusScope.of(context).unfocus();
     } on CommentFailure catch (e) {
       if (mounted) _toast(e.message);
     } finally {
       if (mounted) setState(() => _sending = false);
     }
+  }
+
+  /// "Yanıtla": üye değilse giriş ekranı, üyeyse yazma alanı yanıt kipine geçer.
+  void _startReply(Comment c, AuthUser? me) {
+    if (me == null) {
+      Navigator.of(context).push(
+        MaterialPageRoute<bool>(
+          builder: (_) => const AuthScreen(mode: AuthMode.signIn),
+        ),
+      );
+      return;
+    }
+    setState(() => _replyTo = c);
+    _focus.requestFocus();
   }
 
   Future<void> _more(Comment c, AuthUser? me) async {
@@ -142,6 +160,9 @@ class _CommentsSectionState extends State<CommentsSection> {
           else
             _Composer(
               controller: _input,
+              focus: _focus,
+              replyingTo: _replyTo?.name,
+              onCancelReply: () => setState(() => _replyTo = null),
               sending: _sending,
               onSend: () => _send(me),
               muted: ChatScope.of(context).repository.watchMuted(me.uid),
@@ -175,8 +196,22 @@ class _CommentsSectionState extends State<CommentsSection> {
                   }
                   return Column(
                     children: [
-                      for (final c in items)
-                        _CommentTile(c, onMore: () => _more(c, me)),
+                      for (final t in groupComments(items)) ...[
+                        _CommentTile(
+                          t.root,
+                          onMore: () => _more(t.root, me),
+                          onReply: () => _startReply(t.root, me),
+                        ),
+                        for (final r in t.replies)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 22),
+                            child: _CommentTile(
+                              r,
+                              onMore: () => _more(r, me),
+                              onReply: () => _startReply(r, me),
+                            ),
+                          ),
+                      ],
                     ],
                   );
                 },
@@ -236,11 +271,19 @@ class _SignInPrompt extends StatelessWidget {
 class _Composer extends StatelessWidget {
   const _Composer({
     required this.controller,
+    required this.focus,
+    required this.replyingTo,
+    required this.onCancelReply,
     required this.sending,
     required this.onSend,
     required this.muted,
   });
   final TextEditingController controller;
+  final FocusNode focus;
+
+  /// Yanıt verilen kişinin adı; yanıt kipinde değilse null.
+  final String? replyingTo;
+  final VoidCallback onCancelReply;
   final bool sending;
   final VoidCallback onSend;
   final Stream<bool> muted;
@@ -265,12 +308,13 @@ class _Composer extends StatelessWidget {
             ),
           );
         }
-        return Row(
+        final row = Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Expanded(
               child: TextField(
                 controller: controller,
+                focusNode: focus,
                 minLines: 1,
                 maxLines: 4,
                 maxLength: maxCommentLength,
@@ -310,15 +354,56 @@ class _Composer extends StatelessWidget {
             ),
           ],
         );
+        final who = replyingTo;
+        if (who == null) return row;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 6, bottom: 6),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '$who adlı kişiye yanıt yazıyorsun',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.accentText,
+                      ),
+                    ),
+                  ),
+                  Semantics(
+                    button: true,
+                    label: 'Yanıtı iptal et',
+                    child: GestureDetector(
+                      onTap: onCancelReply,
+                      child: const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: Icon(
+                          Icons.close,
+                          size: 18,
+                          color: AppColors.muted,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            row,
+          ],
+        );
       },
     );
   }
 }
 
 class _CommentTile extends StatelessWidget {
-  const _CommentTile(this.c, {required this.onMore});
+  const _CommentTile(this.c, {required this.onMore, required this.onReply});
   final Comment c;
   final VoidCallback onMore;
+  final VoidCallback onReply;
 
   @override
   Widget build(BuildContext context) {
@@ -371,11 +456,37 @@ class _CommentTile extends StatelessWidget {
               ),
             ],
           ),
+          if (c.isReply && c.replyToName.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: Text(
+                '↪ ${c.replyToName}',
+                style: const TextStyle(fontSize: 12, color: AppColors.muted),
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: Text(
               c.text,
               style: const TextStyle(fontSize: 15, height: 1.4),
+            ),
+          ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: GestureDetector(
+              onTap: onReply,
+              behavior: HitTestBehavior.opaque,
+              child: const Padding(
+                padding: EdgeInsets.only(top: 6, right: 12, bottom: 2),
+                child: Text(
+                  'Yanıtla',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.muted,
+                  ),
+                ),
+              ),
             ),
           ),
         ],

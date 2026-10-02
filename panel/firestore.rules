@@ -219,7 +219,8 @@ service cloud.firestore {
     match /comments/{id} {
       allow read: if resource.data.hidden == false || canModerate();
       allow create: if signedIn()
-        && request.resource.data.keys().hasOnly(['newsId', 'uid', 'name', 'text', 'createdAt', 'hidden'])
+        && request.resource.data.keys().hasOnly(
+             ['newsId', 'uid', 'name', 'text', 'createdAt', 'hidden', 'parentId', 'replyToName'])
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.newsId is string
         && request.resource.data.newsId.size() > 0 && request.resource.data.newsId.size() <= 100
@@ -231,7 +232,16 @@ service cloud.firestore {
         && request.resource.data.hidden == false
         && !exists(/databases/$(database)/documents/mutes/$(request.auth.uid))
         && get(/databases/$(database)/documents/news/$(request.resource.data.newsId)).data.status == 'published'
-        && get(/databases/$(database)/documents/news/$(request.resource.data.newsId)).data.get('commentsOpen', true) == true;
+        && get(/databases/$(database)/documents/news/$(request.resource.data.newsId)).data.get('commentsOpen', true) == true
+        // Yanıt: tek seviye. Ana yorum aynı haberde, gizli değil ve kendisi bir yanıt olmamalı.
+        && (!('replyToName' in request.resource.data) || ('parentId' in request.resource.data))
+        && (!('parentId' in request.resource.data) || (
+             request.resource.data.parentId is string
+             && request.resource.data.parentId.size() > 0 && request.resource.data.parentId.size() <= 100
+             && request.resource.data.replyToName is string && request.resource.data.replyToName.size() <= 40
+             && get(/databases/$(database)/documents/comments/$(request.resource.data.parentId)).data.newsId == request.resource.data.newsId
+             && get(/databases/$(database)/documents/comments/$(request.resource.data.parentId)).data.hidden == false
+             && !('parentId' in get(/databases/$(database)/documents/comments/$(request.resource.data.parentId)).data)));
       allow update: if canModerate()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hidden']);
       allow delete: if (signedIn() && resource.data.uid == request.auth.uid) || canModerate();

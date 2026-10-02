@@ -97,7 +97,7 @@ export default function Moderation() {
         {comments.map((c) => (
           <div className="row" key={c.id} style={c.hidden ? { opacity: 0.55 } : undefined}>
             <div className="grow">
-              <strong>{c.name}</strong> <span className="muted">· {when(c.createdAt)}{c.hidden ? ' · gizli' : ''}</span>
+              <strong>{c.name}</strong> <span className="muted">· {when(c.createdAt)}{c.parentId ? ` · ${c.replyToName ?? ''} kişisine yanıt` : ''}{c.hidden ? ' · gizli' : ''}</span>
               <div>{c.text}</div>
             </div>
             <div className="actions">

@@ -210,3 +210,7 @@ Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildi
 ## Hava durumu
 - Ana sayfa üst çubuğunda Tavas'ın anlık havası (simge, derece, kısa açıklama). Kaynak: Open-Meteo (anahtarsız, ücretsiz; Tavas 37.5736 K, 29.0722 D). Açılışta ve 30 dakikada bir tazelenir; alınamazsa hiçbir şey gösterilmez (sahte veri yok).
 - Not: Open-Meteo ücretsiz sürümü ticari olmayan kullanım içindir; uygulama ticari hale gelirse ücretli plan/anahtar gerekir. Namaz vakitleri hâlâ yok.
+
+## Ana sayfa kayan haberler: otomatik başlık stili
+- Panel değişmedi. Uygulama başlığı fotoğraf üzerine slayt sırasına göre otomatik farklı stille yazar: beyaz büyük (alt), sarı büyük harfli (orta), sarı şerit (üst), siyah yuvarlak şerit (alt). Kesinti haberleri hep kırmızı şerit. Komşu iki slayt aynı stili almaz (`lib/data/hero_style.dart`).
+- Fotoğrafın üstüne renk katmanı yok; yazıya gölge/şerit var. Haber/Duyuru/Kesinti etiketi sol üstte.

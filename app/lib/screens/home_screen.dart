@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/content_repository.dart';
+import '../data/hero_style.dart';
 import '../data/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
@@ -174,7 +175,7 @@ class _HeroState extends State<_Hero> {
           ),
         ),
         SizedBox(
-          height: 372,
+          height: 340,
           child: Stack(
             children: [
               const Positioned.fill(
@@ -211,6 +212,7 @@ class _HeroState extends State<_Hero> {
                             onPageChanged: (i) => setState(() => _page = i),
                             itemBuilder: (context, i) => _Slide(
                               slides[i],
+                              style: heroStyleFor(i, slides[i].kind),
                               onTap: () => widget.onOpen(slides[i]),
                             ),
                           ),
@@ -336,55 +338,142 @@ class _Arrow extends StatelessWidget {
 
 /// Tek haber slaytı: tam genişlik görsel, altta etiket, başlık ve zaman.
 class _Slide extends StatelessWidget {
-  const _Slide(this.item, {required this.onTap});
+  const _Slide(this.item, {required this.style, required this.onTap});
   final NewsItem item;
+  final HeroStyle style;
   final VoidCallback onTap;
 
-  /// Fotoğraf alanının yüksekliği; altındaki koyu şerit yalnızca başlığı taşır.
-  static const imageHeight = 260.0;
+  static const _shadow = [
+    Shadow(color: Color(0xE6000000), blurRadius: 8, offset: Offset(0, 2)),
+    Shadow(color: Color(0x99000000), blurRadius: 3, offset: Offset(0, 1)),
+  ];
+
+  Widget _title() {
+    switch (style) {
+      case HeroStyle.whiteBottom:
+        return Positioned(
+          left: 18,
+          right: 18,
+          bottom: 18,
+          child: Text(
+            item.title,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 27,
+              fontWeight: FontWeight.w800,
+              height: 1.2,
+              color: Colors.white,
+              shadows: _shadow,
+            ),
+          ),
+        );
+      case HeroStyle.yellowMiddle:
+        return Positioned.fill(
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              child: Text(
+                trUpper(item.title),
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.w900,
+                  height: 1.1,
+                  color: Color(0xFFFFD400),
+                  shadows: _shadow,
+                ),
+              ),
+            ),
+          ),
+        );
+      case HeroStyle.yellowBandTop:
+        return Positioned(
+          left: 0,
+          right: 0,
+          top: 56,
+          child: Container(
+            color: const Color(0xFFFFD400),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+            child: Text(
+              item.title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+                height: 1.2,
+                color: Color(0xFF111111),
+              ),
+            ),
+          ),
+        );
+      case HeroStyle.blackBand:
+        return Positioned(
+          left: 14,
+          right: 14,
+          bottom: 16,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xD9000000),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Text(
+              item.title,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 21,
+                fontWeight: FontWeight.w800,
+                height: 1.25,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        );
+      case HeroStyle.redBand:
+        return Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Container(
+            color: AppColors.lime,
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+            child: Text(
+              item.title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                height: 1.2,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: Column(
+      child: Stack(
+        fit: StackFit.expand,
         children: [
-          // Fotoğrafın üstüne renk bindirilmez; özgün renkleri ve netliği korunur.
-          SizedBox(
-            height: imageHeight,
-            width: double.infinity,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                NewsVisual(item, palette: ScenePalette.dusk),
-                // Haber / Duyuru / Kesinti etiketi fotoğrafın sol üst köşesinde.
-                Positioned(
-                  left: 14,
-                  top: 14,
-                  child: TagChip(item.tagText, item.kind),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Container(
-              width: double.infinity,
-              color: const Color(0xFF0E0E0E),
-              padding: const EdgeInsets.symmetric(horizontal: 18),
-              alignment: Alignment.centerLeft,
-              child: Text(
-                item.title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 21,
-                  fontWeight: FontWeight.w800,
-                  height: 1.25,
-                  color: Colors.white,
-                ),
-              ),
-            ),
+          // Fotoğrafın üstüne renk katmanı bindirilmez; yalnızca yazı stilleri vardır.
+          NewsVisual(item, palette: ScenePalette.dusk),
+          _title(),
+          // Haber / Duyuru / Kesinti etiketi fotoğrafın sol üst köşesinde.
+          Positioned(
+            left: 14,
+            top: 14,
+            child: TagChip(item.tagText, item.kind),
           ),
         ],
       ),

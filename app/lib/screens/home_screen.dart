@@ -367,9 +367,12 @@ class _Slide extends StatelessWidget {
     ),
   );
 
-  /// Siyah yuvarlak şerit; [middle] ise dikey ortada, değilse altta.
-  Widget _band(Color color, {bool middle = false}) {
-    final box = Container(
+  /// Siyah yuvarlak şerit, altta.
+  Widget _band(Color color) => Positioned(
+    left: 14,
+    right: 14,
+    bottom: 16,
+    child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: const Color(0xD9000000),
@@ -386,27 +389,15 @@ class _Slide extends StatelessWidget {
           color: color,
         ),
       ),
-    );
-    if (middle) {
-      return Positioned.fill(
-        child: Align(
-          alignment: Alignment.center,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            child: box,
-          ),
-        ),
-      );
-    }
-    return Positioned(left: 14, right: 14, bottom: 16, child: box);
-  }
+    ),
+  );
 
   Widget _title() => switch (style) {
     HeroStyle.whiteBottom => _plain(Colors.white),
     HeroStyle.yellowBottom => _plain(const Color(0xFFFFD84D)),
     HeroStyle.cyanBottom => _plain(const Color(0xFF8FE3FF)),
     HeroStyle.bandWhite => _band(Colors.white),
-    HeroStyle.bandYellow => _band(const Color(0xFFFFD84D), middle: true),
+    HeroStyle.bandYellow => _band(const Color(0xFFFFD84D)),
     HeroStyle.bandAlert => _band(const Color(0xFFFF7A59)),
   };
 

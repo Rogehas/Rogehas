@@ -1,7 +1,7 @@
 import 'models.dart';
 
 /// Ana sayfadaki kayan haberlerde başlığın fotoğraf üzerindeki görünümü.
-/// İki ana biçim var: şeritsiz gölgeli yazı ve siyah yuvarlak şerit; çeşitlilik yazı renginden ve konumdan gelir.
+/// İki ana biçim var: şeritsiz gölgeli yazı ve siyah yuvarlak şerit; çeşitlilik yazı renginden gelir; yazı her zaman fotoğrafın altındadır.
 enum HeroStyle {
   /// Beyaz yazı, altta.
   whiteBottom,
@@ -12,7 +12,7 @@ enum HeroStyle {
   /// Sarı yazı, altta.
   yellowBottom,
 
-  /// Siyah yuvarlak şerit, sarı yazı, ortada.
+  /// Siyah yuvarlak şerit, sarı yazı, altta.
   bandYellow,
 
   /// Açık mavi yazı, altta.

@@ -9,11 +9,15 @@ class RemoteImage extends StatelessWidget {
     required this.url,
     required this.fallback,
     this.fit = BoxFit.cover,
+    this.alignment = Alignment.center,
   });
 
   final String url;
   final Widget fallback;
   final BoxFit fit;
+
+  /// Kırpılırken fotoğrafın hangi kısmı tutulur (portrelerde üst).
+  final Alignment alignment;
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +28,7 @@ class RemoteImage extends StatelessWidget {
         return Image.memory(
           bytes,
           fit: fit,
+          alignment: alignment,
           errorBuilder: error,
           gaplessPlayback: true,
         );
@@ -34,6 +39,7 @@ class RemoteImage extends StatelessWidget {
     return Image.network(
       url,
       fit: fit,
+      alignment: alignment,
       errorBuilder: error,
       loadingBuilder: (c, child, p) => p == null ? child : fallback,
     );

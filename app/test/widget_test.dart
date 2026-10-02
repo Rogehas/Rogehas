@@ -243,4 +243,7 @@ void main() {
 class _NoNewsRepository extends MockContentRepository {
   @override
   Stream<List<NewsItem>> watchNews() => Stream.value(const <NewsItem>[]);
+
+  @override
+  Stream<List<VefatItem>> watchVefat() => Stream.value(const <VefatItem>[]);
 }

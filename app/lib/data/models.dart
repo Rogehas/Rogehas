@@ -13,10 +13,14 @@ class NewsItem {
     this.body = '',
     this.photoUrl,
     this.commentsOpen = true,
+    this.publishedAt,
   });
 
   /// Haber belge kimliği; yorumlar buna bağlanır. Örnek verilerde boş olabilir.
   final String id;
+
+  /// Yayınlanma zamanı; kayan haber sırasını belirler.
+  final DateTime? publishedAt;
 
   /// Üyeler yorum yazabilir mi? Yayınlayan kapatabilir; belgede yoksa açık sayılır.
   final bool commentsOpen;
@@ -54,6 +58,7 @@ class VefatItem {
     this.photoUrl,
     this.prayerAt,
     this.condolenceAddress = '',
+    this.publishedAt,
   });
 
   final String name;
@@ -72,6 +77,9 @@ class VefatItem {
 
   /// Taziye yerinin adresi (boş olabilir). "Yol tarifi" bunu kullanır.
   final String condolenceAddress;
+
+  /// Yayınlanma zamanı; kayan haber sırasını belirler.
+  final DateTime? publishedAt;
 
   String get initials {
     final parts = name.trim().split(RegExp(r'\s+'));

@@ -126,6 +126,7 @@ class ContentMapper {
     return NewsItem(
       id: (m['id'] as String? ?? '').trim(),
       commentsOpen: m['commentsOpen'] as bool? ?? true,
+      publishedAt: publishedAt(m),
       kind: kind,
       label: kind == NewsKind.kesinti && sub.isNotEmpty
           ? 'KESİNTİ · ${sub.toUpperCase()}'
@@ -174,6 +175,7 @@ class ContentMapper {
       photoUrl: _photo(m['photo']),
       prayerAt: day,
       condolenceAddress: (m['condolenceAddress'] as String? ?? '').trim(),
+      publishedAt: publishedAt(m),
     );
   }
 }

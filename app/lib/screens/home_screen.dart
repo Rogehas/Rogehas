@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../data/content_repository.dart';
+import '../data/hero_slides.dart';
 import '../data/hero_style.dart';
 import '../data/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
 import '../widgets/data_stream.dart';
 import '../widgets/news_visual.dart';
+import '../widgets/remote_image.dart';
 import 'business_screen.dart';
 import 'complaint_screen.dart';
 import '../widgets/notice_prefs.dart';
@@ -44,6 +46,7 @@ class HomeScreen extends StatelessWidget {
         _Hero(
           onBell: () => showNoticePrefsSheet(context),
           onOpen: (n) => _openNews(context, n),
+          onOpenVefat: () => onOpenTab(Tabs.vefat),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -114,16 +117,20 @@ String greeting(DateTime now) {
 
 /// Üstte, kaydırılarak gezilen son haberler; üzerinde selamlama ve bildirim düğmesi.
 class _Hero extends StatefulWidget {
-  const _Hero({required this.onBell, required this.onOpen});
+  const _Hero({
+    required this.onBell,
+    required this.onOpen,
+    required this.onOpenVefat,
+  });
   final VoidCallback onBell;
   final ValueChanged<NewsItem> onOpen;
+  final VoidCallback onOpenVefat;
 
   @override
   State<_Hero> createState() => _HeroState();
 }
 
 class _HeroState extends State<_Hero> {
-  static const _maxSlides = 5;
   final _controller = PageController();
   int _page = 0;
 
@@ -185,95 +192,114 @@ class _HeroState extends State<_Hero> {
                 child: DataStream<List<NewsItem>>(
                   dark: true,
                   source: ContentScope.of(context).news,
-                  builder: (context, all) {
-                    final slides = all.take(_maxSlides).toList();
-                    if (slides.isEmpty) {
-                      return const Center(
-                        child: Text(
-                          'Henüz haber yok.',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      );
-                    }
-                    final page = _page.clamp(0, slides.length - 1);
-                    return Stack(
-                      children: [
-                        Positioned(
-                          left: 0,
-                          right: 0,
-                          top: 0,
-                          bottom: 26,
-                          child: PageView.builder(
-                            controller: _controller,
-                            itemCount: slides.length,
-                            onPageChanged: (i) => setState(() => _page = i),
-                            itemBuilder: (context, i) => _Slide(
-                              slides[i],
-                              style: heroStyleFor(i, slides[i].kind),
-                              onTap: () => widget.onOpen(slides[i]),
+                  builder: (context, all) => StreamBuilder<List<VefatItem>>(
+                    // Vefat akışı hata verirse kayan bölüm yalnızca haberlerle çalışır.
+                    stream: ContentScope.of(context).vefat.stream,
+                    initialData: ContentScope.of(context).vefat.latest,
+                    builder: (context, vefatSnap) {
+                      final vefat = vefatSnap.data;
+                      final slides = buildHeroSlides(all, vefat ?? const []);
+                      if (slides.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            'Henüz haber yok.',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                        ),
-                        if (slides.length > 1) ...[
-                          Positioned(
-                            left: 14,
-                            top: 106,
-                            child: _Arrow(
-                              icon: Icons.chevron_left,
-                              label: 'Önceki haber',
-                              onTap: () => _go(
-                                (page - 1 + slides.length) % slides.length,
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            right: 14,
-                            top: 106,
-                            child: _Arrow(
-                              icon: Icons.chevron_right,
-                              label: 'Sonraki haber',
-                              onTap: () => _go((page + 1) % slides.length),
-                            ),
-                          ),
-                          // Noktalar fotoğrafın ve başlığın altında, kendi ince şeridinde durur.
+                        );
+                      }
+                      final page = _page.clamp(0, slides.length - 1);
+                      return Stack(
+                        children: [
                           Positioned(
                             left: 0,
                             right: 0,
-                            bottom: 0,
-                            height: 26,
-                            child: ColoredBox(
-                              color: AppColors.bg,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  for (var i = 0; i < slides.length; i++)
-                                    AnimatedContainer(
-                                      duration: const Duration(
-                                        milliseconds: 200,
-                                      ),
-                                      margin: const EdgeInsets.symmetric(
-                                        horizontal: 4,
-                                      ),
-                                      width: i == page ? 20 : 7,
-                                      height: 7,
-                                      decoration: BoxDecoration(
-                                        color: i == page
-                                            ? AppColors.lime
-                                            : const Color(0xFF5A5A5A),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                    ),
-                                ],
-                              ),
+                            top: 0,
+                            bottom: 26,
+                            child: PageView.builder(
+                              controller: _controller,
+                              itemCount: slides.length,
+                              onPageChanged: (i) => setState(() => _page = i),
+                              itemBuilder: (context, i) {
+                                final slide = slides[i];
+                                final v = slide.vefat;
+                                if (v != null) {
+                                  return _VefatSlide(
+                                    v,
+                                    onTap: widget.onOpenVefat,
+                                  );
+                                }
+                                final n = slide.news!;
+                                return _Slide(
+                                  n,
+                                  style: heroStyleFor(i, n.kind),
+                                  onTap: () => widget.onOpen(n),
+                                );
+                              },
                             ),
                           ),
+                          if (slides.length > 1) ...[
+                            Positioned(
+                              left: 14,
+                              top: 106,
+                              child: _Arrow(
+                                icon: Icons.chevron_left,
+                                label: 'Önceki haber',
+                                onTap: () => _go(
+                                  (page - 1 + slides.length) % slides.length,
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              right: 14,
+                              top: 106,
+                              child: _Arrow(
+                                icon: Icons.chevron_right,
+                                label: 'Sonraki haber',
+                                onTap: () => _go((page + 1) % slides.length),
+                              ),
+                            ),
+                            // Noktalar fotoğrafın ve başlığın altında, kendi ince şeridinde durur.
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              height: 26,
+                              child: ColoredBox(
+                                color: AppColors.bg,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    for (var i = 0; i < slides.length; i++)
+                                      AnimatedContainer(
+                                        duration: const Duration(
+                                          milliseconds: 200,
+                                        ),
+                                        margin: const EdgeInsets.symmetric(
+                                          horizontal: 4,
+                                        ),
+                                        width: i == page ? 20 : 7,
+                                        height: 7,
+                                        decoration: BoxDecoration(
+                                          color: i == page
+                                              ? AppColors.lime
+                                              : const Color(0xFF5A5A5A),
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
-                      ],
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               ),
             ],
@@ -311,6 +337,88 @@ class _WeatherChip extends StatelessWidget {
           Text(
             w.label,
             style: const TextStyle(fontSize: 12, color: Color(0xFFF3C9CD)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Kayan bölümde vefat ilanı: ölen kişinin fotoğrafı ve altta "Vefat: Ad Soyad".
+class _VefatSlide extends StatelessWidget {
+  const _VefatSlide(this.v, {required this.onTap});
+  final VefatItem v;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final placeholder = ColoredBox(
+      color: AppColors.darkSurface,
+      child: Center(
+        child: Text(
+          v.initials,
+          style: AppTheme.display(96, color: AppColors.darkAccent),
+        ),
+      ),
+    );
+    final photo = v.photoUrl;
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Portre fotoğraflarda yüz kırpılmasın diye üst kısım tutulur.
+          if (photo == null || photo.isEmpty)
+            placeholder
+          else
+            RemoteImage(
+              url: photo,
+              fallback: placeholder,
+              alignment: Alignment.topCenter,
+            ),
+          Positioned(
+            left: 14,
+            top: 14,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.darkSurface,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Text(
+                'VEFAT',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: .6,
+                  color: AppColors.darkAccent,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 14,
+            right: 14,
+            bottom: 16,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xD9000000),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(
+                'Vefat: ${v.name}',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  height: 1.2,
+                  color: Color(0xFFE6EBF0),
+                ),
+              ),
+            ),
           ),
         ],
       ),

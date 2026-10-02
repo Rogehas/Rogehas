@@ -214,3 +214,8 @@ Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildi
 ## Ana sayfa kayan haberler: otomatik başlık stili
 - Panel değişmedi. Uygulama başlığı fotoğraf üzerine slayt sırasına göre otomatik farklı renk/konumla yazar; iki ana biçim: gölgeli düz yazı ve siyah yuvarlak şerit. Sıra: beyaz altta → şerit beyaz altta → sarı altta → şerit sarı altta → açık mavi altta. Kesinti haberleri şeritte kırmızı-turuncu yazı. Komşu iki slayt aynı stili almaz (`lib/data/hero_style.dart`).
 - Fotoğrafın üstüne renk katmanı yok; yazıya gölge/şerit var. Haber/Duyuru/Kesinti etiketi sol üstte.
+
+## Kayan bölüm: haber + vefat, en fazla 15
+- Ana sayfadaki kayan bölüm yayındaki haber/duyuru/kesinti ile vefat ilanlarını yayınlanma zamanına göre karışık (yeni üstte) gösterir; en fazla 15 slayt (`lib/data/hero_slides.dart`).
+- Vefat slaytı: ölen kişinin fotoğrafı (yüz için üst kısım tutulur), altta siyah şeritte "Vefat: Ad Soyad", sol üstte VEFAT rozeti; dokununca Vefat sekmesi açılır. Fotoğraf yoksa baş harfler.
+- Arşivlenen ilanlar uygulamada zaten görünmez (yalnızca yayındakiler okunur).

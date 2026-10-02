@@ -6,8 +6,78 @@ import 'package:tavas/main.dart';
 import 'package:tavas/notifications/notification_settings.dart';
 import 'package:tavas/weather/weather.dart';
 
+class _Seq implements WeatherSource {
+  _Seq(this.results);
+  final List<Weather?> results;
+  int calls = 0;
+  @override
+  Future<Weather?> fetch() async =>
+      results[calls++ < results.length ? calls - 1 : results.length - 1];
+}
+
 void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
+
+  group('hava durumu güncelliği', () {
+    const w1 = Weather(tempC: 13, code: 3, isDay: true);
+    const w2 = Weather(tempC: 8, code: 61, isDay: false);
+
+    testWidgets(
+      'açılışta çeker; arka plandan dönünce 5 dakika geçtiyse tazeler',
+      (tester) async {
+        var now = DateTime(2026, 10, 3, 10);
+        final src = _Seq([w1, w2]);
+        final c = WeatherController(src, now: () => now)..start();
+        await tester.pump();
+        expect(c.value?.tempC, 13);
+        expect(src.calls, 1);
+
+        // Hemen dönünce (3 dk) yeniden çekmez.
+        now = now.add(const Duration(minutes: 3));
+        c.didChangeAppLifecycleState(AppLifecycleState.resumed);
+        await tester.pump();
+        expect(src.calls, 1);
+
+        // 6 dk sonra dönünce çeker ve yeni değeri gösterir.
+        now = now.add(const Duration(minutes: 3));
+        c.didChangeAppLifecycleState(AppLifecycleState.resumed);
+        await tester.pump();
+        expect(src.calls, 2);
+        expect(c.value?.tempC, 8);
+        c.dispose();
+      },
+    );
+
+    testWidgets('arka plana giderken tazelenmez', (tester) async {
+      final src = _Seq([w1]);
+      final c = WeatherController(src)..start();
+      await tester.pump();
+      c.didChangeAppLifecycleState(AppLifecycleState.paused);
+      await tester.pump();
+      expect(src.calls, 1);
+      c.dispose();
+    });
+
+    testWidgets(
+      'tazeleme başarısız olursa son değer 2 saate kadar korunur, sonra gizlenir',
+      (tester) async {
+        var now = DateTime(2026, 10, 3, 10);
+        final src = _Seq([w1, null]);
+        final c = WeatherController(src, now: () => now)..start();
+        await tester.pump();
+        expect(c.value?.tempC, 13);
+
+        now = now.add(const Duration(minutes: 90));
+        await c.refresh(); // başarısız
+        expect(c.value?.tempC, 13); // 90 dk: hâlâ gösterilir
+
+        now = now.add(const Duration(minutes: 40)); // toplam 130 dk
+        await c.refresh(); // yine başarısız
+        expect(c.value, isNull); // eski veri gizlenir
+        c.dispose();
+      },
+    );
+  });
 
   group('hava durumu verisi', () {
     test('Open-Meteo yanıtı okunur', () {

@@ -234,3 +234,6 @@ Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildi
 
 ## Vefat sayfasında bildirim anahtarı kaldırıldı
 - Vefat bildirimi ayarı yalnızca zildeki pencerede ve Profil sekmesinde (dört konu anahtarı). Vefat sayfası sadece ilanları gösterir.
+
+## Hava durumu güncelliği
+- Hava, açılışta, 15 dakikada bir ve uygulama arka plandan dönünce (son denemeden 5 dk geçtiyse) tazelenir. Tazeleme başarısız olursa son değer 2 saate kadar korunur, daha eskiyse hiç gösterilmez.

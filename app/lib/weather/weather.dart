@@ -106,33 +106,71 @@ class FixedWeatherSource implements WeatherSource {
   Future<Weather?> fetch() async => weather;
 }
 
-/// Hava durumunu çeker ve 30 dakikada bir tazeler. Son başarılı değer korunur.
-class WeatherController extends ChangeNotifier {
-  WeatherController(this._source);
+/// Hava durumunu çeker ve güncel tutar:
+/// - açılışta bir kez, sonra [refreshEvery] aralıkla (Open-Meteo verisi ~15 dakikada bir değişir),
+/// - uygulama arka plandan dönünce (son denemeden [resumeAfter] geçtiyse),
+/// - başarısız denemede son değer korunur, ama [staleAfter]'dan eskiyse gösterilmez (eski veri yanıltmasın).
+class WeatherController extends ChangeNotifier with WidgetsBindingObserver {
+  WeatherController(
+    this._source, {
+    DateTime Function()? now,
+    this.refreshEvery = const Duration(minutes: 15),
+    this.staleAfter = const Duration(hours: 2),
+    this.resumeAfter = const Duration(minutes: 5),
+  }) : _now = now ?? DateTime.now;
+
   final WeatherSource _source;
+  final DateTime Function() _now;
+  final Duration refreshEvery;
+  final Duration staleAfter;
+  final Duration resumeAfter;
+
   Weather? _value;
+  DateTime? _fetchedAt;
+  DateTime? _lastAttempt;
   Timer? _timer;
   bool _disposed = false;
 
-  Weather? get value => _value;
+  /// Güncel hava; hiç alınamadıysa ya da son başarılı veri çok eskiyse null.
+  Weather? get value {
+    final w = _value;
+    final t = _fetchedAt;
+    if (w == null || t == null) return null;
+    return _now().difference(t) > staleAfter ? null : w;
+  }
 
   void start() {
     if (_timer != null) return;
-    unawaited(_refresh());
-    _timer = Timer.periodic(const Duration(minutes: 30), (_) => _refresh());
+    WidgetsBinding.instance.addObserver(this);
+    unawaited(refresh());
+    _timer = Timer.periodic(refreshEvery, (_) => refresh());
   }
 
-  Future<void> _refresh() async {
+  Future<void> refresh() async {
+    _lastAttempt = _now();
     final w = await _source.fetch();
-    if (_disposed || w == null) return;
-    _value = w;
-    notifyListeners();
+    if (_disposed) return;
+    if (w != null) {
+      _value = w;
+      _fetchedAt = _now();
+    }
+    notifyListeners(); // eski veri gizlenecekse de ekran yenilenir
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+    final last = _lastAttempt;
+    if (last == null || _now().difference(last) >= resumeAfter) {
+      unawaited(refresh());
+    }
   }
 
   @override
   void dispose() {
     _disposed = true;
     _timer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 }

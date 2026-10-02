@@ -212,5 +212,5 @@ Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildi
 - Not: Open-Meteo ücretsiz sürümü ticari olmayan kullanım içindir; uygulama ticari hale gelirse ücretli plan/anahtar gerekir. Namaz vakitleri hâlâ yok.
 
 ## Ana sayfa kayan haberler: otomatik başlık stili
-- Panel değişmedi. Uygulama başlığı fotoğraf üzerine slayt sırasına göre otomatik farklı stille yazar: beyaz büyük (alt), sarı büyük harfli (orta), sarı şerit (üst), siyah yuvarlak şerit (alt). Kesinti haberleri hep kırmızı şerit. Komşu iki slayt aynı stili almaz (`lib/data/hero_style.dart`).
+- Panel değişmedi. Uygulama başlığı fotoğraf üzerine slayt sırasına göre otomatik farklı renk/konumla yazar; iki ana biçim: gölgeli düz yazı ve siyah yuvarlak şerit. Sıra: beyaz altta → şerit beyaz altta → sarı altta → şerit sarı ortada → açık mavi altta. Kesinti haberleri şeritte kırmızı-turuncu yazı. Komşu iki slayt aynı stili almaz (`lib/data/hero_style.dart`).
 - Fotoğrafın üstüne renk katmanı yok; yazıya gölge/şerit var. Haber/Duyuru/Kesinti etiketi sol üstte.

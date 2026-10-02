@@ -3,9 +3,9 @@ import 'package:tavas/data/hero_style.dart';
 import 'package:tavas/data/models.dart';
 
 void main() {
-  test('kesinti haberi hep kırmızı şerit alır', () {
+  test('kesinti haberi hep uyarı rengindeki şeridi alır', () {
     for (var i = 0; i < 6; i++) {
-      expect(heroStyleFor(i, NewsKind.kesinti), HeroStyle.redBand);
+      expect(heroStyleFor(i, NewsKind.kesinti), HeroStyle.bandAlert);
     }
   });
 
@@ -20,7 +20,7 @@ void main() {
           isFalse,
           reason: '$i. ve ${i + 1}. slayt',
         );
-        expect(heroStyleFor(i, NewsKind.haber), isNot(HeroStyle.redBand));
+        expect(heroStyleFor(i, NewsKind.haber), isNot(HeroStyle.bandAlert));
       }
     },
   );

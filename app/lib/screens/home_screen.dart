@@ -348,115 +348,67 @@ class _Slide extends StatelessWidget {
     Shadow(color: Color(0x99000000), blurRadius: 3, offset: Offset(0, 1)),
   ];
 
-  Widget _title() {
-    switch (style) {
-      case HeroStyle.whiteBottom:
-        return Positioned(
-          left: 18,
-          right: 18,
-          bottom: 18,
-          child: Text(
-            item.title,
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 27,
-              fontWeight: FontWeight.w800,
-              height: 1.2,
-              color: Colors.white,
-              shadows: _shadow,
-            ),
+  /// Şeritsiz, gölgeli yazı (altta).
+  Widget _plain(Color color) => Positioned(
+    left: 18,
+    right: 18,
+    bottom: 18,
+    child: Text(
+      item.title,
+      maxLines: 3,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        fontSize: 27,
+        fontWeight: FontWeight.w800,
+        height: 1.2,
+        color: color,
+        shadows: _shadow,
+      ),
+    ),
+  );
+
+  /// Siyah yuvarlak şerit; [middle] ise dikey ortada, değilse altta.
+  Widget _band(Color color, {bool middle = false}) {
+    final box = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xD9000000),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        item.title,
+        maxLines: 3,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: 21,
+          fontWeight: FontWeight.w800,
+          height: 1.25,
+          color: color,
+        ),
+      ),
+    );
+    if (middle) {
+      return Positioned.fill(
+        child: Align(
+          alignment: Alignment.center,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: box,
           ),
-        );
-      case HeroStyle.yellowMiddle:
-        return Positioned.fill(
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18),
-              child: Text(
-                trUpper(item.title),
-                maxLines: 4,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.w900,
-                  height: 1.1,
-                  color: Color(0xFFFFD400),
-                  shadows: _shadow,
-                ),
-              ),
-            ),
-          ),
-        );
-      case HeroStyle.yellowBandTop:
-        return Positioned(
-          left: 0,
-          right: 0,
-          top: 56,
-          child: Container(
-            color: const Color(0xFFFFD400),
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-            child: Text(
-              item.title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-                height: 1.2,
-                color: Color(0xFF111111),
-              ),
-            ),
-          ),
-        );
-      case HeroStyle.blackBand:
-        return Positioned(
-          left: 14,
-          right: 14,
-          bottom: 16,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: const Color(0xD9000000),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(
-              item.title,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 21,
-                fontWeight: FontWeight.w800,
-                height: 1.25,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        );
-      case HeroStyle.redBand:
-        return Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: Container(
-            color: AppColors.lime,
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-            child: Text(
-              item.title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                height: 1.2,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        );
+        ),
+      );
     }
+    return Positioned(left: 14, right: 14, bottom: 16, child: box);
   }
+
+  Widget _title() => switch (style) {
+    HeroStyle.whiteBottom => _plain(Colors.white),
+    HeroStyle.yellowBottom => _plain(const Color(0xFFFFD84D)),
+    HeroStyle.cyanBottom => _plain(const Color(0xFF8FE3FF)),
+    HeroStyle.bandWhite => _band(Colors.white),
+    HeroStyle.bandYellow => _band(const Color(0xFFFFD84D), middle: true),
+    HeroStyle.bandAlert => _band(const Color(0xFFFF7A59)),
+  };
 
   @override
   Widget build(BuildContext context) {

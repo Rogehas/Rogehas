@@ -1,34 +1,39 @@
 import 'models.dart';
 
 /// Ana sayfadaki kayan haberlerde başlığın fotoğraf üzerindeki görünümü.
+/// İki ana biçim var: şeritsiz gölgeli yazı ve siyah yuvarlak şerit; çeşitlilik yazı renginden ve konumdan gelir.
 enum HeroStyle {
-  /// Beyaz büyük yazı, altta.
+  /// Beyaz yazı, altta.
   whiteBottom,
 
-  /// Sarı, büyük harfli yazı, ortada.
-  yellowMiddle,
+  /// Siyah yuvarlak şerit, beyaz yazı, altta.
+  bandWhite,
 
-  /// Üstte sarı şerit, siyah yazı.
-  yellowBandTop,
+  /// Sarı yazı, altta.
+  yellowBottom,
 
-  /// Altta siyah yuvarlak şerit, beyaz yazı.
-  blackBand,
+  /// Siyah yuvarlak şerit, sarı yazı, ortada.
+  bandYellow,
 
-  /// Altta tam genişlikte kırmızı şerit (kesinti haberleri).
-  redBand,
+  /// Açık mavi yazı, altta.
+  cyanBottom,
+
+  /// Siyah yuvarlak şerit, kırmızı-turuncu yazı, altta (kesinti uyarısı).
+  bandAlert,
 }
 
 const _rotation = [
   HeroStyle.whiteBottom,
-  HeroStyle.yellowMiddle,
-  HeroStyle.yellowBandTop,
-  HeroStyle.blackBand,
+  HeroStyle.bandWhite,
+  HeroStyle.yellowBottom,
+  HeroStyle.bandYellow,
+  HeroStyle.cyanBottom,
 ];
 
-/// Slaytın sırasına ve türüne göre stil seçer. Kesinti hep kırmızı şerittir;
+/// Slaytın sırasına ve türüne göre stil seçer. Kesinti hep uyarı rengindedir;
 /// diğerlerinde komşu iki slayt asla aynı stili almaz.
 HeroStyle heroStyleFor(int index, NewsKind kind) => kind == NewsKind.kesinti
-    ? HeroStyle.redBand
+    ? HeroStyle.bandAlert
     : _rotation[index % _rotation.length];
 
 /// Türkçe büyük harf (i → İ, ı → I).

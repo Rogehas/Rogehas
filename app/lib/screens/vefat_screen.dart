@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../data/content_logic.dart';
 import '../data/content_repository.dart';
 import '../data/links.dart';
-import '../notifications/notification_settings.dart';
 import '../data/models.dart';
 import '../theme/app_theme.dart';
 import '../data/vefat_filter.dart' show turkishDate;
@@ -26,21 +25,6 @@ class VefatScreen extends StatefulWidget {
 }
 
 class _VefatScreenState extends State<VefatScreen> {
-  Future<void> _toggleNotify(bool on) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final ok = await NotificationScope.of(context)
-        .setEnabled(NoticeTopics.vefat, on);
-    if (!ok && mounted) {
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Bildirim izni kapalı. Telefonun Ayarlar > Uygulamalar > Tavas > Bildirimler bölümünden izin ver.',
-          ),
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
@@ -69,16 +53,6 @@ class _VefatScreenState extends State<VefatScreen> {
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 14),
-          ListenableBuilder(
-            listenable: NotificationScope.of(context),
-            builder: (context, _) => _NotifyCard(
-              value: NotificationScope.of(context)
-                  .isEnabled(NoticeTopics.vefat),
-              problem: NotificationScope.of(context).problem,
-              onChanged: _toggleNotify,
-            ),
           ),
           const SizedBox(height: 12),
           DataStream<List<VefatItem>>(
@@ -114,75 +88,6 @@ class _VefatScreenState extends State<VefatScreen> {
                 ],
               );
             },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _NotifyCard extends StatelessWidget {
-  const _NotifyCard({
-    required this.value,
-    required this.onChanged,
-    this.problem,
-  });
-  final bool value;
-  final String? problem;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(14, 6, 10, 6),
-      decoration: BoxDecoration(
-        color: AppColors.darkSurface,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppColors.darkLine),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.notifications_none,
-            size: 20,
-            color: AppColors.darkAccent,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  value
-                      ? 'Vefat bildirimleri açık'
-                      : 'Vefat bildirimleri kapalı',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.darkText,
-                  ),
-                ),
-                if (problem != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Text(
-                      problem!,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        height: 1.3,
-                        color: Color(0xFFFFB4A1),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: AppColors.darkBg,
-            activeTrackColor: AppColors.darkAccent,
-            inactiveTrackColor: AppColors.darkSurface2,
           ),
         ],
       ),

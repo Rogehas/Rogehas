@@ -231,3 +231,6 @@ Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildi
 - Ekran davranışı aynı: son 100 mesaj gösterilir. Haber yorumları ve şikâyet/öneri kayıtları bu silmeden etkilenmez.
 - KVKK/gizlilik metninde: sohbet mesajları 30 gün saklanır, kullanıcı hesabını silince mesajları da silinir.
 - Şikâyet edilen mesajın kopyası (`chatReports`) kapatılana kadar durur; ayrı bir silme kuralı henüz yok.
+
+## Vefat sayfasında bildirim anahtarı kaldırıldı
+- Vefat bildirimi ayarı yalnızca zildeki pencerede ve Profil sekmesinde (dört konu anahtarı). Vefat sayfası sadece ilanları gösterir.

@@ -125,7 +125,9 @@ void main() {
     testWidgets('Vefat ve Haberler sekmeleri menüden açılır', (tester) async {
       await pumpApp(tester);
       await openVefat(tester);
-      expect(find.text('Vefat bildirimleri açık'), findsOneWidget);
+      expect(find.text('Ayşe Örnek'), findsOneWidget);
+      // Vefat sayfasında bildirim anahtarı yok; ayar zilde ve Profil'de.
+      expect(find.byType(Switch), findsNothing);
     });
   });
 
@@ -381,7 +383,7 @@ void main() {
         const NoticeMessage(topic: 'vefat', title: 'Vefat · X', body: ''),
       );
       await tester.pumpAndSettle();
-      expect(find.text('Vefat bildirimleri açık'), findsOneWidget);
+      expect(find.text('Ayşe Örnek'), findsOneWidget);
     });
 
     testWidgets('kesinti bildirimi haberleri kesintiye süzerek açar', (

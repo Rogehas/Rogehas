@@ -33,7 +33,8 @@ void main() {
     await tester.tap(find.bySemanticsLabel('Vefat'));
     await tester.pumpAndSettle();
     expect(find.text('Ayşe Örnek'), findsOneWidget);
-    expect(find.text('Vefat bildirimleri açık'), findsOneWidget);
+    // Bildirim anahtarı artık Vefat sayfasında değil, zilde ve Profil'de.
+    expect(find.byType(Switch), findsNothing);
 
     await tester.tap(find.bySemanticsLabel('Haberler'));
     await tester.pumpAndSettle();
@@ -66,35 +67,6 @@ void main() {
     expect(find.text('Ayşe Örnek'), findsNothing);
   });
 
-  testWidgets('vefat bildirim anahtarı tercihi değiştirir; izin yoksa uyarır', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(390 * 3, 844 * 3);
-    tester.view.devicePixelRatio = 3;
-    addTearDown(tester.view.reset);
-
-    final denied = InMemoryNoticeSettings(grantPermission: false);
-    await tester.pumpWidget(
-      TavasApp(repository: MockContentRepository(), notifications: denied),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.bySemanticsLabel('Vefat'));
-    await tester.pumpAndSettle();
-    expect(find.text('Vefat bildirimleri açık'), findsOneWidget);
-
-    // Kapat -> tercih değişir.
-    await tester.tap(find.byType(Switch));
-    await tester.pumpAndSettle();
-    expect(denied.isEnabled(NoticeTopics.vefat), isFalse);
-    expect(find.text('Vefat bildirimleri kapalı'), findsOneWidget);
-
-    // Tekrar aç -> izin reddedildiği için açılmaz ve uyarı çıkar.
-    await tester.tap(find.byType(Switch));
-    await tester.pumpAndSettle();
-    expect(denied.isEnabled(NoticeTopics.vefat), isFalse);
-    expect(find.textContaining('Bildirim izni kapalı'), findsOneWidget);
-  });
-
   testWidgets('uygulama açıkken gelen vefat bildirimi ekranda görünür', (
     tester,
   ) async {
@@ -121,7 +93,7 @@ void main() {
     expect(find.text('Gör'), findsOneWidget);
   });
 
-  testWidgets('bildirim kurulamadıysa neden vefat ekranında yazar', (
+  testWidgets('bildirim kurulamadıysa neden Profil sekmesinde yazar', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(390 * 3, 844 * 3);
@@ -137,7 +109,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.bySemanticsLabel('Vefat'));
+    await tester.tap(find.bySemanticsLabel('Profil'));
     await tester.pumpAndSettle();
     expect(find.text('Bildirim izni verilmedi.'), findsOneWidget);
   });

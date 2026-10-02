@@ -93,7 +93,7 @@ void main() {
         expect(find.text('VEFAT'), findsOneWidget);
         await tester.tap(find.text('Vefat: Ayşe Örnek'));
         await tester.pumpAndSettle();
-        expect(find.text('Vefat bildirimleri açık'), findsOneWidget);
+        expect(find.text('Ayşe Örnek'), findsOneWidget);
       },
     );
 

@@ -146,7 +146,8 @@ service cloud.firestore {
     // Uygulama, giriş yapan üyenin kaydını kendisi oluşturur (ad, e-posta, hesabın açıldığı an) ve adı güncel tutar.
     // Yönetici/moderatör okur. Üye hesabını silerken kaydını da siler.
     match /members/{uid} {
-      allow read: if canModerate();
+      allow get: if signedIn() && (request.auth.uid == uid || canModerate());
+      allow list: if canModerate();
       allow create: if signedIn() && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['name', 'email', 'createdAt'])
         && request.resource.data.name is string

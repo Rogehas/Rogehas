@@ -450,6 +450,8 @@ describe('üye kaydı', () => {
     await assertSucceeds(getDoc(doc(as('adm'), 'members/u2')));
     await assertSucceeds(getDoc(doc(as('mod'), 'members/u2')));
     await assertFails(getDoc(doc(as('u1'), 'members/u2')));
+    await assertSucceeds(getDoc(doc(as('u2'), 'members/u2'))); // kendi kaydı
+    await assertSucceeds(getDoc(doc(as('u1'), 'members/u1'))); // kendi (henüz olmayan) kaydı
     await assertFails(getDoc(doc(as('ed1'), 'members/u2')));
     await assertFails(getDoc(doc(as(null), 'members/u2')));
   });

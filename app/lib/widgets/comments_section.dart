@@ -19,7 +19,8 @@ class CommentsSection extends StatefulWidget {
 
 class _CommentsSectionState extends State<CommentsSection> {
   final _input = TextEditingController();
-  final _focus = FocusNode();
+  final _replyInput = TextEditingController();
+  final _replyKey = GlobalKey();
   Comment? _replyTo;
   Stream<List<Comment>>? _stream;
   CommentRepository? _repo;
@@ -39,7 +40,7 @@ class _CommentsSectionState extends State<CommentsSection> {
   @override
   void dispose() {
     _input.dispose();
-    _focus.dispose();
+    _replyInput.dispose();
     super.dispose();
   }
 
@@ -47,17 +48,19 @@ class _CommentsSectionState extends State<CommentsSection> {
     ..hideCurrentSnackBar()
     ..showSnackBar(SnackBar(content: Text(t)));
 
-  Future<void> _send(AuthUser user) async {
-    final problem = validateComment(_input.text);
+  /// [reply] verilirse yorum o yoruma yanıttır ve yanıt kutusundan okunur.
+  Future<void> _send(AuthUser user, {Comment? reply}) async {
+    final field = reply == null ? _input : _replyInput;
+    final problem = validateComment(field.text);
     if (problem != null) return _toast(problem);
     if (DateTime.now().difference(_lastSent) < commentCooldown) {
       return _toast('Çok hızlı yazıyorsun. Birkaç saniye bekle.');
     }
     setState(() => _sending = true);
     try {
-      await _repo!.send(user, widget.newsId, _input.text, replyTo: _replyTo);
+      await _repo!.send(user, widget.newsId, field.text, replyTo: reply);
       _lastSent = DateTime.now();
-      _input.clear();
+      field.clear();
       if (mounted) setState(() => _replyTo = null);
       if (mounted) FocusScope.of(context).unfocus();
     } on CommentFailure catch (e) {
@@ -67,7 +70,7 @@ class _CommentsSectionState extends State<CommentsSection> {
     }
   }
 
-  /// "Yanıtla": üye değilse giriş ekranı, üyeyse yazma alanı yanıt kipine geçer.
+  /// "Yanıtla": üye değilse giriş ekranı, üyeyse yorumun hemen altında yanıt kutusu açılır.
   void _startReply(Comment c, AuthUser? me) {
     if (me == null) {
       Navigator.of(context).push(
@@ -77,8 +80,18 @@ class _CommentsSectionState extends State<CommentsSection> {
       );
       return;
     }
+    if (_replyTo?.id != c.id) _replyInput.clear();
     setState(() => _replyTo = c);
-    _focus.requestFocus();
+    // Yanıt kutusu ekranın dışında kalmasın (liste uzunluğu oturduktan sonra kaydırılır).
+    Future<void>.delayed(const Duration(milliseconds: 150), () {
+      final box = _replyKey.currentContext;
+      if (!mounted || box == null || !box.mounted) return;
+      Scrollable.ensureVisible(
+        box,
+        duration: const Duration(milliseconds: 200),
+        alignment: 0.3,
+      );
+    });
   }
 
   Future<void> _more(Comment c, AuthUser? me) async {
@@ -139,6 +152,24 @@ class _CommentsSectionState extends State<CommentsSection> {
     }
   }
 
+  /// Yanıtlanan yorumun hemen altında açılan yazma kutusu.
+  Widget _replyBox(AuthUser me) {
+    final to = _replyTo!;
+    return Padding(
+      key: const Key('replyBox'),
+      padding: const EdgeInsets.only(left: 22, bottom: 10),
+      child: _Composer(
+        key: _replyKey,
+        controller: _replyInput,
+        hint: '${to.name} adlı kişiye yanıt yaz…',
+        sending: _sending,
+        autofocus: true,
+        onCancel: () => setState(() => _replyTo = null),
+        onSend: () => _send(me, reply: to),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = AuthScope.of(context);
@@ -160,9 +191,7 @@ class _CommentsSectionState extends State<CommentsSection> {
           else
             _Composer(
               controller: _input,
-              focus: _focus,
-              replyingTo: _replyTo?.name,
-              onCancelReply: () => setState(() => _replyTo = null),
+              hint: 'Yorumunu yaz…',
               sending: _sending,
               onSend: () => _send(me),
             ),
@@ -203,7 +232,9 @@ class _CommentsSectionState extends State<CommentsSection> {
                           onMore: () => _more(t.root, me),
                           onReply: () => _startReply(t.root, me),
                         ),
-                        for (final r in t.replies)
+                        if (me != null && _replyTo?.id == t.root.id)
+                          _replyBox(me),
+                        for (final r in t.replies) ...[
                           Padding(
                             padding: const EdgeInsets.only(left: 22),
                             child: _CommentTile(
@@ -212,6 +243,8 @@ class _CommentsSectionState extends State<CommentsSection> {
                               onReply: () => _startReply(r, me),
                             ),
                           ),
+                          if (me != null && _replyTo?.id == r.id) _replyBox(me),
+                        ],
                       ],
                     ],
                   );
@@ -271,21 +304,22 @@ class _SignInPrompt extends StatelessWidget {
 
 class _Composer extends StatelessWidget {
   const _Composer({
+    super.key,
     required this.controller,
-    required this.focus,
-    required this.replyingTo,
-    required this.onCancelReply,
+    required this.hint,
     required this.sending,
     required this.onSend,
+    this.onCancel,
+    this.autofocus = false,
   });
   final TextEditingController controller;
-  final FocusNode focus;
-
-  /// Yanıt verilen kişinin adı; yanıt kipinde değilse null.
-  final String? replyingTo;
-  final VoidCallback onCancelReply;
+  final String hint;
   final bool sending;
   final VoidCallback onSend;
+
+  /// Verilirse (yanıt kutusu) üstte "Vazgeç" düğmesi çıkar.
+  final VoidCallback? onCancel;
+  final bool autofocus;
 
   @override
   Widget build(BuildContext context) {
@@ -295,13 +329,13 @@ class _Composer extends StatelessWidget {
         Expanded(
           child: TextField(
             controller: controller,
-            focusNode: focus,
+            autofocus: autofocus,
             minLines: 1,
             maxLines: 4,
             maxLength: maxCommentLength,
             textCapitalization: TextCapitalization.sentences,
             decoration: InputDecoration(
-              hintText: 'Yorumunu yaz…',
+              hintText: hint,
               counterText: '',
               filled: true,
               fillColor: AppColors.surface,
@@ -335,8 +369,7 @@ class _Composer extends StatelessWidget {
         ),
       ],
     );
-    final who = replyingTo;
-    if (who == null) return row;
+    if (onCancel == null) return row;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -344,10 +377,10 @@ class _Composer extends StatelessWidget {
           padding: const EdgeInsets.only(left: 6, bottom: 6),
           child: Row(
             children: [
-              Expanded(
+              const Expanded(
                 child: Text(
-                  '$who adlı kişiye yanıt yazıyorsun',
-                  style: const TextStyle(
+                  'Yanıt yazıyorsun',
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                     color: AppColors.accentText,
@@ -358,7 +391,7 @@ class _Composer extends StatelessWidget {
                 button: true,
                 label: 'Yanıtı iptal et',
                 child: GestureDetector(
-                  onTap: onCancelReply,
+                  onTap: onCancel,
                   child: const Padding(
                     padding: EdgeInsets.all(4),
                     child: Icon(Icons.close, size: 18, color: AppColors.muted),

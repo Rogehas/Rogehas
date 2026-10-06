@@ -68,6 +68,16 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    final replyBox = find.byKey(const Key('replyBox'));
+    final replyField = find.descendant(
+      of: replyBox,
+      matching: find.byType(TextField),
+    );
+    final replySend = find.descendant(
+      of: replyBox,
+      matching: find.byIcon(Icons.send),
+    );
+
     const open = "Tavas'ta sonbahar etkinlik takvimi açıklandı";
 
     setUp(() {
@@ -159,15 +169,22 @@ void main() {
 
         await tester.tap(find.text('Yanıtla'));
         await tester.pumpAndSettle();
-        expect(find.text('Ayşe adlı kişiye yanıt yazıyorsun'), findsOneWidget);
-        await tester.enterText(find.byType(TextField), 'Ben de');
-        await tester.tap(find.byIcon(Icons.send));
+        // Yanıt kutusu yorumun hemen altında açılır.
+        expect(replyBox, findsOneWidget);
+        expect(find.text('Yanıt yazıyorsun'), findsOneWidget);
+        await tester.enterText(replyField, 'Ben de');
+        await tester.ensureVisible(replySend);
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(replySend);
+        await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
+        await tester.tap(replySend);
         await tester.pumpAndSettle();
 
         expect(find.text('Ben de'), findsOneWidget);
         expect(find.text('↪ Ayşe'), findsOneWidget);
         // Yanıt gönderilince yanıt kipi kapanır.
-        expect(find.textContaining('yanıt yazıyorsun'), findsNothing);
+        expect(replyBox, findsNothing);
       },
     );
 
@@ -183,9 +200,11 @@ void main() {
       // İki "Yanıtla" var: ana yorumunki ve Veli'ninki.
       await tester.tap(find.text('Yanıtla').last);
       await tester.pumpAndSettle();
-      expect(find.text('Veli adlı kişiye yanıt yazıyorsun'), findsOneWidget);
-      await tester.enterText(find.byType(TextField), 'Katılıyorum Veli');
-      await tester.tap(find.byIcon(Icons.send));
+      expect(replyBox, findsOneWidget);
+      await tester.enterText(replyField, 'Katılıyorum Veli');
+      await tester.ensureVisible(replySend);
+      await tester.pumpAndSettle();
+      await tester.tap(replySend);
       await tester.pumpAndSettle();
 
       final all = await comments.watch('n1').first;
@@ -200,9 +219,10 @@ void main() {
       await openNews(tester, open);
       await tester.tap(find.text('Yanıtla'));
       await tester.pumpAndSettle();
+      expect(replyBox, findsOneWidget);
       await tester.tap(find.byIcon(Icons.close));
       await tester.pumpAndSettle();
-      expect(find.textContaining('yanıt yazıyorsun'), findsNothing);
+      expect(replyBox, findsNothing);
     });
 
     testWidgets('üye değilken Yanıtla giriş ekranını açar', (tester) async {

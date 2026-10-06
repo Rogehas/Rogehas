@@ -62,7 +62,7 @@ export function Shell({ section, title, children, actions }: {
     <div className="layout">
       <aside className="side">
         <div className="brand">
-          <div className="logo">T</div>
+          <div className="logo"><img src="/logo.png" alt="" width={44} height={44} /></div>
           <div>
             <strong>Tavas Panel</strong>
             <div style={{ fontSize: 12, opacity: 0.75 }}>Yönetim paneli</div>

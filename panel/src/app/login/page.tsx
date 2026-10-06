@@ -45,7 +45,7 @@ export default function Login() {
   return (
     <div className="login">
       <div className="brand" style={{ color: 'var(--ink)' }}>
-        <div className="logo">T</div>
+        <div className="logo"><img src="/logo.png" alt="" width={44} height={44} /></div>
         <h1>Tavas Panel</h1>
       </div>
       <div className="card">

@@ -12,7 +12,7 @@ export function validateVefat(v: Vefat): string[] {
   const errors: string[] = [];
   if (!v.name.trim()) errors.push('Ad soyad gerekli.');
   if (v.age === null || v.age < 0 || v.age > 130) errors.push('Geçerli bir yaş girin.');
-  if (!v.neighborhood.trim()) errors.push('Mahalle gerekli.');
+  if (!v.neighborhood.trim()) errors.push('Bilgiler gerekli.');
   if (!v.prayerDate || !v.prayerTime) errors.push('Cenaze namazı tarihi ve saati gerekli.');
   if (!v.mosque.trim()) errors.push('Cami gerekli.');
   if (!v.burialPlace.trim()) errors.push('Defin yeri gerekli.');

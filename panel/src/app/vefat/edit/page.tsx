@@ -121,7 +121,7 @@ function VefatEditInner() {
             <div className="fields" style={{ flex: 1, minWidth: 260, alignContent: 'start' }}>
               <div className="field"><label htmlFor="name">Ad soyad</label><input id="name" value={v.name} onChange={(e) => set('name', e.target.value)} /></div>
               <div className="field"><label htmlFor="age">Yaş</label><input id="age" type="number" min={0} max={130} value={v.age ?? ''} onChange={(e) => set('age', e.target.value === '' ? null : Number(e.target.value))} /></div>
-              <div className="field"><label htmlFor="mah">Mahalle</label><input id="mah" value={v.neighborhood} onChange={(e) => set('neighborhood', e.target.value)} /></div>
+              <div className="field"><label htmlFor="mah">Bilgiler</label><input id="mah" value={v.neighborhood} onChange={(e) => set('neighborhood', e.target.value)} /></div>
             </div>
           </div>
 

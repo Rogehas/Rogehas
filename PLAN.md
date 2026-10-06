@@ -240,6 +240,6 @@ Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildi
 
 ## Uygulama ikonu ve açılış ekranı
 - İkon: kırmızı degradeli zemin, beyaz zeybek (Tavas efesi) figürü (kullanıcının tasarımı). Kaynaklar `app/assets/branding/` (icon, icon_bg, icon_fg, splash_figure). Android adaptif ikon + eski ikonlar `flutter_launcher_icons` ile, açılış ekranı (düz kırmızı zemin + figür) `flutter_native_splash` ile üretilir (komutlar `app/pubspec.yaml`'da yazılı).
-- Açılış ekranı: koyu zemin (#1A1A1A); Android 12+ için kırmızı daire içinde T, eski sürümlerde rozet.
+- Açılış ekranı: düz kırmızı zemin (#B00A1E) üzerinde ortada zeybek figürü (Android 12+ ve eski sürümlerde aynı görünüm).
 - Play Store ikonu: `store/play-store-icon-512.png` (512×512).
 - Henüz yok: mağaza ekran görüntüleri, öne çıkan görsel (1024×500), yükleme için gizli imza anahtarı.

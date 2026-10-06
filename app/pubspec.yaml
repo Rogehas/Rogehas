@@ -41,15 +41,13 @@ flutter_launcher_icons:
   adaptive_icon_foreground_inset: 0
 
 flutter_native_splash:
-  color: "#1A1A1A"
-  color_dark: "#1A1A1A"
-  image: assets/branding/splash_badge.png
+  color: "#B00A1E"
+  color_dark: "#B00A1E"
+  image: assets/branding/splash_figure.png
   android_12:
-    color: "#1A1A1A"
-    color_dark: "#1A1A1A"
+    color: "#B00A1E"
+    color_dark: "#B00A1E"
     image: assets/branding/icon_fg.png
-    icon_background_color: "#A8141F"
-    icon_background_color_dark: "#A8141F"
   android: true
   ios: false
   web: false

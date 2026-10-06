@@ -239,7 +239,7 @@ Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildi
 - Hava, açılışta, 15 dakikada bir ve uygulama arka plandan dönünce (son denemeden 5 dk geçtiyse) tazelenir. Tazeleme başarısız olursa son değer 2 saate kadar korunur, daha eskiyse hiç gösterilmez.
 
 ## Uygulama ikonu ve açılış ekranı
-- İkon: kırmızı degradeli zemin, beyaz "T", altta hafif dağ silüeti. Kaynaklar `app/assets/branding/` (icon, icon_bg, icon_fg, splash_badge). Android adaptif ikon + eski ikonlar `flutter_launcher_icons` ile, açılış ekranı `flutter_native_splash` ile üretilir (komutlar `app/pubspec.yaml`'da yazılı).
+- İkon: kırmızı degradeli zemin, beyaz zeybek (Tavas efesi) figürü (kullanıcının tasarımı). Kaynaklar `app/assets/branding/` (icon, icon_bg, icon_fg, splash_figure). Android adaptif ikon + eski ikonlar `flutter_launcher_icons` ile, açılış ekranı (düz kırmızı zemin + figür) `flutter_native_splash` ile üretilir (komutlar `app/pubspec.yaml`'da yazılı).
 - Açılış ekranı: koyu zemin (#1A1A1A); Android 12+ için kırmızı daire içinde T, eski sürümlerde rozet.
 - Play Store ikonu: `store/play-store-icon-512.png` (512×512).
 - Henüz yok: mağaza ekran görüntüleri, öne çıkan görsel (1024×500), yükleme için gizli imza anahtarı.

@@ -142,13 +142,34 @@ service cloud.firestore {
     }
 
 
+    // ---- üye kaydı (panelin "Üyeler" sayfası) ----
+    // Uygulama, giriş yapan üyenin kaydını kendisi oluşturur (ad, e-posta, hesabın açıldığı an) ve adı güncel tutar.
+    // Yönetici/moderatör okur. Üye hesabını silerken kaydını da siler.
+    match /members/{uid} {
+      allow read: if canModerate();
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['name', 'email', 'createdAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 40
+        && request.resource.data.email is string && request.resource.data.email.size() <= 120
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.createdAt <= request.time;
+      allow update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 40;
+      allow delete: if signedIn() && request.auth.uid == uid;
+    }
+
     // ---- genel sohbet: yalnızca giriş yapmış üyeler okur ve yazar ----
-    // Üye yalnızca kendi adına, en fazla 500 karakterlik mesaj yazar; susturulmuş üye yazamaz.
+    // Üye yalnızca kendi adına, en fazla 500 karakterlik mesaj yazar. Susturulmuş üyenin mesajı "gölge"
+    // (shadow == true) olmak zorundadır: yazan görür, uygulama başkalarına göstermez. Susturulmamış üye gölge yazamaz.
     // Üye kendi mesajını siler; yönetici/moderatör mesajı gizler (silmez) ve şikâyetleri yönetir.
     match /chat/{id} {
       allow read: if signedIn();
       allow create: if signedIn()
-        && request.resource.data.keys().hasOnly(['uid', 'name', 'text', 'createdAt', 'hidden'])
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'text', 'createdAt', 'hidden', 'shadow'])
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 40
@@ -156,7 +177,8 @@ service cloud.firestore {
         && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 500
         && request.resource.data.createdAt == request.time
         && request.resource.data.hidden == false
-        && !exists(/databases/$(database)/documents/mutes/$(request.auth.uid));
+        && request.resource.data.get('shadow', false)
+           == exists(/databases/$(database)/documents/mutes/$(request.auth.uid));
       allow update: if canModerate()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hidden']);
       allow delete: if (signedIn() && resource.data.uid == request.auth.uid) || canModerate();
@@ -220,7 +242,7 @@ service cloud.firestore {
       allow read: if resource.data.hidden == false || canModerate();
       allow create: if signedIn()
         && request.resource.data.keys().hasOnly(
-             ['newsId', 'uid', 'name', 'text', 'createdAt', 'hidden', 'parentId', 'replyToName'])
+             ['newsId', 'uid', 'name', 'text', 'createdAt', 'hidden', 'shadow', 'parentId', 'replyToName'])
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.newsId is string
         && request.resource.data.newsId.size() > 0 && request.resource.data.newsId.size() <= 100
@@ -230,7 +252,8 @@ service cloud.firestore {
         && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 300
         && request.resource.data.createdAt == request.time
         && request.resource.data.hidden == false
-        && !exists(/databases/$(database)/documents/mutes/$(request.auth.uid))
+        && request.resource.data.get('shadow', false)
+           == exists(/databases/$(database)/documents/mutes/$(request.auth.uid))
         && get(/databases/$(database)/documents/news/$(request.resource.data.newsId)).data.status == 'published'
         && get(/databases/$(database)/documents/news/$(request.resource.data.newsId)).data.get('commentsOpen', true) == true
         // Yanıt: tek seviye. Ana yorum aynı haberde, gizli değil ve kendisi bir yanıt olmamalı.

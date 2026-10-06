@@ -18,6 +18,7 @@ class Comment {
     required this.at,
     this.parentId,
     this.replyToName = '',
+    this.shadow = false,
   });
   final String id;
   final String uid;
@@ -30,6 +31,9 @@ class Comment {
 
   /// Yanıtın kime verildiği (görünen ad); ana yorumda boş.
   final String replyToName;
+
+  /// Susturulmuş üyenin yorumu: yalnızca yazanın kendisi görür (gölge susturma).
+  final bool shadow;
 
   bool get isReply => parentId != null;
 }
@@ -115,6 +119,7 @@ class FirestoreCommentRepository implements CommentRepository {
                 at: (d.data()['createdAt'] as Timestamp?)?.toDate(),
                 parentId: d.data()['parentId'] as String?,
                 replyToName: (d.data()['replyToName'] as String?) ?? '',
+                shadow: (d.data()['shadow'] as bool?) ?? false,
               ),
           ];
           final now = DateTime.now();
@@ -131,6 +136,8 @@ class FirestoreCommentRepository implements CommentRepository {
     Comment? replyTo,
   }) async {
     try {
+      // Susturulmuş üye farkına varmadan yazar; yorumu gölge olarak işaretlenir.
+      final shadow = await _isMuted(user.uid);
       await _db.collection('comments').add({
         'newsId': newsId,
         'uid': user.uid,
@@ -138,6 +145,7 @@ class FirestoreCommentRepository implements CommentRepository {
         'text': text.trim(),
         'createdAt': FieldValue.serverTimestamp(),
         'hidden': false,
+        'shadow': shadow,
         if (replyTo != null) ...{
           // Yanıtın yanıtı da ana yorumun altına bağlanır (tek seviye).
           'parentId': replyTo.parentId ?? replyTo.id,
@@ -147,12 +155,20 @@ class FirestoreCommentRepository implements CommentRepository {
     } on FirebaseException catch (e) {
       if (e.code == 'permission-denied') {
         throw const CommentFailure(
-          'Yorum gönderilemedi. Yorumlar kapatılmış ya da hesabın susturulmuş olabilir.',
+          'Yorum gönderilemedi. Yorumlar kapatılmış olabilir.',
         );
       }
       throw const CommentFailure(
         'Yorum gönderilemedi. İnternetini kontrol et.',
       );
+    }
+  }
+
+  Future<bool> _isMuted(String uid) async {
+    try {
+      return (await _db.collection('mutes').doc(uid).get()).exists;
+    } on FirebaseException {
+      return false;
     }
   }
 
@@ -191,6 +207,8 @@ class FirestoreCommentRepository implements CommentRepository {
 
 /// Denemeler ve testler için bellekte çalışan yorumlar.
 class InMemoryCommentRepository implements CommentRepository {
+  InMemoryCommentRepository({Set<String>? muted}) : _muted = muted ?? {};
+  final Set<String> _muted;
   final List<(String newsId, Comment c)> _all = [];
   final List<(String reporter, String commentId)> reports = [];
   final _changes = StreamController<void>.broadcast();
@@ -202,6 +220,7 @@ class InMemoryCommentRepository implements CommentRepository {
     String name,
     String text, {
     Comment? replyTo,
+    bool shadow = false,
   }) {
     _all.add((
       newsId,
@@ -213,6 +232,7 @@ class InMemoryCommentRepository implements CommentRepository {
         at: DateTime(2026, 10, 2, 10, 15),
         parentId: replyTo == null ? null : (replyTo.parentId ?? replyTo.id),
         replyToName: replyTo?.name ?? '',
+        shadow: shadow,
       ),
     ));
     _changes.add(null);
@@ -237,7 +257,14 @@ class InMemoryCommentRepository implements CommentRepository {
     String text, {
     Comment? replyTo,
   }) async {
-    seed(newsId, user.uid, user.name, text.trim(), replyTo: replyTo);
+    seed(
+      newsId,
+      user.uid,
+      user.name,
+      text.trim(),
+      replyTo: replyTo,
+      shadow: _muted.contains(user.uid),
+    );
   }
 
   @override

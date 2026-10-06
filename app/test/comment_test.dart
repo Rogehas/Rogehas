@@ -72,8 +72,8 @@ void main() {
 
     setUp(() {
       auth = InMemoryAuthService();
-      comments = InMemoryCommentRepository();
       chat = InMemoryChatRepository();
+      comments = InMemoryCommentRepository(muted: chat.muted);
       blocks = BlockList.memory();
     });
 
@@ -214,12 +214,19 @@ void main() {
       expect(find.byType(TextField), findsWidgets); // e-posta ve şifre alanları
     });
 
-    testWidgets('susturulan üye yorum yazamaz', (tester) async {
+    testWidgets('susturulan üyenin yorumunu yalnızca kendisi görür', (
+      tester,
+    ) async {
       await auth.signUp(name: 'Mehmet', email: 'm@o.com', password: 'sifre123');
       chat.setMuted(auth.user!.uid, true);
       await openNews(tester, open);
-      expect(find.textContaining('susturuldu'), findsOneWidget);
-      expect(find.byType(TextField), findsNothing);
+      await tester.enterText(find.byType(TextField), 'gizli yorum');
+      await tester.tap(find.bySemanticsLabel('Yorumu gönder'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('susturuldu'), findsNothing);
+      expect(find.text('gizli yorum'), findsOneWidget);
+      final all = await comments.watch('n1').first;
+      expect(all.single.shadow, isTrue);
     });
 
     testWidgets(

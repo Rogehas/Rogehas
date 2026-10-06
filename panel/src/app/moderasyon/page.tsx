@@ -45,7 +45,7 @@ export default function Moderation() {
 
   const isMuted = (uid: string) => mutes.some((m) => m.uid === uid);
   const mute = (uid: string, name: string) =>
-    act(() => store.mute(uid, name, user!.id), `${name} susturuldu; artık mesaj yazamaz.`);
+    act(() => store.mute(uid, name, user!.id), `${name} susturuldu. Yazdıklarını kendisi görür, başkaları görmez.`);
   const open = reports.filter((r) => !r.handled);
 
   return (
@@ -97,7 +97,7 @@ export default function Moderation() {
         {comments.map((c) => (
           <div className="row" key={c.id} style={c.hidden ? { opacity: 0.55 } : undefined}>
             <div className="grow">
-              <strong>{c.name}</strong> <span className="muted">· {when(c.createdAt)}{c.parentId ? ` · ${c.replyToName ?? ''} kişisine yanıt` : ''}{c.hidden ? ' · gizli' : ''}</span>
+              <strong>{c.name}</strong> <span className="muted">· {when(c.createdAt)}{c.shadow ? ' · gölge (yalnız yazan görür)' : ''}{c.parentId ? ` · ${c.replyToName ?? ''} kişisine yanıt` : ''}{c.hidden ? ' · gizli' : ''}</span>
               <div>{c.text}</div>
             </div>
             <div className="actions">
@@ -117,7 +117,7 @@ export default function Moderation() {
         {messages.map((m) => (
           <div className="row" key={m.id} style={m.hidden ? { opacity: 0.55 } : undefined}>
             <div className="grow">
-              <strong>{m.name}</strong> <span className="muted">· {when(m.createdAt)}{m.hidden ? ' · gizli' : ''}</span>
+              <strong>{m.name}</strong> <span className="muted">· {when(m.createdAt)}{m.shadow ? ' · gölge (yalnız yazan görür)' : ''}{m.hidden ? ' · gizli' : ''}</span>
               <div>{m.text}</div>
             </div>
             <div className="actions">

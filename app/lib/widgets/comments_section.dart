@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../auth/auth_service.dart';
-import '../chat/chat_logic.dart' show messageTime;
+import '../chat/chat_logic.dart' show messageTime, visibleTo;
 import '../chat/chat_repository.dart';
 import '../comments/comment_repository.dart';
 import '../screens/auth_screen.dart';
@@ -165,7 +165,6 @@ class _CommentsSectionState extends State<CommentsSection> {
               onCancelReply: () => setState(() => _replyTo = null),
               sending: _sending,
               onSend: () => _send(me),
-              muted: ChatScope.of(context).repository.watchMuted(me.uid),
             ),
           const SizedBox(height: 12),
           StreamBuilder<List<Comment>>(
@@ -186,7 +185,9 @@ class _CommentsSectionState extends State<CommentsSection> {
                 builder: (context, _) {
                   final items = [
                     for (final c in all)
-                      if (!blocks.isBlocked(c.uid)) c,
+                      if (!blocks.isBlocked(c.uid) &&
+                          visibleTo(me?.uid, shadow: c.shadow, uid: c.uid))
+                        c,
                   ];
                   if (items.isEmpty) {
                     return const Text(
@@ -276,7 +277,6 @@ class _Composer extends StatelessWidget {
     required this.onCancelReply,
     required this.sending,
     required this.onSend,
-    required this.muted,
   });
   final TextEditingController controller;
   final FocusNode focus;
@@ -286,115 +286,90 @@ class _Composer extends StatelessWidget {
   final VoidCallback onCancelReply;
   final bool sending;
   final VoidCallback onSend;
-  final Stream<bool> muted;
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<bool>(
-      stream: muted,
-      initialData: false,
-      builder: (context, snap) {
-        if (snap.data ?? false) {
-          return Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: AppColors.claySoft,
-              borderRadius: BorderRadius.circular(20),
+    final row = Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Expanded(
+          child: TextField(
+            controller: controller,
+            focusNode: focus,
+            minLines: 1,
+            maxLines: 4,
+            maxLength: maxCommentLength,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: InputDecoration(
+              hintText: 'Yorumunu yaz…',
+              counterText: '',
+              filled: true,
+              fillColor: AppColors.surface,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 18,
+                vertical: 12,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(26),
+                borderSide: BorderSide.none,
+              ),
             ),
-            child: const Text(
-              'Hesabın yönetici tarafından susturuldu. Şu an yorum yazamazsın.',
-              style: TextStyle(fontWeight: FontWeight.w700),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Semantics(
+          button: true,
+          label: 'Yorumu gönder',
+          child: GestureDetector(
+            onTap: sending ? null : onSend,
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.send, color: Colors.white, size: 20),
             ),
-          );
-        }
-        final row = Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Expanded(
-              child: TextField(
-                controller: controller,
-                focusNode: focus,
-                minLines: 1,
-                maxLines: 4,
-                maxLength: maxCommentLength,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: InputDecoration(
-                  hintText: 'Yorumunu yaz…',
-                  counterText: '',
-                  filled: true,
-                  fillColor: AppColors.surface,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 12,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(26),
-                    borderSide: BorderSide.none,
+          ),
+        ),
+      ],
+    );
+    final who = replyingTo;
+    if (who == null) return row;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 6, bottom: 6),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '$who adlı kişiye yanıt yazıyorsun',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.accentText,
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Semantics(
-              button: true,
-              label: 'Yorumu gönder',
-              child: GestureDetector(
-                onTap: sending ? null : onSend,
-                child: Container(
-                  width: 48,
-                  height: 48,
-                  decoration: const BoxDecoration(
-                    color: AppColors.primary,
-                    shape: BoxShape.circle,
+              Semantics(
+                button: true,
+                label: 'Yanıtı iptal et',
+                child: GestureDetector(
+                  onTap: onCancelReply,
+                  child: const Padding(
+                    padding: EdgeInsets.all(4),
+                    child: Icon(Icons.close, size: 18, color: AppColors.muted),
                   ),
-                  child: const Icon(Icons.send, color: Colors.white, size: 20),
                 ),
               ),
-            ),
-          ],
-        );
-        final who = replyingTo;
-        if (who == null) return row;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 6, bottom: 6),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      '$who adlı kişiye yanıt yazıyorsun',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.accentText,
-                      ),
-                    ),
-                  ),
-                  Semantics(
-                    button: true,
-                    label: 'Yanıtı iptal et',
-                    child: GestureDetector(
-                      onTap: onCancelReply,
-                      child: const Padding(
-                        padding: EdgeInsets.all(4),
-                        child: Icon(
-                          Icons.close,
-                          size: 18,
-                          color: AppColors.muted,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            row,
-          ],
-        );
-      },
+            ],
+          ),
+        ),
+        row,
+      ],
     );
   }
 }

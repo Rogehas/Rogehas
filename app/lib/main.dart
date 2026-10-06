@@ -9,6 +9,7 @@ import 'complaints/complaint_repository.dart';
 import 'data/content_repository.dart';
 import 'data/mock_data.dart';
 import 'firebase_options.dart';
+import 'members/member_registry.dart';
 import 'notifications/firebase_notification_settings.dart';
 import 'notifications/notification_settings.dart';
 import 'screens/shell.dart';
@@ -31,6 +32,7 @@ Future<void> main() async {
       comments: s.comments,
       weather: s.weather,
       blocks: s.blocks,
+      members: s.members,
     ),
   );
 }
@@ -44,6 +46,7 @@ typedef _Services = ({
   CommentRepository comments,
   WeatherSource weather,
   BlockList blocks,
+  MemberRegistry members,
 });
 
 Future<_Services> _bootstrap() async {
@@ -60,6 +63,7 @@ Future<_Services> _bootstrap() async {
         const Weather(tempC: 21, code: 1, isDay: true),
       ),
       blocks: blocks,
+      members: InMemoryMemberRegistry(),
     );
   }
   try {
@@ -78,6 +82,7 @@ Future<_Services> _bootstrap() async {
       comments: FirestoreCommentRepository(),
       weather: OpenMeteoWeatherSource(),
       blocks: blocks,
+      members: FirestoreMemberRegistry(),
     );
   } catch (e) {
     // Sahte veri göstermek yerine ekranlarda "yüklenemedi" mesajı çıkar.
@@ -90,6 +95,7 @@ Future<_Services> _bootstrap() async {
       comments: InMemoryCommentRepository(),
       weather: NoWeatherSource(),
       blocks: blocks,
+      members: InMemoryMemberRegistry(),
     );
   }
 }
@@ -105,6 +111,7 @@ class TavasApp extends StatefulWidget {
     this.comments,
     this.weather,
     this.blocks,
+    this.members,
   });
   final ContentRepository repository;
   final NoticeSettings notifications;
@@ -118,6 +125,7 @@ class TavasApp extends StatefulWidget {
   /// Verilmezse hava durumu gösterilmez (testler).
   final WeatherSource? weather;
   final BlockList? blocks;
+  final MemberRegistry? members;
 
   @override
   State<TavasApp> createState() => _TavasAppState();
@@ -135,6 +143,8 @@ class _TavasAppState extends State<TavasApp> {
     widget.weather ?? NoWeatherSource(),
   )..start();
   late final BlockList _blocks = widget.blocks ?? BlockList.memory();
+  late final MemberRegistry _members =
+      widget.members ?? InMemoryMemberRegistry();
 
   @override
   void dispose() {
@@ -153,21 +163,25 @@ class _TavasAppState extends State<TavasApp> {
         settings: widget.notifications,
         child: AuthScope(
           service: _auth,
-          child: WeatherScope(
-            controller: _weather,
-            child: CommentScope(
-              repository: _comments,
-              child: ComplaintScope(
-                repository: _complaints,
-                child: ChatScope(
-                  repository: _chat,
-                  blocks: _blocks,
-                  child: MaterialApp(
-                    title: 'Tavas',
-                    debugShowCheckedModeBanner: false,
-                    theme: AppTheme.dark,
-                    // Uygulama doğrudan ana sayfada açılır; giriş yalnızca sohbet için gerekir.
-                    home: const Shell(),
+          child: MemberSync(
+            registry: _members,
+            auth: _auth,
+            child: WeatherScope(
+              controller: _weather,
+              child: CommentScope(
+                repository: _comments,
+                child: ComplaintScope(
+                  repository: _complaints,
+                  child: ChatScope(
+                    repository: _chat,
+                    blocks: _blocks,
+                    child: MaterialApp(
+                      title: 'Tavas',
+                      debugShowCheckedModeBanner: false,
+                      theme: AppTheme.dark,
+                      // Uygulama doğrudan ana sayfada açılır; giriş yalnızca sohbet için gerekir.
+                      home: const Shell(),
+                    ),
                   ),
                 ),
               ),

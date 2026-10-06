@@ -4,10 +4,18 @@ import 'package:flutter/widgets.dart';
 
 /// Giriş yapmış üye.
 class AuthUser {
-  const AuthUser({required this.uid, required this.name, required this.email});
+  const AuthUser({
+    required this.uid,
+    required this.name,
+    required this.email,
+    this.createdAt,
+  });
   final String uid;
   final String name;
   final String email;
+
+  /// Hesabın açıldığı an (biliniyorsa).
+  final DateTime? createdAt;
 }
 
 /// Kullanıcıya gösterilebilir Türkçe hata.

@@ -13,6 +13,7 @@ class ChatMessage {
     required this.name,
     required this.text,
     required this.at,
+    this.shadow = false,
   });
   final String id;
   final String uid;
@@ -21,6 +22,9 @@ class ChatMessage {
 
   /// Sunucu saati; yeni gönderilen mesajda birkaç an boş olabilir.
   final DateTime? at;
+
+  /// Susturulmuş üyenin mesajı: yalnızca yazanın kendisi görür (gölge susturma).
+  final bool shadow;
 }
 
 /// Sohbetin sunucu tarafı. Uygulama yalnızca bu arayüze bağlıdır.
@@ -33,11 +37,8 @@ abstract class ChatRepository {
   /// Bir mesajı yöneticilere bildirir. Aynı kişi aynı mesajı bir kez bildirebilir.
   Future<void> report(AuthUser reporter, ChatMessage m, String reason);
 
-  /// Hesap silinirken kişinin tüm mesajlarını kaldırır.
+  /// Hesap silinirken kişinin tüm mesajlarını ve üye kaydını kaldırır.
   Future<void> deleteAllOf(String uid);
-
-  /// Yönetici bu kişiyi susturduysa true olur.
-  Stream<bool> watchMuted(String uid);
 }
 
 class ChatFailure implements Exception {
@@ -69,6 +70,7 @@ class FirestoreChatRepository implements ChatRepository {
                   name: (d.data()['name'] as String?) ?? 'Üye',
                   text: (d.data()['text'] as String?) ?? '',
                   at: (d.data()['createdAt'] as Timestamp?)?.toDate(),
+                  shadow: (d.data()['shadow'] as bool?) ?? false,
                 ),
           ],
         );
@@ -77,18 +79,19 @@ class FirestoreChatRepository implements ChatRepository {
   @override
   Future<void> send(AuthUser user, String text) async {
     try {
+      // Susturulmuş üye farkına varmadan yazar; mesajı gölge olarak işaretlenir.
+      final shadow = await _isMuted(user.uid);
       await _db.collection('chat').add({
         'uid': user.uid,
         'name': user.name,
         'text': text.trim(),
         'createdAt': FieldValue.serverTimestamp(),
         'hidden': false,
+        'shadow': shadow,
       });
     } on FirebaseException catch (e) {
       if (e.code == 'permission-denied') {
-        throw const ChatFailure(
-          'Mesaj gönderilemedi. Hesabın susturulmuş olabilir.',
-        );
+        throw const ChatFailure('Mesaj gönderilemedi. Tekrar dene.');
       }
       throw const ChatFailure('Mesaj gönderilemedi. İnternetini kontrol et.');
     }
@@ -126,6 +129,7 @@ class FirestoreChatRepository implements ChatRepository {
 
   @override
   Future<void> deleteAllOf(String uid) async {
+    await _db.collection('members').doc(uid).delete().catchError((_) {});
     final s = await _db.collection('chat').where('uid', isEqualTo: uid).get();
     for (var i = 0; i < s.docs.length; i += 400) {
       final batch = _db.batch();
@@ -136,13 +140,13 @@ class FirestoreChatRepository implements ChatRepository {
     }
   }
 
-  @override
-  Stream<bool> watchMuted(String uid) => _db
-      .collection('mutes')
-      .doc(uid)
-      .snapshots()
-      .map((s) => s.exists)
-      .handleError((_) {});
+  Future<bool> _isMuted(String uid) async {
+    try {
+      return (await _db.collection('mutes').doc(uid).get()).exists;
+    } on FirebaseException {
+      return false;
+    }
+  }
 }
 
 /// Denemeler ve testler için bellekte çalışan sohbet.
@@ -151,7 +155,6 @@ class InMemoryChatRepository implements ChatRepository {
   final List<({String reporter, String messageId, String reason})> reports = [];
   final Set<String> muted = {};
   final _messages = StreamController<List<ChatMessage>>.broadcast();
-  final _mutes = StreamController<void>.broadcast();
   int _n = 0;
 
   void _emit() => _messages.add(_snapshot());
@@ -179,11 +182,6 @@ class InMemoryChatRepository implements ChatRepository {
 
   @override
   Future<void> send(AuthUser user, String text) async {
-    if (muted.contains(user.uid)) {
-      throw const ChatFailure(
-        'Mesaj gönderilemedi. Hesabın susturulmuş olabilir.',
-      );
-    }
     _all.add(
       ChatMessage(
         id: 'm${++_n}',
@@ -191,6 +189,7 @@ class InMemoryChatRepository implements ChatRepository {
         name: user.name,
         text: text.trim(),
         at: DateTime(2026, 9, 30, 14, 6),
+        shadow: muted.contains(user.uid),
       ),
     );
     _emit();
@@ -216,17 +215,8 @@ class InMemoryChatRepository implements ChatRepository {
     _emit();
   }
 
-  @override
-  Stream<bool> watchMuted(String uid) async* {
-    yield muted.contains(uid);
-    await for (final _ in _mutes.stream) {
-      yield muted.contains(uid);
-    }
-  }
-
   void setMuted(String uid, bool on) {
     on ? muted.add(uid) : muted.remove(uid);
-    _mutes.add(null);
   }
 }
 

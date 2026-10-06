@@ -256,15 +256,24 @@ void main() {
       expect(find.text('silinecek mesaj'), findsNothing);
     });
 
-    testWidgets('susturulan üye yazamaz, uyarı görür', (tester) async {
-      await pumpApp(tester);
-      await signUp(tester);
-      expect(find.byType(TextField), findsOneWidget);
-      chat.setMuted(auth.user!.uid, true);
-      await tester.pumpAndSettle();
-      expect(find.textContaining('susturuldu'), findsOneWidget);
-      expect(find.byType(TextField), findsNothing);
-    });
+    testWidgets(
+      'susturulan üye yazdığını görür, uyarı çıkmaz; başkası görmez',
+      (tester) async {
+        await pumpApp(tester);
+        await signUp(tester);
+        chat.setMuted(auth.user!.uid, true);
+        await send(tester, 'gölge mesaj');
+        expect(find.textContaining('susturuldu'), findsNothing);
+        expect(find.text('gölge mesaj'), findsOneWidget);
+        // Başka bir üyenin gözünden mesaj listede yok.
+        final all = await chat.watchMessages().first;
+        expect(all.single.shadow, isTrue);
+        expect(
+          visibleTo('baska', shadow: all.single.shadow, uid: all.single.uid),
+          isFalse,
+        );
+      },
+    );
 
     testWidgets(
       'çıkış yapınca sohbet kapanır; yanlış şifre uyarır, doğrusu girer',

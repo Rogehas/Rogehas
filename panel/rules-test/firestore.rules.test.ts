@@ -234,8 +234,12 @@ describe('genel sohbet', () => {
     await assertFails(setDoc(doc(as('u1'), 'chat/f'), msg('u1', { extra: 1 })));
   });
 
-  it('susturulan üye yazamaz', async () => {
+  it('susturulan üye yalnızca gölge mesaj yazar; susturulmamış üye gölge yazamaz', async () => {
     await assertFails(setDoc(doc(as('u3'), 'chat/x'), msg('u3')));
+    await assertFails(setDoc(doc(as('u3'), 'chat/x'), msg('u3', { shadow: false })));
+    await assertSucceeds(setDoc(doc(as('u3'), 'chat/x'), msg('u3', { shadow: true })));
+    await assertFails(setDoc(doc(as('u1'), 'chat/y'), msg('u1', { shadow: true })));
+    await assertSucceeds(setDoc(doc(as('u1'), 'chat/z'), msg('u1', { shadow: false })));
   });
 
   it('üye yalnızca kendi mesajını siler; başkasınınkini düzenleyemez', async () => {
@@ -370,8 +374,10 @@ describe('haber yorumları', () => {
     await assertFails(setDoc(doc(as('u1'), 'comments/f'), comment('u1', { extra: 1 })));
   });
 
-  it('susturulan üye yorum yazamaz', async () => {
+  it('susturulan üye yalnızca gölge yorum yazar; susturulmamış üye gölge yazamaz', async () => {
     await assertFails(setDoc(doc(as('u3'), 'comments/x'), comment('u3')));
+    await assertSucceeds(setDoc(doc(as('u3'), 'comments/x'), comment('u3', { shadow: true })));
+    await assertFails(setDoc(doc(as('u1'), 'comments/y'), comment('u1', { shadow: true })));
   });
 
   it('üye kendi yorumunu siler, başkasınınkini silemez veya düzenleyemez', async () => {
@@ -410,5 +416,41 @@ describe('haber yorumları', () => {
       messageId: 'c1', messageUid: 'u2', messageName: 'Veli', text: 'selam', reporterUid: 'u1', reason: 'uygunsuz',
       handled: false, source: 'comment', newsId: 'pub', createdAt: serverTimestamp(),
     }));
+  });
+});
+
+describe('üye kaydı', () => {
+  const member = (over = {}) => ({ name: 'Ali', email: 'ali@x.com', createdAt: new Date('2026-09-01'), ...over });
+  const asU = (uid: string) => env.authenticatedContext(uid, { email: 'ali@x.com' }).firestore();
+
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'members/u2'), member({ name: 'Veli', email: 'veli@x.com' }));
+    });
+  });
+
+  it('üye kendi kaydını oluşturur; başkası adına, yanlış e-postayla veya fazla alanla oluşturamaz', async () => {
+    await assertSucceeds(setDoc(doc(asU('u1'), 'members/u1'), member()));
+    await assertFails(setDoc(doc(asU('u1'), 'members/u9'), member()));
+    await assertFails(setDoc(doc(asU('u1'), 'members/u1'), member({ email: 'baska@x.com' })));
+    await assertFails(setDoc(doc(asU('u1'), 'members/u1'), member({ role: 'admin' })));
+    await assertFails(setDoc(doc(asU('u1'), 'members/u1'), member({ createdAt: new Date('2099-01-01') })));
+    await assertFails(setDoc(doc(as(null), 'members/u1'), member()));
+  });
+
+  it('üye yalnızca kendi adını günceller, kaydını siler; başkasınınkine dokunamaz', async () => {
+    await assertSucceeds(updateDoc(doc(as('u2'), 'members/u2'), { name: 'Yeni Ad' }));
+    await assertFails(updateDoc(doc(as('u2'), 'members/u2'), { email: 'x@y.com' }));
+    await assertFails(updateDoc(doc(as('u1'), 'members/u2'), { name: 'Hack' }));
+    await assertFails(deleteDoc(doc(as('u1'), 'members/u2')));
+    await assertSucceeds(deleteDoc(doc(as('u2'), 'members/u2')));
+  });
+
+  it('yönetici ve moderatör üyeleri okur; üye ve editör okuyamaz', async () => {
+    await assertSucceeds(getDoc(doc(as('adm'), 'members/u2')));
+    await assertSucceeds(getDoc(doc(as('mod'), 'members/u2')));
+    await assertFails(getDoc(doc(as('u1'), 'members/u2')));
+    await assertFails(getDoc(doc(as('ed1'), 'members/u2')));
+    await assertFails(getDoc(doc(as(null), 'members/u2')));
   });
 });

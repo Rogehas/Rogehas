@@ -165,6 +165,8 @@ export interface ChatMsg {
   name: string;
   text: string;
   hidden: boolean;
+  /** Susturulmuş üyenin gölge mesajı: yalnızca yazanın kendisi görür. */
+  shadow?: boolean;
   createdAt: string;
 }
 
@@ -178,6 +180,14 @@ export interface ChatReport {
   handled: boolean;
   /** 'comment': haber yorumu şikâyeti; yoksa sohbet mesajı. */
   source?: 'comment';
+  createdAt: string;
+}
+
+export interface Member {
+  uid: string;
+  name: string;
+  email: string;
+  /** Hesabın açıldığı an (ISO). */
   createdAt: string;
 }
 
@@ -216,6 +226,7 @@ export interface CommentItem {
   name: string;
   text: string;
   hidden: boolean;
+  shadow?: boolean;
   /** Yanıtsa ana yorumun kimliği. */
   parentId?: string;
   /** Yanıtın kime verildiği. */

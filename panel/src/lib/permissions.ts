@@ -10,12 +10,13 @@ export type Section =
   | 'rehber'
   | 'sikayet'
   | 'chat'
+  | 'uye'
   | 'kullanici';
 
 const SECTIONS: Record<Role, Section[]> = {
-  admin: ['vefat', 'haber', 'duyuru', 'etkinlik', 'eczane', 'esnaf', 'rehber', 'sikayet', 'chat', 'kullanici'],
+  admin: ['vefat', 'haber', 'duyuru', 'etkinlik', 'eczane', 'esnaf', 'rehber', 'sikayet', 'chat', 'uye', 'kullanici'],
   editor: ['vefat', 'haber', 'duyuru', 'etkinlik', 'eczane', 'esnaf', 'rehber'],
-  moderator: ['sikayet', 'chat'],
+  moderator: ['sikayet', 'chat', 'uye'],
 };
 
 export const canAccess = (role: Role, section: Section) => SECTIONS[role].includes(section);

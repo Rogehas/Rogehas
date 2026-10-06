@@ -27,6 +27,7 @@ class FirebaseAuthService extends AuthService {
       uid: u.uid,
       name: name.isNotEmpty ? name : email.split('@').first,
       email: email,
+      createdAt: u.metadata.creationTime,
     );
   }
 

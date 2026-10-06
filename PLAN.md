@@ -243,3 +243,9 @@ Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildi
 - Açılış ekranı: düz kırmızı zemin (#B00A1E) üzerinde ortada zeybek figürü (Android 12+ ve eski sürümlerde aynı görünüm).
 - Play Store ikonu: `store/play-store-icon-512.png` (512×512).
 - Henüz yok: mağaza ekran görüntüleri, öne çıkan görsel (1024×500), yükleme için gizli imza anahtarı.
+
+## Üyeler sayfası ve gölge susturma
+- Uygulama, giriş yapan üyeyi `members/{uid}` (ad, e-posta, hesabın açıldığı an) olarak kaydeder (`app/lib/members/member_registry.dart`; açılışta ve girişte, eski üyeler de ilk açılışta eklenir). Hesap silinince kayıt da silinir.
+- Panel → **Üyeler** (yönetici + moderatör): toplam üye, ad/e-posta araması, Sustur / Susturmayı kaldır.
+- **Gölge susturma:** susturulan üye sohbet ve yorumda yazmaya devam eder, uyarı görmez; kayıtlara `shadow: true` yazılır, uygulama bunu yalnızca yazanın kendisine gösterir. Kurallar `shadow` değerinin susturma durumuyla eşleşmesini şart koşar. Not: filtre uygulamada yapıldığından teknik bilgisi olan biri API'den okuyabilir; sıradan kullanıcı görmez.
+- Yayına alırken: `firestore:rules` yayınlanmalı (yeni `members` + `shadow` kuralları), panel yayınlanmalı, APK güncellenmeli. Eski APK'daki susturulmuş üye yazarken hata görür (kural gölge ister).

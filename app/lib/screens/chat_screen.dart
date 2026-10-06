@@ -138,7 +138,6 @@ class _ChatRoom extends StatefulWidget {
 class _ChatRoomState extends State<_ChatRoom> {
   final _input = TextEditingController();
   Stream<List<ChatMessage>>? _messages;
-  Stream<bool>? _muted;
   ChatRepository? _repo;
   bool _sending = false;
   DateTime _lastSent = DateTime.fromMillisecondsSinceEpoch(0);
@@ -150,7 +149,6 @@ class _ChatRoomState extends State<_ChatRoom> {
     if (_repo != repo) {
       _repo = repo;
       _messages = repo.watchMessages();
-      _muted = repo.watchMuted(widget.user.uid);
     }
   }
 
@@ -297,7 +295,13 @@ class _ChatRoomState extends State<_ChatRoom> {
                 builder: (context, _) {
                   final items = [
                     for (final m in snap.data!)
-                      if (!blocks.isBlocked(m.uid)) m,
+                      if (!blocks.isBlocked(m.uid) &&
+                          visibleTo(
+                            widget.user.uid,
+                            shadow: m.shadow,
+                            uid: m.uid,
+                          ))
+                        m,
                   ];
                   if (items.isEmpty) {
                     return const Center(
@@ -326,75 +330,56 @@ class _ChatRoomState extends State<_ChatRoom> {
             },
           ),
         ),
-        StreamBuilder<bool>(
-          stream: _muted,
-          initialData: false,
-          builder: (context, snap) {
-            final muted = snap.data ?? false;
-            return Padding(
-              padding: EdgeInsets.fromLTRB(16, 4, 16, keyboard ? 8 : 100),
-              child: muted
-                  ? Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: AppColors.claySoft,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text(
-                        'Hesabın yönetici tarafından susturuldu. Şu an mesaj yazamazsın.',
-                        style: TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                    )
-                  : Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _input,
-                            minLines: 1,
-                            maxLines: 4,
-                            maxLength: maxMessageLength,
-                            textCapitalization: TextCapitalization.sentences,
-                            decoration: InputDecoration(
-                              hintText: 'Mesajını yaz…',
-                              counterText: '',
-                              filled: true,
-                              fillColor: AppColors.surface,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 18,
-                                vertical: 12,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(26),
-                                borderSide: BorderSide.none,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Semantics(
-                          button: true,
-                          label: 'Mesajı gönder',
-                          child: GestureDetector(
-                            onTap: _sending ? null : _send,
-                            child: Container(
-                              width: 50,
-                              height: 50,
-                              decoration: const BoxDecoration(
-                                color: AppColors.primary,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.send,
-                                color: Colors.white,
-                                size: 22,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+        Padding(
+          padding: EdgeInsets.fromLTRB(16, 4, 16, keyboard ? 8 : 100),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _input,
+                  minLines: 1,
+                  maxLines: 4,
+                  maxLength: maxMessageLength,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: InputDecoration(
+                    hintText: 'Mesajını yaz…',
+                    counterText: '',
+                    filled: true,
+                    fillColor: AppColors.surface,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 12,
                     ),
-            );
-          },
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(26),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Semantics(
+                button: true,
+                label: 'Mesajı gönder',
+                child: GestureDetector(
+                  onTap: _sending ? null : _send,
+                  child: Container(
+                    width: 50,
+                    height: 50,
+                    decoration: const BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.send,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

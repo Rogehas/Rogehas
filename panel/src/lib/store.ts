@@ -17,7 +17,7 @@ import {
 } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 import { db, storage, USE_STORAGE } from './firebase';
-import type { ChatMsg, ChatReport, CommentItem, ComplaintItem, ComplaintStatus, DutyDay, Invite, Mute, News, PanelUser, Pharmacy, PushNotice, Role, Vefat } from './types';
+import type { ChatMsg, ChatReport, CommentItem, ComplaintItem, ComplaintStatus, DutyDay, Invite, Member, Mute, News, PanelUser, Pharmacy, PushNotice, Role, Vefat } from './types';
 
 /** Fotoğraf Storage açıksa yüklenip adresi saklanır; değilse veri adresi belgede kalır. */
 export type ContentCollection = 'events' | 'guide' | 'businesses';
@@ -153,6 +153,7 @@ export const store = {
         name: String(x.name ?? ''),
         text: String(x.text ?? ''),
         hidden: x.hidden === true,
+        shadow: x.shadow === true,
         createdAt: x.createdAt instanceof Timestamp ? x.createdAt.toDate().toISOString() : '',
       };
     });
@@ -192,6 +193,7 @@ export const store = {
         name: String(x.name ?? ''),
         text: String(x.text ?? ''),
         hidden: x.hidden === true,
+        shadow: x.shadow === true,
         parentId: typeof x.parentId === 'string' ? x.parentId : undefined,
         replyToName: typeof x.replyToName === 'string' ? x.replyToName : undefined,
         createdAt: x.createdAt instanceof Timestamp ? x.createdAt.toDate().toISOString() : '',
@@ -205,6 +207,19 @@ export const store = {
 
   async markReportHandled(id: string) {
     await updateDoc(doc(db, 'chatReports', id), { handled: true });
+  },
+
+  async members(): Promise<Member[]> {
+    const s = await getDocs(query(collection(db, 'members'), orderBy('createdAt', 'desc'), limit(2000)));
+    return s.docs.map((d) => {
+      const x = d.data();
+      return {
+        uid: d.id,
+        name: String(x.name ?? ''),
+        email: String(x.email ?? ''),
+        createdAt: x.createdAt instanceof Timestamp ? x.createdAt.toDate().toISOString() : '',
+      };
+    });
   },
 
   async mutes(): Promise<Mute[]> {

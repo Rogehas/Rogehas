@@ -15,6 +15,7 @@ const ITEMS: { label: string; section: Section; href?: string }[] = [
   { label: 'Yerel esnaf', section: 'esnaf', href: '/esnaf' },
   { label: 'Şikâyet / öneri', section: 'sikayet', href: '/sikayetler' },
   { label: 'Sohbet moderasyonu', section: 'chat', href: '/moderasyon' },
+  { label: 'Üyeler', section: 'uye', href: '/uyeler' },
   { label: 'Kullanıcılar', section: 'kullanici', href: '/kullanicilar' },
 ];
 

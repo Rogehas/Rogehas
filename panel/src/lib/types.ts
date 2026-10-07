@@ -235,3 +235,54 @@ export interface CommentItem {
   replyToName?: string;
   createdAt: string;
 }
+
+// ---- sponsor reklamlar ----
+/** Reklamın uygulamada görünebileceği yerler. Anahtarlar uygulamadaki `AdPlacement` ile aynıdır. */
+export const AD_PLACEMENTS = [
+  { key: 'hero', label: 'Kayan haberlerin içinde (ana sayfa)' },
+  { key: 'home', label: 'Ana sayfa şeridi (kısayolların altı)' },
+  { key: 'nav', label: 'Alt menü üstü ince şerit' },
+  { key: 'newsDetail', label: 'Haber içinde (yorumların üstü)' },
+  { key: 'newsList', label: 'Haber listesi arası' },
+  { key: 'esnaf', label: 'Esnaf sayfasında “öne çıkan”' },
+  { key: 'info', label: 'Eczane ve etkinlik sayfası altı' },
+] as const;
+export type AdPlacement = (typeof AD_PLACEMENTS)[number]['key'];
+export const AD_PLACEMENT_LABEL = Object.fromEntries(AD_PLACEMENTS.map((p) => [p.key, p.label])) as Record<AdPlacement, string>;
+
+export type AdAction = 'call' | 'map' | 'web';
+export const AD_ACTION_LABEL: Record<AdAction, string> = {
+  call: 'Ara (telefon)',
+  map: 'Haritada aç (adres)',
+  web: 'Web sitesine git',
+};
+
+export interface Ad {
+  id: string;
+  /** Esnaf / reklam veren adı. */
+  name: string;
+  /** Kısa metin (en fazla 80 karakter). */
+  text: string;
+  photo: string | null;
+  action: AdAction;
+  /** Telefon, adres ya da web adresi (eyleme göre). */
+  actionValue: string;
+  placements: AdPlacement[];
+  /** YYYY-MM-DD; boşsa hemen başlar. */
+  startDate: string;
+  /** YYYY-MM-DD; boşsa süresiz. */
+  endDate: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+  updatedBy: string;
+}
+
+/** Bir reklamın bir aydaki gösterim ve tıklama sayısı. */
+export interface AdStat {
+  adId: string;
+  /** YYYY-MM */
+  month: string;
+  impressions: number;
+  clicks: number;
+}

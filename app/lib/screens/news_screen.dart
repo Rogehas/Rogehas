@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../ads/ad_models.dart';
+import '../ads/ad_widgets.dart';
+
 import '../data/content_logic.dart';
 import '../data/content_repository.dart';
 import '../data/models.dart';
@@ -133,9 +136,16 @@ class _NewsScreenState extends State<NewsScreen> {
                 }
                 return Column(
                   children: [
-                    for (final n in items) ...[
-                      _FeedCard(n, onTap: () => _open(n)),
+                    for (var i = 0; i < items.length; i++) ...[
+                      _FeedCard(items[i], onTap: () => _open(items[i])),
                       const SizedBox(height: 26),
+                      // Üçüncü haberden sonra sponsor kartı (reklam yoksa hiçbir şey çizilmez).
+                      if (i == 2)
+                        const AdSlot(
+                          placement: AdPlacement.newsList,
+                          style: AdStyle.card,
+                          padding: EdgeInsets.only(bottom: 26),
+                        ),
                     ],
                   ],
                 );

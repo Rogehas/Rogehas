@@ -17,6 +17,7 @@ const ICONS: Record<Section, ReactNode> = {
   rehber: <path d="M6 3h11a2 2 0 0 1 2 2v16H8a2 2 0 0 1-2-2V3zM6 3v16M10 8h6M10 12h6" />,
   sikayet: <path d="M21 12a8 8 0 0 1-11.5 7.2L4 20l1-4.5A8 8 0 1 1 21 12zM12 8v4M12 15.5v.01" />,
   chat: <path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5 4V6a1 1 0 0 1 1-1zM8 10h8M8 13h5" />,
+  reklam: <path d="M3 11v3a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1zM15 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11" />,
   uye: <path d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2 20a7 7 0 0 1 14 0M16 4.5a3.5 3.5 0 0 1 0 6.5M18 14a7 7 0 0 1 4 6" />,
   kullanici: <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3zM9 12l2 2 4-4" />,
 };
@@ -38,6 +39,7 @@ const ITEMS: { label: string; section: Section; href?: string }[] = [
   { label: 'Yerel esnaf', section: 'esnaf', href: '/esnaf' },
   { label: 'Şikâyet / öneri', section: 'sikayet', href: '/sikayetler' },
   { label: 'Sohbet moderasyonu', section: 'chat', href: '/moderasyon' },
+  { label: 'Reklamlar', section: 'reklam', href: '/reklamlar' },
   { label: 'Üyeler', section: 'uye', href: '/uyeler' },
   { label: 'Kullanıcılar', section: 'kullanici', href: '/kullanicilar' },
 ];

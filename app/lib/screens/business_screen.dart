@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../ads/ad_models.dart';
+import '../ads/ad_widgets.dart';
+
 import '../data/content_logic.dart';
 import '../data/content_repository.dart';
 import '../data/links.dart';
@@ -48,6 +51,11 @@ class _BusinessScreenState extends State<BusinessScreen> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const AdSlot(
+                  placement: AdPlacement.esnaf,
+                  style: AdStyle.featured,
+                  padding: EdgeInsets.only(bottom: 14),
+                ),
                 if (cats.length > 1)
                   SizedBox(
                     height: 42,

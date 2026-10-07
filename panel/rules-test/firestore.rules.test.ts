@@ -1,5 +1,5 @@
 import { assertFails, assertSucceeds, initializeTestEnvironment, type RulesTestEnvironment } from '@firebase/rules-unit-testing';
-import { deleteDoc, doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
+import { deleteDoc, doc, getDoc, increment, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import { readFileSync } from 'node:fs';
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest';
 
@@ -471,5 +471,62 @@ describe('haber YouTube linki', () => {
     await assertFails(setDoc(doc(db, 'news/y5'), base({ youtubeUrl: 'https://evil.com/x' })));
     await assertFails(setDoc(doc(db, 'news/y6'), base({ youtubeUrl: 'https://youtube.com/' + 'a'.repeat(250) })));
     await assertFails(setDoc(doc(db, 'news/y7'), base({ youtubeUrl: 12345 })));
+  });
+});
+
+describe('sponsor reklamlar', () => {
+  const adDoc = (over = {}) => ({
+    name: 'Tavas Fırını', text: 'Sıcak simit', photo: null, action: 'call', actionValue: '02586140000',
+    placements: ['home'], startDate: '', endDate: '', active: true, ...over,
+  });
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      await setDoc(doc(db, 'ads/a1'), adDoc());
+      await setDoc(doc(db, 'adStats/a1_2026-10'), { adId: 'a1', month: '2026-10', impressions: 5, clicks: 1 });
+    });
+  });
+
+  it('herkes reklamları ve genel anahtarı okur; yalnızca yönetici yazar', async () => {
+    await assertSucceeds(getDoc(doc(as(null), 'ads/a1')));
+    await assertSucceeds(getDoc(doc(as(null), 'settings/ads')));
+    await assertSucceeds(setDoc(doc(as('adm'), 'ads/a2'), adDoc()));
+    await assertSucceeds(setDoc(doc(as('adm'), 'settings/ads'), { enabled: false }));
+    await assertSucceeds(deleteDoc(doc(as('adm'), 'ads/a1')));
+    for (const who of ['mod', 'ed1', 'u1', null]) {
+      await assertFails(setDoc(doc(as(who), 'ads/a3'), adDoc()));
+      await assertFails(setDoc(doc(as(who), 'settings/ads'), { enabled: false }));
+    }
+  });
+
+  it('geçersiz reklam belgesi reddedilir', async () => {
+    const db = as('adm');
+    await assertFails(setDoc(doc(db, 'ads/b1'), adDoc({ name: '' })));
+    await assertFails(setDoc(doc(db, 'ads/b2'), adDoc({ text: 'a'.repeat(81) })));
+    await assertFails(setDoc(doc(db, 'ads/b3'), adDoc({ placements: [] })));
+    await assertFails(setDoc(doc(db, 'ads/b4'), adDoc({ action: 'sms' })));
+    await assertFails(setDoc(doc(db, 'settings/baska'), { enabled: true }));
+  });
+
+  it('sayaçlar: misafir bile olay başına en fazla 1 artırır; okumak yalnızca yönetici', async () => {
+    const guest = as(null);
+    await assertSucceeds(updateDoc(doc(guest, 'adStats/a1_2026-10'), { impressions: increment(1) }));
+    await assertSucceeds(updateDoc(doc(guest, 'adStats/a1_2026-10'), { clicks: increment(1) }));
+    await assertFails(updateDoc(doc(guest, 'adStats/a1_2026-10'), { impressions: increment(50) }));
+    await assertFails(updateDoc(doc(guest, 'adStats/a1_2026-10'), { impressions: increment(-1) }));
+    await assertFails(updateDoc(doc(guest, 'adStats/a1_2026-10'), { adId: 'baska' }));
+    await assertSucceeds(getDoc(doc(as('adm'), 'adStats/a1_2026-10')));
+    await assertFails(getDoc(doc(guest, 'adStats/a1_2026-10')));
+    await assertFails(deleteDoc(doc(as('adm'), 'adStats/a1_2026-10')));
+  });
+
+  it('sayaç belgesi ilk olayda oluşur; olmayan reklam, yanlış kimlik veya büyük değer reddedilir', async () => {
+    const guest = as(null);
+    await assertSucceeds(setDoc(doc(guest, 'adStats/a1_2026-11'), { adId: 'a1', month: '2026-11', impressions: 1 }));
+    await assertFails(setDoc(doc(guest, 'adStats/a1_2026-12'), { adId: 'a1', month: '2026-12', impressions: 100 }));
+    await assertFails(setDoc(doc(guest, 'adStats/yok_2026-10'), { adId: 'yok', month: '2026-10', impressions: 1 }));
+    await assertFails(setDoc(doc(guest, 'adStats/yanlis'), { adId: 'a1', month: '2026-10', impressions: 1 }));
+    await assertFails(setDoc(doc(guest, 'adStats/a1_ocak'), { adId: 'a1', month: 'ocak', impressions: 1 }));
+    await assertFails(setDoc(doc(guest, 'adStats/a1_2026-09'), { adId: 'a1', month: '2026-09', impressions: 1, extra: 1 }));
   });
 });

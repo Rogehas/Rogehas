@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../ads/ad_models.dart';
+import '../ads/ad_widgets.dart';
+
 import '../data/content_repository.dart';
 import '../data/duty_logic.dart';
 import '../data/models.dart';
@@ -106,6 +109,10 @@ class _EczaneScreenState extends State<EczaneScreen> {
                   );
                 },
               ),
+            ),
+            const AdSlot(
+              placement: AdPlacement.info,
+              padding: EdgeInsets.only(top: 6),
             ),
           ],
         ),

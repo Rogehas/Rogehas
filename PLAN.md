@@ -254,3 +254,12 @@ Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildi
 - Panel → haber formunda "YouTube video linki (isteğe bağlı)": link doğrulanır (watch / youtu.be / embed / shorts / live), geçerliyse kapak resmi önizlenir. Video varsa haber metni boş bırakılabilir. Kurallar `youtubeUrl` alanını yalnızca YouTube adresine izin verecek şekilde denetler.
 - Uygulama: videolu haberin kartında/kayan bölümünde kapak resmi (yoksa YouTube kapağı) + oynat simgesi; ayrıntıda kapağa dokununca video haberin içinde oynar (`youtube_player_iframe`, WebView). "YouTube'da aç" düğmesi kullanıcı isteğiyle kaldırıldı. Oynatma dokununca başlar (izin verilmeden veri harcanmaz).
 - Not: video sahibi gömmeyi kapattıysa oynatıcı hata verir; bu durumda yedek yol yoktur (düğme kaldırıldı), gerekirse geri eklenir. Gizlilik politikasına "YouTube videoları gösterilir" eklenecek. Oynatıcı gerçek cihazda denenmeli (testlerde sahte oynatıcı kullanılır).
+
+## Sponsor reklamlar (yerel esnaf)
+- **Panel → Reklamlar (yalnızca yönetici):** esnaf adı, kısa metin (≤80), görsel (isteğe bağlı), dokununca eylem (ara / haritada aç / web sitesi), başlangıç-bitiş tarihi, açık/kapalı, **yerler** (7 seçenek) ve tepede **genel "Reklamları göster" anahtarı**. Bir yerde en fazla 3 açık reklam (panel zorlar). Her reklamın yanında bu ay / toplam gösterim ve tıklama.
+- **Yerler:** `hero` (kayan haberlerde 3. sıraya girer), `home` (kısayolların altı), `nav` (alt menü üstü, ✕ ile oturum boyunca kapatılır; vefat sekmesinde ve klavye açıkken yok), `newsDetail` (yorumların üstü), `newsList` (3. haberden sonra), `esnaf` ("öne çıkan"), `info` (eczane ve etkinlik sayfası altı). Vefat sayfasında reklam yok.
+- **Dönme:** aynı yerde birden fazla reklam varsa uygulama her açılışta sıradakini gösterir (`app_launches` sayacı % reklam sayısı). Kayan hareket yok.
+- **Reklam yokken:** hiçbir alan/boşluk çizilmez; genel anahtar kapalıysa ya da tarih dışıysa aynı. Hata durumunda da reklam gösterilmez (sessiz).
+- **Sayaç:** Firestore `adStats/{reklam}_{yyyy-AA}` (gösterim = oturum başına yer+reklam başına 1, tıklama = her dokunuş). Misafir uygulama yazabilir ama kurallar her olayı en fazla +1 ile sınırlar; yalnızca yönetici okur. Not: kötü niyetli biri sayacı şişirebilir (App Check ile ileride daraltılır).
+- Kurallar: `ads` (herkes okur, yönetici yazar), `settings/ads` (genel anahtar), `adStats`.
+- Gizlilik politikasına: "sponsor reklamlar gösterilir; reklam gösterim/tıklama sayıları kimlik bilgisi içermeden sayılır".

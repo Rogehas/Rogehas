@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../ads/ad_models.dart';
+import '../ads/ad_widgets.dart';
 import '../data/models.dart';
 import '../notifications/notification_settings.dart';
 import '../theme/app_theme.dart';
@@ -141,6 +143,17 @@ class _ShellState extends State<Shell> {
                 ],
               ),
             ),
+            // Alt menünün üstünde kapatılabilir sponsor şeridi (vefat sekmesinde ve klavye açıkken yok).
+            if (!keyboardOpen && !dark)
+              const Positioned(
+                left: 16,
+                right: 16,
+                bottom: 120,
+                child: SafeArea(
+                  top: false,
+                  child: AdSlot(placement: AdPlacement.nav, closable: true),
+                ),
+              ),
             // Klavye açıkken (sohbet yazarken) menü yazı alanını kapatmasın.
             if (!keyboardOpen)
               Positioned(

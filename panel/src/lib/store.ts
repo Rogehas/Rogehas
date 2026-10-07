@@ -17,7 +17,7 @@ import {
 } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 import { db, storage, USE_STORAGE } from './firebase';
-import type { ChatMsg, ChatReport, CommentItem, ComplaintItem, ComplaintStatus, DutyDay, Invite, Member, Mute, News, PanelUser, Pharmacy, PushNotice, Role, Vefat } from './types';
+import type { Ad, AdStat, ChatMsg, ChatReport, CommentItem, ComplaintItem, ComplaintStatus, DutyDay, Invite, Member, Mute, News, PanelUser, Pharmacy, PushNotice, Role, Vefat } from './types';
 
 /** Fotoğraf Storage açıksa yüklenip adresi saklanır; değilse veri adresi belgede kalır. */
 export type ContentCollection = 'events' | 'guide' | 'businesses';
@@ -140,6 +140,43 @@ export const store = {
     batch.set(doc(db, 'news', n.id), { ...n, photo });
     if (notice) batch.set(doc(db, 'notices', notice.id), notice);
     await batch.commit();
+  },
+
+  // ---- sponsor reklamlar (yalnızca yönetici) ----
+  async ads(): Promise<Ad[]> {
+    const s = await getDocs(collection(db, 'ads'));
+    return s.docs.map((d) => d.data() as Ad).sort(byUpdated);
+  },
+
+  async upsertAd(ad: Ad) {
+    await setDoc(doc(db, 'ads', ad.id), ad);
+  },
+
+  async deleteAd(id: string) {
+    await deleteDoc(doc(db, 'ads', id));
+  },
+
+  /** Genel reklam anahtarı; belge yoksa açık sayılır. */
+  async adsEnabled(): Promise<boolean> {
+    const s = await getDoc(doc(db, 'settings', 'ads'));
+    return !s.exists() || s.data().enabled !== false;
+  },
+
+  async setAdsEnabled(enabled: boolean, by: string) {
+    await setDoc(doc(db, 'settings', 'ads'), { enabled, updatedBy: by, updatedAt: serverTimestamp() });
+  },
+
+  async adStats(): Promise<AdStat[]> {
+    const s = await getDocs(collection(db, 'adStats'));
+    return s.docs.map((d) => {
+      const x = d.data();
+      return {
+        adId: String(x.adId ?? ''),
+        month: String(x.month ?? ''),
+        impressions: Number(x.impressions ?? 0),
+        clicks: Number(x.clicks ?? 0),
+      };
+    });
   },
 
   // ---- sohbet moderasyonu (moderatör ve yönetici) ----

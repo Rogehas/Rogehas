@@ -1,6 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'ads/ad_controller.dart';
+import 'ads/ad_repository.dart';
+import 'ads/ad_widgets.dart';
 import 'auth/auth_service.dart';
 import 'auth/firebase_auth_service.dart';
 import 'chat/chat_repository.dart';
@@ -19,6 +23,18 @@ import 'theme/app_theme.dart';
 /// `--dart-define=USE_MOCK=true` ile örnek veriyle çalışır (tanıtım/deneme).
 const _useMock = bool.fromEnvironment('USE_MOCK');
 
+/// Uygulama açılış sayısını artırıp döner (reklamların sırayla dönmesi için).
+Future<int> _nextLaunch() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final n = (prefs.getInt('app_launches') ?? 0) + 1;
+    await prefs.setInt('app_launches', n);
+    return n;
+  } catch (_) {
+    return 0;
+  }
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final s = await _bootstrap();
@@ -33,6 +49,8 @@ Future<void> main() async {
       weather: s.weather,
       blocks: s.blocks,
       members: s.members,
+      ads: s.ads,
+      launch: s.launch,
     ),
   );
 }
@@ -47,6 +65,8 @@ typedef _Services = ({
   WeatherSource weather,
   BlockList blocks,
   MemberRegistry members,
+  AdRepository ads,
+  int launch,
 });
 
 Future<_Services> _bootstrap() async {
@@ -64,6 +84,8 @@ Future<_Services> _bootstrap() async {
       ),
       blocks: blocks,
       members: InMemoryMemberRegistry(),
+      ads: InMemoryAdRepository(),
+      launch: 0,
     );
   }
   try {
@@ -83,6 +105,8 @@ Future<_Services> _bootstrap() async {
       weather: OpenMeteoWeatherSource(),
       blocks: blocks,
       members: FirestoreMemberRegistry(),
+      ads: FirestoreAdRepository(),
+      launch: await _nextLaunch(),
     );
   } catch (e) {
     // Sahte veri göstermek yerine ekranlarda "yüklenemedi" mesajı çıkar.
@@ -96,6 +120,8 @@ Future<_Services> _bootstrap() async {
       weather: NoWeatherSource(),
       blocks: blocks,
       members: InMemoryMemberRegistry(),
+      ads: InMemoryAdRepository(),
+      launch: 0,
     );
   }
 }
@@ -112,6 +138,8 @@ class TavasApp extends StatefulWidget {
     this.weather,
     this.blocks,
     this.members,
+    this.ads,
+    this.launch = 0,
   });
   final ContentRepository repository;
   final NoticeSettings notifications;
@@ -126,6 +154,12 @@ class TavasApp extends StatefulWidget {
   final WeatherSource? weather;
   final BlockList? blocks;
   final MemberRegistry? members;
+
+  /// Verilmezse reklam çıkmaz (testler).
+  final AdRepository? ads;
+
+  /// Uygulamanın kaçıncı açılışı; reklamlar bununla sırayla döner.
+  final int launch;
 
   @override
   State<TavasApp> createState() => _TavasAppState();
@@ -145,11 +179,16 @@ class _TavasAppState extends State<TavasApp> {
   late final BlockList _blocks = widget.blocks ?? BlockList.memory();
   late final MemberRegistry _members =
       widget.members ?? InMemoryMemberRegistry();
+  late final AdController _ads = AdController(
+    widget.ads ?? InMemoryAdRepository(),
+    launch: widget.launch,
+  );
 
   @override
   void dispose() {
     _hub.dispose();
     _weather.dispose();
+    _ads.dispose();
     widget.notifications.dispose();
     if (widget.auth == null) _auth.dispose();
     super.dispose();
@@ -157,30 +196,33 @@ class _TavasAppState extends State<TavasApp> {
 
   @override
   Widget build(BuildContext context) {
-    return ContentScope(
-      hub: _hub,
-      child: NotificationScope(
-        settings: widget.notifications,
-        child: AuthScope(
-          service: _auth,
-          child: MemberSync(
-            registry: _members,
-            auth: _auth,
-            child: WeatherScope(
-              controller: _weather,
-              child: CommentScope(
-                repository: _comments,
-                child: ComplaintScope(
-                  repository: _complaints,
-                  child: ChatScope(
-                    repository: _chat,
-                    blocks: _blocks,
-                    child: MaterialApp(
-                      title: 'Tavas',
-                      debugShowCheckedModeBanner: false,
-                      theme: AppTheme.dark,
-                      // Uygulama doğrudan ana sayfada açılır; giriş yalnızca sohbet için gerekir.
-                      home: const Shell(),
+    return AdScope(
+      controller: _ads,
+      child: ContentScope(
+        hub: _hub,
+        child: NotificationScope(
+          settings: widget.notifications,
+          child: AuthScope(
+            service: _auth,
+            child: MemberSync(
+              registry: _members,
+              auth: _auth,
+              child: WeatherScope(
+                controller: _weather,
+                child: CommentScope(
+                  repository: _comments,
+                  child: ComplaintScope(
+                    repository: _complaints,
+                    child: ChatScope(
+                      repository: _chat,
+                      blocks: _blocks,
+                      child: MaterialApp(
+                        title: 'Tavas',
+                        debugShowCheckedModeBanner: false,
+                        theme: AppTheme.dark,
+                        // Uygulama doğrudan ana sayfada açılır; giriş yalnızca sohbet için gerekir.
+                        home: const Shell(),
+                      ),
                     ),
                   ),
                 ),

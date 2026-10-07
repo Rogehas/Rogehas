@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../ads/ad_models.dart';
+import '../ads/ad_widgets.dart';
+
 import '../data/content_logic.dart';
 import '../data/content_repository.dart';
 import '../data/models.dart';
@@ -37,6 +40,10 @@ class EventsScreen extends StatelessWidget {
               ],
             );
           },
+        ),
+        const AdSlot(
+          placement: AdPlacement.info,
+          padding: EdgeInsets.only(top: 6),
         ),
       ],
     );

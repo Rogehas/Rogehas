@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../ads/ad_models.dart';
+import '../ads/ad_widgets.dart';
 import '../data/models.dart';
 import '../data/youtube.dart';
 import '../theme/app_theme.dart';
@@ -89,6 +91,10 @@ class NewsDetailScreen extends StatelessWidget {
               ),
             ),
           ),
+        ),
+        const AdSlot(
+          placement: AdPlacement.newsDetail,
+          padding: EdgeInsets.only(top: 22),
         ),
         // Kimliği olmayan (örnek) haberlerde yorum bölümü gösterilmez.
         if (item.id.isNotEmpty) ...[

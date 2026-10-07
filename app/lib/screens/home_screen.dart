@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../ads/ad_models.dart';
+import '../ads/ad_widgets.dart';
 import '../data/content_repository.dart';
 import '../data/hero_slides.dart';
 import '../data/hero_style.dart';
@@ -54,6 +56,10 @@ class HomeScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 20),
               _ShortcutGrid(onOpenNews: onOpenNews, opener: opener),
+              const AdSlot(
+                placement: AdPlacement.home,
+                padding: EdgeInsets.only(top: 14),
+              ),
               DataStream<List<NewsItem>>(
                 source: news,
                 builder: (context, all) {
@@ -215,7 +221,11 @@ class _HeroState extends State<_Hero> {
                     initialData: ContentScope.of(context).vefat.latest,
                     builder: (context, vefatSnap) {
                       final vefat = vefatSnap.data;
-                      final slides = buildHeroSlides(all, vefat ?? const []);
+                      final slides = buildHeroSlides(
+                        all,
+                        vefat ?? const [],
+                        ad: AdScope.maybeOf(context)?.adFor(AdPlacement.hero),
+                      );
                       if (slides.isEmpty) {
                         return const Center(
                           child: Text(
@@ -241,6 +251,10 @@ class _HeroState extends State<_Hero> {
                               onPageChanged: (i) => setState(() => _page = i),
                               itemBuilder: (context, i) {
                                 final slide = slides[i];
+                                final sponsor = slide.ad;
+                                if (sponsor != null) {
+                                  return AdHeroSlide(sponsor);
+                                }
                                 final v = slide.vefat;
                                 if (v != null) {
                                   return _VefatSlide(

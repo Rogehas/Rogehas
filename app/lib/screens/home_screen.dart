@@ -157,6 +157,23 @@ class _HeroState extends State<_Hero> {
           padding: EdgeInsets.fromLTRB(18, top + 8, 12, 8),
           child: Row(
             children: [
+              // Kırmızı çubukta kaybolmasın diye ince beyaz halkalı küçük logo.
+              Container(
+                width: 32,
+                height: 32,
+                margin: const EdgeInsets.only(right: 10),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/branding/logo.png',
+                    excludeFromSemantics: true,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
               Expanded(
                 child: Text(
                   '${greeting(DateTime.now())}, Tavas',

@@ -27,6 +27,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/branding/logo.png
 
 # Uygulama ikonu ve açılış ekranı (kaynaklar: assets/branding/). Yeniden üretmek için:
 #   dart run flutter_launcher_icons

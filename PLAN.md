@@ -252,5 +252,5 @@ Kalan: kuralları yayınlama, ilk yönetici profili, Blaze + Storage, push bildi
 
 ## Haberde YouTube videosu
 - Panel → haber formunda "YouTube video linki (isteğe bağlı)": link doğrulanır (watch / youtu.be / embed / shorts / live), geçerliyse kapak resmi önizlenir. Video varsa haber metni boş bırakılabilir. Kurallar `youtubeUrl` alanını yalnızca YouTube adresine izin verecek şekilde denetler.
-- Uygulama: videolu haberin kartında/kayan bölümünde kapak resmi (yoksa YouTube kapağı) + oynat simgesi; ayrıntıda kapağa dokununca video haberin içinde oynar (`youtube_player_iframe`, WebView). Altında her zaman "YouTube'da aç" düğmesi. Oynatma dokununca başlar (izin verilmeden veri harcanmaz).
-- Not: video sahibi gömmeyi kapattıysa oynatıcı hata verir; "YouTube'da aç" yedek yoldur. Gizlilik politikasına "YouTube videoları gösterilir" eklenecek. Oynatıcı gerçek cihazda denenmeli (testlerde sahte oynatıcı kullanılır).
+- Uygulama: videolu haberin kartında/kayan bölümünde kapak resmi (yoksa YouTube kapağı) + oynat simgesi; ayrıntıda kapağa dokununca video haberin içinde oynar (`youtube_player_iframe`, WebView). "YouTube'da aç" düğmesi kullanıcı isteğiyle kaldırıldı. Oynatma dokununca başlar (izin verilmeden veri harcanmaz).
+- Not: video sahibi gömmeyi kapattıysa oynatıcı hata verir; bu durumda yedek yol yoktur (düğme kaldırıldı), gerekirse geri eklenir. Gizlilik politikasına "YouTube videoları gösterilir" eklenecek. Oynatıcı gerçek cihazda denenmeli (testlerde sahte oynatıcı kullanılır).

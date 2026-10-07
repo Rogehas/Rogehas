@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 import '../data/models.dart';
-import '../data/youtube.dart';
-import '../theme/app_theme.dart';
 import 'news_visual.dart';
-import 'url_opener.dart';
 
 /// Videoyu çizen bileşen. Testlerde sahte bir sürümle değiştirilir.
 typedef VideoPlayerBuilder = Widget Function(BuildContext context, String id);
@@ -44,11 +41,10 @@ class _IframePlayerState extends State<_IframePlayer> {
 }
 
 /// Haber ayrıntısının üstündeki görsel. Videolu haberde kapağa dokununca video
-/// haberin içinde oynar; "YouTube'da aç" düğmesi her zaman yanında durur.
+/// haberin içinde oynar.
 class NewsMedia extends StatefulWidget {
-  const NewsMedia(this.item, {super.key, this.opener = defaultOpen});
+  const NewsMedia(this.item, {super.key});
   final NewsItem item;
-  final UrlOpener opener;
 
   @override
   State<NewsMedia> createState() => _NewsMediaState();
@@ -80,20 +76,6 @@ class _NewsMediaState extends State<NewsMedia> {
                       child: NewsVisual(widget.item),
                     ),
                   ),
-          ),
-        ),
-        const SizedBox(height: 6),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: TextButton.icon(
-            onPressed: () => openOrWarn(
-              context,
-              widget.opener,
-              Uri.parse(youtubeWatchUrl(id)),
-            ),
-            icon: const Icon(Icons.open_in_new, size: 16),
-            label: const Text("YouTube'da aç"),
-            style: TextButton.styleFrom(foregroundColor: AppColors.accentText),
           ),
         ),
       ],

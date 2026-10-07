@@ -98,9 +98,7 @@ void main() {
     testWidgets('kapakta oynat simgesi var; dokununca video açılır', (
       tester,
     ) async {
-      await tester.pumpWidget(
-        const MaterialApp(home: NewsDetailScreen(video)),
-      );
+      await tester.pumpWidget(const MaterialApp(home: NewsDetailScreen(video)));
       expect(find.byType(PlayBadge), findsOneWidget);
       expect(find.textContaining('OYNATICI'), findsNothing);
       await tester.tap(find.bySemanticsLabel('Videoyu oynat'));
@@ -108,38 +106,16 @@ void main() {
       expect(find.text('OYNATICI:$id'), findsOneWidget);
     });
 
-    testWidgets("YouTube'da aç düğmesi doğru adresi açar", (tester) async {
-      Uri? opened;
-      await tester.pumpWidget(
-        MaterialApp(
-          home: NewsDetailScreen(
-            video,
-            opener: (u) async {
-              opened = u;
-              return true;
-            },
-          ),
-        ),
-      );
-      await tester.tap(find.text("YouTube'da aç"));
-      await tester.pump();
-      expect(opened.toString(), 'https://www.youtube.com/watch?v=$id');
-    });
-
-    testWidgets('videosuz haberde oynat simgesi ve YouTube düğmesi yoktur', (
-      tester,
-    ) async {
+    testWidgets('videosuz haberde oynat simgesi yoktur', (tester) async {
       const plain = NewsItem(
         kind: NewsKind.haber,
         title: 'Düz haber',
         meta: '',
         palette: ScenePalette.day,
       );
-      await tester.pumpWidget(
-        const MaterialApp(home: NewsDetailScreen(plain)),
-      );
+      await tester.pumpWidget(const MaterialApp(home: NewsDetailScreen(plain)));
       expect(find.byType(PlayBadge), findsNothing);
-      expect(find.text("YouTube'da aç"), findsNothing);
+      expect(find.textContaining("YouTube'da"), findsNothing);
     });
   });
 }

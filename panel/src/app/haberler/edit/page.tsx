@@ -3,6 +3,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import { Shell } from '@/components/Shell';
 import { resizePhoto } from '@/lib/image';
+import { youtubeId, youtubeThumb } from '@/lib/youtube';
 import { applyNewsEdit, transitionNews, validateNews } from '@/lib/news-rules';
 import { canEditNews } from '@/lib/permissions';
 import { useSession } from '@/lib/session';
@@ -117,6 +118,14 @@ function NewsEditInner() {
               )}
               <div className="field"><label htmlFor="src">Kaynak</label><input id="src" placeholder="Belediye, Editör…" value={n.source} onChange={(e) => set('source', e.target.value)} /></div>
               <div className="field" style={{ gridColumn: '1 / -1' }}><label htmlFor="title">Başlık</label><input id="title" value={n.title} onChange={(e) => set('title', e.target.value)} /></div>
+              <div className="field" style={{ gridColumn: '1 / -1' }}>
+                <label htmlFor="yt">YouTube video linki (isteğe bağlı)</label>
+                <input id="yt" placeholder="https://www.youtube.com/watch?v=…" value={n.youtubeUrl ?? ''} onChange={(e) => set('youtubeUrl', e.target.value)} />
+                {(n.youtubeUrl ?? '').trim() !== '' && (youtubeId(n.youtubeUrl)
+                  ? <img src={youtubeThumb(youtubeId(n.youtubeUrl)!)} alt="Video kapak resmi" style={{ width: 220, borderRadius: 12, marginTop: 8 }} />
+                  : <span className="muted">Geçerli bir YouTube linki değil.</span>)}
+                <span className="muted">Uygulamada haberin içinde oynatılır; görsel seçmezsen videonun kapak resmi kullanılır.</span>
+              </div>
               <div className="field" style={{ gridColumn: '1 / -1' }}><label htmlFor="body">Metin</label><textarea id="body" style={{ height: 180 }} value={n.body} onChange={(e) => set('body', e.target.value)} /></div>
             </div>
           </div>

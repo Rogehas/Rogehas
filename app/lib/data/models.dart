@@ -12,6 +12,7 @@ class NewsItem {
     this.label,
     this.body = '',
     this.photoUrl,
+    this.videoId,
     this.commentsOpen = true,
     this.publishedAt,
   });
@@ -36,6 +37,9 @@ class NewsItem {
 
   /// Görsel adresi (https ya da data:). Yoksa çizim gösterilir.
   final String? photoUrl;
+
+  /// Haberde YouTube videosu varsa kimliği; kartlarda oynat simgesi çıkar, ayrıntıda oynatılır.
+  final String? videoId;
 
   String get tagText =>
       label ??

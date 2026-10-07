@@ -51,6 +51,8 @@ export interface News {
   body: string;
   source: string;
   photo: string | null;
+  /** İsteğe bağlı YouTube video linki; uygulamada haberin içinde oynatılır. */
+  youtubeUrl?: string;
   sendPush: boolean;
   /** Üyeler yorum yazabilir mi? Eski kayıtlarda yoksa açık sayılır. */
   commentsOpen?: boolean;

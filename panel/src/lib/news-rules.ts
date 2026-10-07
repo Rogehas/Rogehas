@@ -1,10 +1,13 @@
 import { canArchiveNews, canEditNews, canPublishNews } from './permissions';
 import type { News, PanelUser, PushNotice } from './types';
+import { youtubeId } from './youtube';
 
 export function validateNews(n: News): string[] {
   const e: string[] = [];
   if (!n.title.trim()) e.push('Başlık gerekli.');
-  if (!n.body.trim()) e.push('Metin gerekli.');
+  const hasLink = (n.youtubeUrl ?? '').trim() !== '';
+  if (hasLink && !youtubeId(n.youtubeUrl)) e.push('YouTube linki geçersiz. Videonun adresini yapıştır.');
+  if (!n.body.trim() && !(hasLink && youtubeId(n.youtubeUrl))) e.push('Metin gerekli (video varsa boş bırakılabilir).');
   if (n.kind === 'kesinti' && !n.subLabel.trim()) e.push('Kesinti türü (ör. SU) gerekli.');
   return e;
 }

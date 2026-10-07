@@ -456,3 +456,20 @@ describe('üye kaydı', () => {
     await assertFails(getDoc(doc(as(null), 'members/u2')));
   });
 });
+
+describe('haber YouTube linki', () => {
+  const base = (over = {}) => ({
+    kind: 'haber', subLabel: '', title: 'Başlık', body: 'Metin', source: '', photo: null, sendPush: false,
+    status: 'draft', createdBy: 'ed1', createdByName: 'Ed', createdAt: 'x', updatedAt: 'x', ...over,
+  });
+  it('geçerli YouTube linki kaydedilir; başka site, uzun veya sayı olmayan değer reddedilir', async () => {
+    const db = as('ed1');
+    await assertSucceeds(setDoc(doc(db, 'news/y1'), base()));
+    await assertSucceeds(setDoc(doc(db, 'news/y2'), base({ youtubeUrl: '' })));
+    await assertSucceeds(setDoc(doc(db, 'news/y3'), base({ youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' })));
+    await assertSucceeds(setDoc(doc(db, 'news/y4'), base({ youtubeUrl: 'https://youtu.be/dQw4w9WgXcQ' })));
+    await assertFails(setDoc(doc(db, 'news/y5'), base({ youtubeUrl: 'https://evil.com/x' })));
+    await assertFails(setDoc(doc(db, 'news/y6'), base({ youtubeUrl: 'https://youtube.com/' + 'a'.repeat(250) })));
+    await assertFails(setDoc(doc(db, 'news/y7'), base({ youtubeUrl: 12345 })));
+  });
+});

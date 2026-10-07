@@ -1,3 +1,4 @@
+import 'youtube.dart';
 import 'models.dart';
 
 /// Firestore belgelerini (panelin yazdığı alanlar) uygulama modellerine çevirir.
@@ -123,6 +124,7 @@ class ContentMapper {
     final sub = (m['subLabel'] as String? ?? '').trim();
     final source = (m['source'] as String? ?? '').trim();
     final t = ago(publishedAt(m), now ?? DateTime.now());
+    final video = youtubeVideoId(m['youtubeUrl']);
     return NewsItem(
       id: (m['id'] as String? ?? '').trim(),
       commentsOpen: m['commentsOpen'] as bool? ?? true,
@@ -135,7 +137,11 @@ class ContentMapper {
       body: (m['body'] as String? ?? '').trim(),
       meta: [if (source.isNotEmpty) source, if (t.isNotEmpty) t].join(' · '),
       palette: kind == NewsKind.haber ? ScenePalette.day : ScenePalette.sand,
-      photoUrl: _photo(m['photo']),
+      // Görsel seçilmediyse videonun kapak resmi kullanılır.
+      photoUrl:
+          _photo(m['photo']) ??
+          (video == null ? null : youtubeThumbnail(video)),
+      videoId: video,
     );
   }
 

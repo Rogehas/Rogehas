@@ -4,15 +4,22 @@ import '../data/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/comments_section.dart';
 import '../widgets/common.dart';
-import '../widgets/news_visual.dart';
+import '../widgets/news_video.dart';
+import '../widgets/url_opener.dart';
 import '../widgets/share.dart';
 import '../widgets/sub_page.dart';
 
 /// Haberin tam metni.
 class NewsDetailScreen extends StatelessWidget {
-  const NewsDetailScreen(this.item, {super.key, this.share = defaultShare});
+  const NewsDetailScreen(
+    this.item, {
+    super.key,
+    this.share = defaultShare,
+    this.opener = defaultOpen,
+  });
   final NewsItem item;
   final ShareFn share;
+  final UrlOpener opener;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +31,7 @@ class NewsDetailScreen extends StatelessWidget {
           ? 'Duyuru'
           : 'Kesinti',
       children: [
-        SizedBox(height: 210, child: NewsVisual(item, radius: 28)),
+        NewsMedia(item, opener: opener),
         const SizedBox(height: 16),
         Align(
           alignment: Alignment.centerLeft,

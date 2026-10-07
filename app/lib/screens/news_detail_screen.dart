@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/models.dart';
+import '../data/youtube.dart';
 import '../theme/app_theme.dart';
 import '../widgets/comments_section.dart';
 import '../widgets/common.dart';
@@ -45,7 +46,7 @@ class NewsDetailScreen extends StatelessWidget {
             item.body,
             style: const TextStyle(fontSize: 16, height: 1.6),
           )
-        else
+        else if (item.videoId == null)
           const Text(
             'Bu haber için ek açıklama girilmemiş.',
             style: TextStyle(fontSize: 14, color: AppColors.muted),
@@ -57,6 +58,7 @@ class NewsDetailScreen extends StatelessWidget {
               item.title,
               if (hasBody) '',
               if (hasBody) item.body,
+              if (item.videoId != null) ...['', youtubeWatchUrl(item.videoId!)],
               '',
               '— Tavas uygulaması',
             ].join('\n'),

@@ -106,6 +106,27 @@ void main() {
       expect(find.text('OYNATICI:$id'), findsOneWidget);
     });
 
+    testWidgets(
+      'videolu haberde "ek açıklama yok" yazısı çıkmaz; paylaşımda video linki olur',
+      (tester) async {
+        String? shared;
+        await tester.pumpWidget(
+          MaterialApp(
+            home: NewsDetailScreen(video, share: (t) async => shared = t),
+          ),
+        );
+        expect(find.textContaining('ek açıklama'), findsNothing);
+        await tester.scrollUntilVisible(
+          find.text('Paylaş'),
+          200,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await tester.tap(find.text('Paylaş'));
+        await tester.pump();
+        expect(shared, contains('https://www.youtube.com/watch?v=$id'));
+      },
+    );
+
     testWidgets('videosuz haberde oynat simgesi yoktur', (tester) async {
       const plain = NewsItem(
         kind: NewsKind.haber,
